@@ -1,0 +1,118 @@
+name: CI/CD
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+      
+      - name: Install dependencies
+        run: pnpm install
+      
+      - name: Lint
+        run: pnpm lint
+      
+      - name: Test
+        run: pnpm test
+      
+      - name: Build
+        run: pnpm build
+
+      - name: Upload Build Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist
+
+  deploy:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' || github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+
+      - name: Download Build Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist-new
+
+      - name: Deploy to gh-pages
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          
+          if [ "${{ github.event_name }}" == "pull_request" ]; then
+            PR_NUMBER=${{ github.event.number }}
+            TARGET_DIR="pr-$PR_NUMBER"
+            mkdir -p "$TARGET_DIR"
+            rm -rf "$TARGET_DIR"/*
+            cp -r dist-new/* "$TARGET_DIR"/
+          else
+            # Production deploy (main branch)
+            # Preserve pr-* directories
+            find . -maxdepth 1 -not -name '.git' -not -name 'pr-*' -not -name '.' -exec rm -rf {} +
+            cp -r dist-new/* .
+          fi
+          
+          git add .
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "Deploy ${{ github.sha }} to gh-pages"
+            git push origin gh-pages
+          fi
+
+      - name: Comment on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prNumber = context.issue.number;
+            const repo = context.repo.repo;
+            const owner = context.repo.owner;
+            const url = `https://${owner}.github.io/${repo}/pr-${prNumber}/`;
+            const body = `🚀 Preview available at: ${url}`;
+            
+            const { data: comments } = await github.rest.issues.listComments({
+              owner,
+              repo,
+              issue_number: prNumber,
+            });
+            
+            const botComment = comments.find(comment => comment.body.includes('Preview available at:'));
+            
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner,
+                repo,
+                comment_id: botComment.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number: prNumber,
+                body,
+              });
+            }
