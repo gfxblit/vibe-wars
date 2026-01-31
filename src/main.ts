@@ -5,7 +5,9 @@
 import './style.css'
 import { initGame } from './state'
 import { initRenderer } from './renderer'
+import { setupInput } from './input'
 
 console.log('Vibe Wars starting...')
 initRenderer()
 initGame()
+setupInput()
