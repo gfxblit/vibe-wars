@@ -1,3 +1,7 @@
+/**
+ * STUB: This game state implementation is a placeholder and subject to 
+ * major refactoring as the architecture is finalized.
+ */
 import * as THREE from 'three';
 
 export type GamePhase = 'DOGFIGHT' | 'SURFACE' | 'TRENCH';
