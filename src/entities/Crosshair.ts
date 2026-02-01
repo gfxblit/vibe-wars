@@ -2,10 +2,12 @@ import * as THREE from 'three';
 import { Entity } from './Entity';
 
 export class Crosshair extends Entity {
+  public static readonly COLOR = 0xff0000;
+
   constructor() {
     super();
     
-    const material = new THREE.LineBasicMaterial({ color: 0xff0000 });
+    const material = new THREE.LineBasicMaterial({ color: Crosshair.COLOR });
     
     // Crosshair geometry: a diamond/square with inner lines
     const size = 0.5;

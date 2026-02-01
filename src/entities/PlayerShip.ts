@@ -2,10 +2,12 @@ import * as THREE from 'three';
 import { Entity } from './Entity';
 
 export class PlayerShip extends Entity {
+  public static readonly COLOR = 0x00ff00;
+
   constructor() {
     super();
     
-    const material = new THREE.LineBasicMaterial({ color: 0x00ff00 });
+    const material = new THREE.LineBasicMaterial({ color: PlayerShip.COLOR });
     
     // Simple nose geometry (tapered box)
     const noseVertices = new Float32Array([

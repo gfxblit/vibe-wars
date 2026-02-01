@@ -11,16 +11,9 @@ describe('PlayerShip Entity', () => {
   })
 
   test('it uses green color', () => {
-    const ship = new PlayerShip();
-    let hasGreen = false;
-    ship.mesh.traverse((child) => {
-      if (child instanceof THREE.LineSegments) {
-        const material = child.material as THREE.LineBasicMaterial;
-        if (material.color.getHex() === 0x00ff00) {
-          hasGreen = true;
-        }
-      }
-    });
-    expect(hasGreen).toBe(true);
-  })
+    const playerShip = new PlayerShip();
+    const nose = playerShip.mesh.children[0] as THREE.LineSegments;
+    const material = nose.material as THREE.LineBasicMaterial;
+    expect(material.color.getHex()).toBe(PlayerShip.COLOR);
+  });
 });

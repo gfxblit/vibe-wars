@@ -12,15 +12,8 @@ describe('Crosshair Entity', () => {
 
   test('it uses red color', () => {
     const crosshair = new Crosshair();
-    let hasRed = false;
-    crosshair.mesh.traverse((child) => {
-      if (child instanceof THREE.LineSegments) {
-        const material = child.material as THREE.LineBasicMaterial;
-        if (material.color.getHex() === 0xff0000) {
-          hasRed = true;
-        }
-      }
-    });
-    expect(hasRed).toBe(true);
-  })
+    const lineSegments = crosshair.mesh.children[0] as THREE.LineSegments;
+    const material = lineSegments.material as THREE.LineBasicMaterial;
+    expect(material.color.getHex()).toBe(Crosshair.COLOR);
+  });
 });
