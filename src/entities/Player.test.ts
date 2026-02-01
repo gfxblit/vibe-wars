@@ -6,7 +6,7 @@ describe('Player', () => {
   test('should have a position and a mesh', () => {
     const player = new Player();
     expect(player.position).toBeInstanceOf(THREE.Vector3);
-    expect(player.mesh).toBeInstanceOf(THREE.Mesh);
+    expect(player.mesh).toBeInstanceOf(THREE.LineSegments);
   })
 
   test('should initialize position at origin', () => {

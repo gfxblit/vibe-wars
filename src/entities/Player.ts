@@ -3,13 +3,14 @@ import { Entity } from './Entity';
 
 export class Player extends Entity {
   public position: THREE.Vector3;
-  public mesh: THREE.Mesh;
+  public mesh: THREE.LineSegments;
 
   constructor() {
     super();
     const geometry = new THREE.BoxGeometry(1, 1, 1);
-    const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 }); // Green cube for now
-    this.mesh = new THREE.Mesh(geometry, material);
+    const edges = new THREE.EdgesGeometry(geometry);
+    const material = new THREE.LineBasicMaterial({ color: 0x00ff00 }); // Green wireframe
+    this.mesh = new THREE.LineSegments(edges, material);
     this.position = this.mesh.position;
     this.position.set(0, 0, 0);
   }
