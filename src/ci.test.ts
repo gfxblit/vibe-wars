@@ -1,0 +1,48 @@
+import { describe, it, expect, beforeAll } from 'vitest';
+import * as fs from 'fs';
+import * as path from 'path';
+
+describe('CI/CD Workflow', () => {
+  const workflowPath = path.join(process.cwd(), '.github/workflows/ci.yml');
+
+  it('should have a ci.yml file in .github/workflows', () => {
+    expect(fs.existsSync(workflowPath)).toBe(true);
+  });
+
+  describe('file content', () => {
+    let content: string;
+
+    beforeAll(() => {
+      content = fs.readFileSync(workflowPath, 'utf8');
+    });
+
+    it('should have the correct triggers', () => {
+      expect(content).toContain('push:');
+      expect(content).toContain('pull_request:');
+      expect(content).toContain('branches: [main]');
+    });
+
+    it('should use pnpm', () => {
+      expect(content).toContain('pnpm/action-setup');
+      expect(content).toContain('pnpm install');
+    });
+
+    it('should not specify pnpm version in workflow if packageManager is defined in package.json', () => {
+      const packageJsonPath = path.join(process.cwd(), 'package.json');
+      const packageJsonContent = fs.readFileSync(packageJsonPath, 'utf8');
+      const packageJson = JSON.parse(packageJsonContent);
+
+      if (packageJson.packageManager && packageJson.packageManager.startsWith('pnpm')) {
+        const parts = content.split('pnpm/action-setup');
+        if (parts.length > 1) {
+          // Check the immediate block following the setup action
+          // It shouldn't contain an explicit version if packageManager defines it
+          const nextStepIndex = parts[1].search(/- (uses|run|name):/);
+          const setupBlock = nextStepIndex !== -1 ? parts[1].substring(0, nextStepIndex) : parts[1];
+          
+          expect(setupBlock).not.toContain('version:');
+        }
+      }
+    });
+  });
+});
