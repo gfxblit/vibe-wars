@@ -3,6 +3,7 @@
  * major refactoring as the architecture is finalized.
  */
 import * as THREE from 'three';
+import { Player } from './entities/Player';
 
 export type GamePhase = 'DOGFIGHT' | 'SURFACE' | 'TRENCH';
 
@@ -12,6 +13,7 @@ export interface GameState {
   wave: number;
   phase: GamePhase;
   isGameOver: boolean;
+  player: Player;
 }
 
 export const state: GameState = {
@@ -20,7 +22,10 @@ export const state: GameState = {
   wave: 1,
   phase: 'DOGFIGHT',
   isGameOver: false,
+  player: null as any, // Initialized in initGame
 };
+
+const PLAYER_SPEED = 20;
 
 export function initGame() {
   state.score = 0;
@@ -28,7 +33,15 @@ export function initGame() {
   state.wave = 1;
   state.phase = 'DOGFIGHT';
   state.isGameOver = false;
+  state.player = new Player();
   console.log('Game initialized');
+}
+
+export function updateState(deltaTime: number) {
+  if (state.isGameOver) return;
+
+  // Move player forward (negative Z)
+  state.player.position.z -= PLAYER_SPEED * deltaTime;
 }
 
 export function addScore(points: number) {
