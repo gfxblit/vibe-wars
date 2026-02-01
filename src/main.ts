@@ -24,8 +24,10 @@ function animate(time: number) {
   lastTime = time
 
   updateState(deltaTime)
-  starField.update(state.player.position)
-  render(webglRenderer, scene, camera, state)
+  if (state.player) {
+    starField.update(state.player.position)
+    render(webglRenderer, scene, camera, state)
+  }
 
   requestAnimationFrame(animate)
 }

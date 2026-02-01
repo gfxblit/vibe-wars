@@ -13,7 +13,7 @@ export interface GameState {
   wave: number;
   phase: GamePhase;
   isGameOver: boolean;
-  player: Player;
+  player: Player | null;
 }
 
 export const state: GameState = {
@@ -22,7 +22,7 @@ export const state: GameState = {
   wave: 1,
   phase: 'DOGFIGHT',
   isGameOver: false,
-  player: null as any, // Initialized in initGame
+  player: null,
 };
 
 const PLAYER_SPEED = 20;
@@ -38,7 +38,7 @@ export function initGame() {
 }
 
 export function updateState(deltaTime: number) {
-  if (state.isGameOver) return;
+  if (state.isGameOver || !state.player) return;
 
   // Move player forward (negative Z)
   state.player.position.z -= PLAYER_SPEED * deltaTime;

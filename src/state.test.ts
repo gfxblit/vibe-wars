@@ -16,19 +16,19 @@ describe('Game State', () => {
   })
 
   test('updateState moves player forward', () => {
-    const initialZ = state.player.position.z;
+    const initialZ = state.player!.position.z;
     updateState(1); // 1 second
     // Forward motion is negative Z.
     // Let's assume some speed, e.g., 10 units/sec.
-    expect(state.player.position.z).toBeLessThan(initialZ);
+    expect(state.player!.position.z).toBeLessThan(initialZ);
   })
 
   test('updateState should not move player if game is over', () => {
     takeDamage(6);
     expect(state.isGameOver).toBe(true);
-    const initialZ = state.player.position.z;
+    const initialZ = state.player!.position.z;
     updateState(1);
-    expect(state.player.position.z).toBe(initialZ);
+    expect(state.player!.position.z).toBe(initialZ);
   })
 
   test('addScore increases score', () => {
