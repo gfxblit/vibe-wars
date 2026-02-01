@@ -1,5 +1,5 @@
 import { expect, test, beforeEach, describe } from 'vitest'
-import { state, initGame, addScore, takeDamage, nextPhase, checkCollision } from './state'
+import { state, initGame, addScore, takeDamage, nextPhase, checkCollision, update } from './state'
 import * as THREE from 'three';
 
 beforeEach(() => {
@@ -11,6 +11,38 @@ describe('Game State', () => {
     expect(state.score).toBe(0)
     expect(state.shields).toBe(6)
     expect(state.phase).toBe('DOGFIGHT')
+    expect(state.playerPos.x).toBe(0)
+    expect(state.playerPos.y).toBe(0)
+    expect(state.playerPos.z).toBe(0)
+    expect(state.crosshairPos.x).toBe(0)
+    expect(state.crosshairPos.y).toBe(0)
+  })
+
+  test('update increments playerPos.z (forward movement)', () => {
+    const initialZ = state.playerPos.z;
+    update(0.1); // dt = 0.1s
+    expect(state.playerPos.z).toBeGreaterThan(initialZ);
+  })
+
+  test('crosshair chases targetInput', () => {
+    state.targetInput.set(1, 1);
+    update(0.1);
+    expect(state.crosshairPos.x).toBeGreaterThan(0);
+    expect(state.crosshairPos.y).toBeGreaterThan(0);
+  })
+
+  test('playerPos chases crosshairPos', () => {
+    state.targetInput.set(1, 1);
+    update(0.1); // This moves crosshairPos towards (10, 10)
+    update(0.1); // This moves playerPos towards crosshairPos
+    expect(state.playerPos.x).toBeGreaterThan(0);
+    expect(state.playerPos.y).toBeGreaterThan(0);
+  })
+
+  test('playerRot.z (banking) changes based on horizontal movement', () => {
+    state.crosshairPos.set(1, 0, 0);
+    update(0.1);
+    expect(state.playerRot.z).not.toBe(0);
   })
 
   test('addScore increases score', () => {

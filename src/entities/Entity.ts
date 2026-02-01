@@ -1,9 +1,14 @@
-/**
- * STUB: This entity base class is a placeholder and subject to 
- * major refactoring as the architecture is finalized.
- */
+import * as THREE from 'three';
+
 export class Entity {
+  public mesh: THREE.Object3D;
+
   constructor() {
+    this.mesh = new THREE.Group();
     console.log('Entity created');
+  }
+
+  update(_dt: number) {
+    // To be overridden
   }
 }
