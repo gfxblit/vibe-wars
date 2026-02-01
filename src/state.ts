@@ -20,9 +20,9 @@ export interface GameState {
 
 export const FORWARD_SPEED = 50;
 export const CROSSHAIR_LERP = 10;
-export const PLAYER_LERP = 5;
-export const BANKING_FACTOR = 0.5;
-export const CROSSHAIR_MOVEMENT_RANGE = 10;
+export const STEER_SPEED = 40;
+export const BANKING_FACTOR = 0.02;
+export const CROSSHAIR_MOVEMENT_RANGE = 8;
 export const CROSSHAIR_DISTANCE = 20;
 
 export const state: GameState = {
@@ -53,24 +53,22 @@ export function update(dt: number) {
   // Constant forward movement
   state.playerPos.z += FORWARD_SPEED * dt;
 
-  // Crosshair chases targetInput (targetInput is normalized -1 to 1)
-  // We'll map it to a reasonable screen space, e.g., +/- 10 units
-  const targetX = state.targetInput.x * CROSSHAIR_MOVEMENT_RANGE;
-  const targetY = state.targetInput.y * CROSSHAIR_MOVEMENT_RANGE;
+  // Continuous horizontal/vertical movement based on input
+  const prevX = state.playerPos.x;
+  state.playerPos.x += state.targetInput.x * STEER_SPEED * dt;
+  state.playerPos.y += state.targetInput.y * STEER_SPEED * dt;
+
+  // Crosshair chases a target offset from the player
+  const targetCrosshairX = state.playerPos.x + state.targetInput.x * CROSSHAIR_MOVEMENT_RANGE;
+  const targetCrosshairY = state.playerPos.y + state.targetInput.y * CROSSHAIR_MOVEMENT_RANGE;
   
-  state.crosshairPos.x += (targetX - state.crosshairPos.x) * CROSSHAIR_LERP * dt;
-  state.crosshairPos.y += (targetY - state.crosshairPos.y) * CROSSHAIR_LERP * dt;
-  // Keep crosshair at a fixed distance from player for now, or just move it with player
+  state.crosshairPos.x += (targetCrosshairX - state.crosshairPos.x) * CROSSHAIR_LERP * dt;
+  state.crosshairPos.y += (targetCrosshairY - state.crosshairPos.y) * CROSSHAIR_LERP * dt;
   state.crosshairPos.z = state.playerPos.z + CROSSHAIR_DISTANCE;
 
-  // Player nose chases crosshair
-  const prevX = state.playerPos.x;
-  state.playerPos.x += (state.crosshairPos.x - state.playerPos.x) * PLAYER_LERP * dt;
-  state.playerPos.y += (state.crosshairPos.y - state.playerPos.y) * PLAYER_LERP * dt;
-
-  // Banking based on horizontal movement
+  // Banking based on horizontal velocity
   const dx = state.playerPos.x - prevX;
-  state.playerRot.z = -dx / dt * BANKING_FACTOR;
+  state.playerRot.z = -(dx / dt) * BANKING_FACTOR;
 }
 
 export function addScore(points: number) {
