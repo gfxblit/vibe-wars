@@ -2,4 +2,6 @@ node_modules
 dist
 .pnpm-store
 .DS_Store
-\n# Test coverage\ncoverage/
+
+# Test coverage
+coverage/
