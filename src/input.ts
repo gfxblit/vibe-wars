@@ -1,12 +1,34 @@
 import { state } from './state';
 
+const keysDown = new Set<string>();
+
+function updateTargetInput() {
+  let x = 0;
+  let y = 0;
+  if (keysDown.has('w') || keysDown.has('W')) y += 1;
+  if (keysDown.has('s') || keysDown.has('S')) y -= 1;
+  if (keysDown.has('a') || keysDown.has('A')) x -= 1;
+  if (keysDown.has('d') || keysDown.has('D')) x += 1;
+  state.targetInput.set(x, y);
+}
+
+const onKeyDown = (event: KeyboardEvent) => {
+  keysDown.add(event.key);
+  updateTargetInput();
+};
+
+const onKeyUp = (event: KeyboardEvent) => {
+  keysDown.delete(event.key);
+  updateTargetInput();
+};
+
 export function setupInput() {
-  window.addEventListener('mousemove', (event) => {
-    // Map clientX [0, window.innerWidth] to [-1, 1]
-    const x = (event.clientX / window.innerWidth) * 2 - 1;
-    // Map clientY [0, window.innerHeight] to [1, -1] (Y is inverted)
-    const y = -((event.clientY / window.innerHeight) * 2 - 1);
-    
-    state.targetInput.set(x, y);
-  });
+  keysDown.clear();
+  state.targetInput.set(0, 0);
+
+  window.removeEventListener('keydown', onKeyDown);
+  window.removeEventListener('keyup', onKeyUp);
+  
+  window.addEventListener('keydown', onKeyDown);
+  window.addEventListener('keyup', onKeyUp);
 }

@@ -1,48 +1,56 @@
 // @vitest-environment happy-dom
-import { expect, test, describe, beforeEach, vi } from 'vitest'
+import { expect, test, describe, beforeEach } from 'vitest'
 import { setupInput } from './input'
 import { state, initGame } from './state'
 
 describe('Input Handling', () => {
   beforeEach(() => {
     initGame();
-    // Reset window dimensions
-    vi.stubGlobal('innerWidth', 1000);
-    vi.stubGlobal('innerHeight', 1000);
-    // Clear event listeners? Not easy in standard DOM, but we can re-setup
     setupInput();
   })
 
-  test('mousemove updates targetInput (center)', () => {
-    const event = new MouseEvent('mousemove', {
-      clientX: 500,
-      clientY: 500
-    });
-    window.dispatchEvent(event);
-    
-    expect(state.targetInput.x).toBeCloseTo(0);
-    expect(state.targetInput.y).toBeCloseTo(0);
+  test('keydown "w" sets targetInput.y to 1', () => {
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'w' }));
+    expect(state.targetInput.y).toBe(1);
   })
 
-  test('mousemove updates targetInput (top-left)', () => {
-    const event = new MouseEvent('mousemove', {
-      clientX: 0,
-      clientY: 0
-    });
-    window.dispatchEvent(event);
-    
-    expect(state.targetInput.x).toBe(-1);
-    expect(state.targetInput.y).toBe(1); // Y is inverted in screen space vs game space (up is positive Y)
-  })
-
-  test('mousemove updates targetInput (bottom-right)', () => {
-    const event = new MouseEvent('mousemove', {
-      clientX: 1000,
-      clientY: 1000
-    });
-    window.dispatchEvent(event);
-    
-    expect(state.targetInput.x).toBe(1);
+  test('keydown "s" sets targetInput.y to -1', () => {
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 's' }));
     expect(state.targetInput.y).toBe(-1);
+  })
+
+  test('keydown "a" sets targetInput.x to -1', () => {
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'a' }));
+    expect(state.targetInput.x).toBe(-1);
+  })
+
+  test('keydown "d" sets targetInput.x to 1', () => {
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'd' }));
+    expect(state.targetInput.x).toBe(1);
+  })
+
+  test('multiple keys update targetInput correctly', () => {
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'w' }));
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'a' }));
+    expect(state.targetInput.x).toBe(-1);
+    expect(state.targetInput.y).toBe(1);
+  })
+
+  test('keyup resets targetInput components', () => {
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'w' }));
+    window.dispatchEvent(new KeyboardEvent('keyup', { key: 'w' }));
+    expect(state.targetInput.y).toBe(0);
+
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'a' }));
+    window.dispatchEvent(new KeyboardEvent('keyup', { key: 'a' }));
+    expect(state.targetInput.x).toBe(0);
+  })
+
+  test('opposing keys result in zero', () => {
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'w' }));
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 's' }));
+    // Depending on implementation, it could be 0 (cancel out) or last one wins. 
+    // Canceling out is usually better.
+    expect(state.targetInput.y).toBe(0);
   })
 });
