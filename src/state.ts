@@ -22,6 +22,8 @@ export const FORWARD_SPEED = 50;
 export const CROSSHAIR_LERP = 10;
 export const PLAYER_LERP = 5;
 export const BANKING_FACTOR = 0.5;
+export const CROSSHAIR_MOVEMENT_RANGE = 10;
+export const CROSSHAIR_DISTANCE = 20;
 
 export const state: GameState = {
   score: 0,
@@ -45,7 +47,6 @@ export function initGame() {
   state.playerRot.set(0, 0, 0);
   state.crosshairPos.set(0, 0, 0);
   state.targetInput.set(0, 0);
-  console.log('Game initialized');
 }
 
 export function update(dt: number) {
@@ -54,13 +55,13 @@ export function update(dt: number) {
 
   // Crosshair chases targetInput (targetInput is normalized -1 to 1)
   // We'll map it to a reasonable screen space, e.g., +/- 10 units
-  const targetX = state.targetInput.x * 10;
-  const targetY = state.targetInput.y * 10;
+  const targetX = state.targetInput.x * CROSSHAIR_MOVEMENT_RANGE;
+  const targetY = state.targetInput.y * CROSSHAIR_MOVEMENT_RANGE;
   
   state.crosshairPos.x += (targetX - state.crosshairPos.x) * CROSSHAIR_LERP * dt;
   state.crosshairPos.y += (targetY - state.crosshairPos.y) * CROSSHAIR_LERP * dt;
   // Keep crosshair at a fixed distance from player for now, or just move it with player
-  state.crosshairPos.z = state.playerPos.z + 20;
+  state.crosshairPos.z = state.playerPos.z + CROSSHAIR_DISTANCE;
 
   // Player nose chases crosshair
   const prevX = state.playerPos.x;

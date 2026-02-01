@@ -9,5 +9,4 @@ export function setupInput() {
     
     state.targetInput.set(x, y);
   });
-  console.log('Input setup');
 }

@@ -5,7 +5,6 @@ export class Entity {
 
   constructor() {
     this.mesh = new THREE.Group();
-    console.log('Entity created');
   }
 
   update(_dt: number) {
