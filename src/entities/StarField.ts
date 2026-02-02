@@ -33,13 +33,28 @@ export class StarField extends Entity {
     const halfSize = StarField.FIELD_SIZE / 2;
 
     for (let i = 0; i < StarField.NUM_STARS; i++) {
+      const xIndex = i * 3;
+      const yIndex = i * 3 + 1;
       const zIndex = i * 3 + 2;
-      let z = positions[zIndex];
 
-      // Recycle stars
-      if (z - playerPosition.z > halfSize) {
+      // Recycle stars in X
+      if (positions[xIndex] - playerPosition.x > halfSize) {
+        positions[xIndex] -= StarField.FIELD_SIZE;
+      } else if (positions[xIndex] - playerPosition.x < -halfSize) {
+        positions[xIndex] += StarField.FIELD_SIZE;
+      }
+
+      // Recycle stars in Y
+      if (positions[yIndex] - playerPosition.y > halfSize) {
+        positions[yIndex] -= StarField.FIELD_SIZE;
+      } else if (positions[yIndex] - playerPosition.y < -halfSize) {
+        positions[yIndex] += StarField.FIELD_SIZE;
+      }
+
+      // Recycle stars in Z
+      if (positions[zIndex] - playerPosition.z > halfSize) {
         positions[zIndex] -= StarField.FIELD_SIZE;
-      } else if (z - playerPosition.z < -halfSize) {
+      } else if (positions[zIndex] - playerPosition.z < -halfSize) {
         positions[zIndex] += StarField.FIELD_SIZE;
       }
     }

@@ -43,4 +43,30 @@ describe('StarField', () => {
     // It should move FIELD_SIZE units back
     expect(positions[2]).toBe(-halfSize - 1 + StarField.FIELD_SIZE);
   })
+
+  test('should recycle stars in X and Y dimensions', () => {
+    const starField = new StarField();
+    const playerPosition = new THREE.Vector3(0, 0, 0);
+    const halfSize = StarField.FIELD_SIZE / 2;
+    const geometry = starField.points.geometry as THREE.BufferGeometry;
+    const positions = geometry.attributes.position.array as Float32Array;
+
+    // Test X recycling
+    positions[0] = halfSize + 1; // Too far right
+    starField.update(playerPosition);
+    expect(positions[0]).toBe(halfSize + 1 - StarField.FIELD_SIZE);
+
+    positions[0] = -halfSize - 1; // Too far left
+    starField.update(playerPosition);
+    expect(positions[0]).toBe(-halfSize - 1 + StarField.FIELD_SIZE);
+
+    // Test Y recycling
+    positions[1] = halfSize + 1; // Too far up
+    starField.update(playerPosition);
+    expect(positions[1]).toBe(halfSize + 1 - StarField.FIELD_SIZE);
+
+    positions[1] = -halfSize - 1; // Too far down
+    starField.update(playerPosition);
+    expect(positions[1]).toBe(-halfSize - 1 + StarField.FIELD_SIZE);
+  })
 })
