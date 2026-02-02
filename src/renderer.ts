@@ -3,16 +3,13 @@
  * major refactoring as the architecture is finalized.
  */
 import * as THREE from 'three';
-import { GameState, state } from './state';
+import { state } from './state';
 import { Player } from './entities/Player';
 
-export function updateCamera(camera: THREE.Camera, player: Player) {
-  // Offset relative to player heading
-  const offset = new THREE.Vector3(0, 2, 10);
-  offset.applyQuaternion(player.mesh.quaternion);
-  
-  camera.position.copy(player.position).add(offset);
-  camera.lookAt(player.position);
+export function attachCameraToPlayer(camera: THREE.Camera, player: Player) {
+  player.mesh.add(camera);
+  camera.position.set(0, 2, 10);
+  camera.lookAt(0, 0, 0); // Look at player center in local space
 }
 
 export function initRenderer() {
@@ -52,11 +49,7 @@ export function initRenderer() {
 export function render(
   renderer: THREE.WebGLRenderer, 
   scene: THREE.Scene, 
-  camera: THREE.PerspectiveCamera, 
-  state: GameState
+  camera: THREE.PerspectiveCamera
 ) {
-  if (state.player) {
-    updateCamera(camera, state.player);
-  }
   renderer.render(scene, camera);
 }

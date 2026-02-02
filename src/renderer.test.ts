@@ -3,8 +3,9 @@
  */
 import { expect, test, describe, vi } from 'vitest'
 import * as THREE from 'three'
-import { updateCamera, initRenderer } from './renderer'
+import { attachCameraToPlayer, initRenderer } from './renderer'
 import { state } from './state'
+import { Player } from './entities/Player'
 
 vi.mock('three', async () => {
   const actual = await vi.importActual('three') as any;
@@ -20,33 +21,22 @@ vi.mock('three', async () => {
 });
 
 describe('Renderer Utils', () => {
-  test('updateCamera should position camera behind player relative to orientation', () => {
+  test('attachCameraToPlayer should add camera as child of player mesh with correct offset', () => {
     const camera = new THREE.PerspectiveCamera();
-    const rotation = new THREE.Euler(0, Math.PI / 2, 0);
-    const player = {
-      position: new THREE.Vector3(0, 0, 0),
-      mesh: {
-        rotation: rotation,
-        quaternion: new THREE.Quaternion().setFromEuler(rotation)
-      }
-    } as any;
+    const player = new Player();
     
-    updateCamera(camera, player);
+    attachCameraToPlayer(camera, player);
     
-    // If player is at (0,0,0) and looking at (+X), 
-    // the "behind" (Z+10) becomes X-10.
-    // Offset (0, 2, 10) rotated 90 deg around Y: (10, 2, 0)
-    // Wait. 
-    // Rotate (0, 2, 10) by 90 deg around Y:
-    // (x, y, z) -> (x cos θ + z sin θ, y, -x sin θ + z cos θ)
-    // (0, 2, 10) -> (10 sin 90, 2, 10 cos 90) = (10, 2, 0)
-    // So camera should be at (10, 2, 0) relative to player.
-    // But wait, if player is looking at +X, behind is -X.
-    // My Player class: this.yaw -= input.x ... 
-    // If I rotate by +90 deg around Y, I look at -X.
-    // Let's just check it moves.
-    expect(camera.position.x).not.toBe(0);
-    expect(camera.position.z).toBeCloseTo(0);
+    expect(camera.parent).toBe(player.mesh);
+    expect(camera.position.x).toBe(0);
+    expect(camera.position.y).toBe(2);
+    expect(camera.position.z).toBe(10);
+    
+    // Check orientation (looking at player center)
+    const target = new THREE.Vector3(0, 0, 0);
+    const cameraDir = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion);
+    const toPlayer = new THREE.Vector3().subVectors(target, camera.position).normalize();
+    expect(cameraDir.dot(toPlayer)).toBeGreaterThan(0.9);
   })
 
   test('initRenderer should return scene, camera, renderer and a cleanup function', () => {

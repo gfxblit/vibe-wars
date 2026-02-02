@@ -1,6 +1,6 @@
 import './style.css'
 import { initGame, state, updateState } from './state'
-import { initRenderer, render } from './renderer'
+import { initRenderer, render, attachCameraToPlayer } from './renderer'
 import { InputManager } from './input'
 import { StarField } from './entities/StarField'
 
@@ -19,6 +19,7 @@ const cursorElement = document.getElementById('cursor');
 
 if (state.player) {
   scene.add(state.player.mesh)
+  attachCameraToPlayer(camera, state.player)
 }
 
 let lastTime = 0
@@ -48,7 +49,7 @@ function animate(time: number) {
 
   if (state.player) {
     starField.update(state.player.position)
-    render(webglRenderer, scene, camera, state)
+    render(webglRenderer, scene, camera)
   }
 
   requestAnimationFrame(animate)
