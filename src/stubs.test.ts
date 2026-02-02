@@ -43,6 +43,8 @@ describe('Stubs', () => {
     expect(result).toHaveProperty('camera');
     expect(result).toHaveProperty('renderer');
     expect(appendChildSpy).toHaveBeenCalled();
+    expect(consoleSpy).toHaveBeenCalledWith('Renderer initialized');
     result.cleanup();
+    consoleSpy.mockRestore();
   });
 });
