@@ -29,4 +29,57 @@ describe('Player', () => {
     expect(player.position).not.toBe(newPos);
     expect(player.position).toBe(player.mesh.position);
   })
+
+  test('update should move player forward even with no input', () => {
+    const player = new Player();
+    const initialZ = player.position.z;
+    player.update(new THREE.Vector2(0, 0), 0.1);
+    expect(player.position.z).toBeLessThan(initialZ);
+  })
+
+  test('update should move player horizontally based on input x', () => {
+    const player = new Player();
+    player.update(new THREE.Vector2(1, 0), 0.1);
+    expect(player.position.x).toBeGreaterThan(0);
+    
+    const posX = player.position.x;
+    player.update(new THREE.Vector2(-1, 0), 0.1);
+    expect(player.position.x).toBeLessThan(posX);
+  })
+
+  test('update should move player vertically based on input y', () => {
+    const player = new Player();
+    player.update(new THREE.Vector2(0, 1), 0.1);
+    expect(player.position.y).toBeGreaterThan(0);
+    
+    const posY = player.position.y;
+    player.update(new THREE.Vector2(0, -1), 0.1);
+    expect(player.position.y).toBeLessThan(posY);
+  })
+
+  test('update should bank the ship based on input x', () => {
+    const player = new Player();
+    player.update(new THREE.Vector2(1, 0), 0.1);
+    // Banking is rotation around Z. 
+    // Positive X input should roll the ship (bank).
+    expect(player.mesh.rotation.z).not.toBe(0);
+  })
+
+  test('update should tilt the ship based on input y', () => {
+    const player = new Player();
+    player.update(new THREE.Vector2(0, 1), 0.1);
+    // Tilting is rotation around X.
+    expect(player.mesh.rotation.x).not.toBe(0);
+  })
+
+  test('position should be clamped within bounds', () => {
+    const player = new Player();
+    // Move far to the right
+    for (let i = 0; i < 100; i++) {
+        player.update(new THREE.Vector2(1, 0), 0.1);
+    }
+    const maxX = player.position.x;
+    player.update(new THREE.Vector2(1, 0), 0.1);
+    expect(player.position.x).toBe(maxX);
+  })
 })

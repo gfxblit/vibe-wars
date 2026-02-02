@@ -8,3 +8,5 @@ Q.E.D. ■
 - [2026-02-01 16:57:19] Disabling frustum culling on the `StarField` entity's `Points` object prevents the entire star field from disappearing when the camera moves or rotates, ensuring the wrapping stars remain visible.
 - [2026-02-01 17:13:57] Setting the base path to './' in `vite.config.ts` ensures that built assets use relative paths, allowing the application to load correctly in subdirectory-based deployment environments like PR previews.
 - [2026-02-01 17:21:45] Using `beforeAll` to trigger the build and `afterAll` for `dist` directory cleanup in `src/build_assets.test.ts` ensures that integration tests for relative asset paths are isolated and efficient.
+- [2026-02-01 17:58:11] The `InputManager` requires an explicit `teardown()` call in tests to remove global event listeners and ensure test isolation.
+- [2026-02-01 18:16:02] Centralizing viewport dimensions and center coordinates in the global state ensures consistent input-to-world mapping and rendering across the application.

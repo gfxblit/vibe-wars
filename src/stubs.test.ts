@@ -3,7 +3,7 @@
  */
 import { describe, it, expect, vi } from 'vitest';
 import { Entity } from './entities/Entity';
-import { setupInput } from './input';
+import { InputManager } from './input';
 import { initRenderer } from './renderer';
 
 vi.mock('three', async () => {
@@ -26,11 +26,11 @@ describe('Stubs', () => {
     consoleSpy.mockRestore();
   });
 
-  it('setupInput stub can be called', () => {
-    const consoleSpy = vi.spyOn(console, 'log');
-    setupInput();
-    expect(consoleSpy).toHaveBeenCalledWith('Input setup');
-    consoleSpy.mockRestore();
+  it('InputManager can be instantiated and setup', () => {
+    const inputManager = new InputManager();
+    inputManager.setup();
+    expect(inputManager.getInput()).toBeDefined();
+    inputManager.teardown();
   });
 
   it('initRenderer stub can be called', () => {

@@ -7,6 +7,13 @@ import { Player } from './entities/Player';
 
 export type GamePhase = 'DOGFIGHT' | 'SURFACE' | 'TRENCH';
 
+export interface Viewport {
+  width: number;
+  height: number;
+  centerX: number;
+  centerY: number;
+}
+
 export interface GameState {
   score: number;
   shields: number;
@@ -14,7 +21,11 @@ export interface GameState {
   phase: GamePhase;
   isGameOver: boolean;
   player: Player | null;
+  viewport: Viewport;
 }
+
+const initialWidth = typeof window !== 'undefined' ? window.innerWidth : 1024;
+const initialHeight = typeof window !== 'undefined' ? window.innerHeight : 768;
 
 export const state: GameState = {
   score: 0,
@@ -23,9 +34,13 @@ export const state: GameState = {
   phase: 'DOGFIGHT',
   isGameOver: false,
   player: null,
+  viewport: {
+    width: initialWidth,
+    height: initialHeight,
+    centerX: initialWidth / 2,
+    centerY: initialHeight / 2,
+  },
 };
-
-const PLAYER_SPEED = 20;
 
 export function initGame() {
   state.score = 0;
@@ -37,11 +52,10 @@ export function initGame() {
   console.log('Game initialized');
 }
 
-export function updateState(deltaTime: number) {
+export function updateState(deltaTime: number, input: THREE.Vector2 = new THREE.Vector2(0, 0)) {
   if (state.isGameOver || !state.player) return;
 
-  // Move player forward (negative Z)
-  state.player.position.z -= PLAYER_SPEED * deltaTime;
+  state.player.update(input, deltaTime);
 }
 
 export function addScore(points: number) {
