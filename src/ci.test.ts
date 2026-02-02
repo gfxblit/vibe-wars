@@ -3,17 +3,26 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 describe('CI/CD Workflow', () => {
-  const workflowPath = path.join(process.cwd(), '.github/workflows/ci.yml');
+  const prWorkflowPath = path.join(process.cwd(), '.github/workflows/pr.yml');
+  const ciWorkflowPath = path.join(process.cwd(), '.github/workflows/ci.yml');
 
-  it('should have a ci.yml file in .github/workflows', () => {
-    expect(fs.existsSync(workflowPath)).toBe(true);
+  it('should have a pr.yml file in .github/workflows', () => {
+    expect(fs.existsSync(prWorkflowPath)).toBe(true);
+  });
+
+  it('should not have a ci.yml file in .github/workflows', () => {
+    expect(fs.existsSync(ciWorkflowPath)).toBe(false);
   });
 
   describe('file content', () => {
     let content: string;
 
     beforeAll(() => {
-      content = fs.readFileSync(workflowPath, 'utf8');
+      if (fs.existsSync(prWorkflowPath)) {
+        content = fs.readFileSync(prWorkflowPath, 'utf8');
+      } else if (fs.existsSync(ciWorkflowPath)) {
+        content = fs.readFileSync(ciWorkflowPath, 'utf8');
+      }
     });
 
     it('should have the correct triggers', () => {
@@ -25,6 +34,10 @@ describe('CI/CD Workflow', () => {
     it('should use pnpm', () => {
       expect(content).toContain('pnpm/action-setup');
       expect(content).toContain('pnpm install');
+    });
+
+    it('should exclude dist-new from deletion in production deploy', () => {
+      expect(content).toContain("-not -name 'dist-new'");
     });
 
     it('should not specify pnpm version in workflow if packageManager is defined in package.json', () => {

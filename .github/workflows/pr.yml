@@ -67,8 +67,8 @@ jobs:
             cp -r dist-new/* "$TARGET_DIR"/
           else
             # Production deploy (main branch)
-            # Preserve pr-* directories
-            find . -maxdepth 1 -not -name '.git' -not -name 'pr-*' -not -name '.' -exec rm -rf {} +
+            # Preserve pr-* directories and the source artifacts
+            find . -maxdepth 1 -not -name '.git' -not -name 'pr-*' -not -name 'dist-new' -not -name '.' -exec rm -rf {} +
             cp -r dist-new/* .
           fi
           
