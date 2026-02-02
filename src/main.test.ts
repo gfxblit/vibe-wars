@@ -24,7 +24,7 @@ vi.mock('three', async () => {
 describe('main.ts initialization', () => {
   let initRendererSpy: MockInstance<[], ReturnType<typeof renderer.initRenderer>>;
   let initGameSpy: MockInstance<[], ReturnType<typeof state.initGame>>;
-  let setupInputSpy: MockInstance<[], ReturnType<typeof inputModule.setupInput>>;
+  let setupInputSpy: MockInstance;
 
   beforeEach(() => {
     // Clear mocks before each test
@@ -32,17 +32,15 @@ describe('main.ts initialization', () => {
     // Spy on the functions that main.ts is expected to call
     initRendererSpy = vi.spyOn(renderer, 'initRenderer');
     initGameSpy = vi.spyOn(state, 'initGame');
-    setupInputSpy = vi.spyOn(inputModule, 'setupInput');
+    setupInputSpy = vi.spyOn(inputModule.InputManager.prototype, 'setup');
   });
 
-  it('should call initRenderer, initGame, and setupInput on startup', async () => {
+  it('should call initRenderer, initGame, and InputManager.setup on startup', async () => {
     // Dynamically import main.ts to ensure its side effects (the calls) run during the test
     await import('./main');
 
     expect(initRendererSpy).toHaveBeenCalledTimes(1);
     expect(initGameSpy).toHaveBeenCalledTimes(1);
-    // STUB: This is a placeholder for input setup, which will be integrated later.
-    // We expect it to be called once to ensure the infrastructure is bootstrapped.
     expect(setupInputSpy).toHaveBeenCalledTimes(1);
     expect(consoleLogSpy).toHaveBeenCalledWith('Vibe Wars starting...');
   });

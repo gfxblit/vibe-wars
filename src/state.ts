@@ -25,8 +25,6 @@ export const state: GameState = {
   player: null,
 };
 
-const PLAYER_SPEED = 20;
-
 export function initGame() {
   state.score = 0;
   state.shields = 6;
@@ -37,11 +35,10 @@ export function initGame() {
   console.log('Game initialized');
 }
 
-export function updateState(deltaTime: number) {
+export function updateState(deltaTime: number, input: THREE.Vector2 = new THREE.Vector2(0, 0)) {
   if (state.isGameOver || !state.player) return;
 
-  // Move player forward (negative Z)
-  state.player.position.z -= PLAYER_SPEED * deltaTime;
+  state.player.update(input, deltaTime);
 }
 
 export function addScore(points: number) {
