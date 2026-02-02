@@ -4,9 +4,9 @@ import { Entity } from './Entity';
 export class StarField extends Entity {
   public static readonly NUM_STARS = 1500;
   public static readonly FIELD_SIZE = 500;
-  public points: THREE.Points;
-  private geometry: THREE.BufferGeometry;
-  private material: THREE.PointsMaterial;
+  public readonly points: THREE.Points;
+  private readonly geometry: THREE.BufferGeometry;
+  private readonly material: THREE.PointsMaterial;
 
   constructor() {
     super();

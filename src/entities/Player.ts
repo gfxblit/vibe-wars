@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { Entity } from './Entity';
 
 export class Player extends Entity {
-  public mesh: THREE.LineSegments;
+  public readonly mesh: THREE.LineSegments;
 
   public get position(): THREE.Vector3 {
     return this.mesh.position;
