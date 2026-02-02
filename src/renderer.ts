@@ -29,6 +29,10 @@ export function initRenderer() {
 
   const cleanup = () => {
     window.removeEventListener('resize', handleResize);
+    if (document.body.contains(renderer.domElement)) {
+      document.body.removeChild(renderer.domElement);
+    }
+    renderer.dispose();
   };
 
   console.log('Renderer initialized');

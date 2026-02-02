@@ -12,6 +12,7 @@ vi.mock('three', async () => {
     WebGLRenderer: vi.fn().mockImplementation(() => ({
       setSize: vi.fn(),
       render: vi.fn(),
+      dispose: vi.fn(),
       domElement: document.createElement('canvas'),
     })),
   };
@@ -39,17 +40,16 @@ describe('Renderer Utils', () => {
     expect(renderer.domElement).toBeInstanceOf(HTMLCanvasElement);
     expect(cleanup).toBeTypeOf('function');
 
+    const disposeSpy = vi.spyOn(renderer, 'dispose');
     cleanup();
-    expect(removeEventListenerSpy).toHaveBeenCalledWith('resize', expect.any(Function));
     
-    // Clean up DOM
-    if (document.body.contains(renderer.domElement)) {
-      document.body.removeChild(renderer.domElement);
-    }
+    expect(removeEventListenerSpy).toHaveBeenCalledWith('resize', expect.any(Function));
+    expect(disposeSpy).toHaveBeenCalled();
+    expect(document.body.contains(renderer.domElement)).toBe(false);
   })
 
   test('initRenderer resize handler should update camera and renderer', () => {
-    const { camera, renderer } = initRenderer();
+    const { camera, renderer, cleanup } = initRenderer();
     const setSizeSpy = vi.spyOn(renderer, 'setSize');
     const updateProjectionMatrixSpy = vi.spyOn(camera, 'updateProjectionMatrix');
 
@@ -62,9 +62,6 @@ describe('Renderer Utils', () => {
     expect(updateProjectionMatrixSpy).toHaveBeenCalled();
     expect(setSizeSpy).toHaveBeenCalledWith(1024, 768);
 
-    // Clean up DOM
-    if (document.body.contains(renderer.domElement)) {
-      document.body.removeChild(renderer.domElement);
-    }
+    cleanup();
   })
 })

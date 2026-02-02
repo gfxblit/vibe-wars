@@ -12,6 +12,7 @@ vi.mock('three', async () => {
     ...actual,
     WebGLRenderer: vi.fn().mockImplementation(() => ({
       setSize: vi.fn(),
+      dispose: vi.fn(),
       domElement: document.createElement('canvas'),
     })),
   };
@@ -34,17 +35,14 @@ describe('Stubs', () => {
 
   it('initRenderer stub can be called', () => {
     // Mocking document.body.appendChild as it's used in initRenderer
-    const appendSpy = vi.spyOn(document.body, 'appendChild').mockImplementation(() => { return {} as any });
+    const appendChildSpy = vi.spyOn(document.body, 'appendChild').mockImplementation(() => { return {} as any });
     const consoleSpy = vi.spyOn(console, 'log');
     
     const result = initRenderer();
-    
     expect(result).toHaveProperty('scene');
     expect(result).toHaveProperty('camera');
     expect(result).toHaveProperty('renderer');
-    expect(consoleSpy).toHaveBeenCalledWith('Renderer initialized');
-    
-    appendSpy.mockRestore();
-    consoleSpy.mockRestore();
+    expect(appendChildSpy).toHaveBeenCalled();
+    result.cleanup();
   });
 });
