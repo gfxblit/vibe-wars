@@ -29,19 +29,30 @@ export class Player extends Entity {
   }
 
   public update(input: THREE.Vector2, deltaTime: number): void {
-    // Relative turning
-    // Left input (negative X) -> Rotate around local Y (turn left)
-    // Right input (positive X) -> Rotate around local Y (turn right)
-    const yawAmount = -input.x * this.TURN_SPEED_YAW * deltaTime;
-    this.mesh.rotateY(yawAmount);
-    
-    // Up input (positive Y) -> Rotate around local X (tilt up)
-    // Down input (negative Y) -> Rotate around local X (tilt down)
-    const pitchAmount = input.y * this.TURN_SPEED_PITCH * deltaTime;
-    this.mesh.rotateX(pitchAmount);
+    // Determine current visual bank (roll)
+    const bankRoll = -input.x * this.MAX_BANK;
 
-    // Visual Bank (Roll) based on X input - non-accumulating
-    this.visualMesh.rotation.z = -input.x * this.MAX_BANK;
+    // Calculate rotation axes relative to the banked orientation
+    // These axes are in the local space of the player entity (before banking is applied)
+    const localUp = new THREE.Vector3(0, 1, 0);
+    const localRight = new THREE.Vector3(1, 0, 0);
+    
+    // Create a temporary bank quaternion to tilt the rotation axes
+    const qBank = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), bankRoll);
+    localUp.applyQuaternion(qBank);
+    localRight.applyQuaternion(qBank);
+
+    // Relative turning around the banked axes
+    // Left input (negative X) -> Rotate around banked local up
+    const yawAmount = -input.x * this.TURN_SPEED_YAW * deltaTime;
+    this.mesh.rotateOnAxis(localUp, yawAmount);
+    
+    // Up input (positive Y) -> Rotate around banked local right
+    const pitchAmount = input.y * this.TURN_SPEED_PITCH * deltaTime;
+    this.mesh.rotateOnAxis(localRight, pitchAmount);
+
+    // Visual Bank (Roll) - non-accumulating
+    this.visualMesh.rotation.z = bankRoll;
 
     // Calculate forward vector based on current orientation
     // Initial direction is negative Z
