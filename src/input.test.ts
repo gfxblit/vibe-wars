@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { InputManager } from './input';
+import { state } from './state';
 
 describe('InputManager', () => {
   let inputManager: InputManager;
@@ -9,6 +10,11 @@ describe('InputManager', () => {
     listeners = {};
     vi.stubGlobal('innerWidth', 1000);
     vi.stubGlobal('innerHeight', 1000);
+    state.viewport.width = 1000;
+    state.viewport.height = 1000;
+    state.viewport.centerX = 500;
+    state.viewport.centerY = 500;
+    
     vi.spyOn(window, 'addEventListener').mockImplementation((event, listener) => {
         listeners[event] = listener;
     });
@@ -159,16 +165,11 @@ describe('InputManager', () => {
     expect(inputManager.getInput().x).toBe(0);
   });
 
-  it('updates target input based on cached window size after resize', () => {
-    vi.stubGlobal('innerWidth', 1000);
-    vi.stubGlobal('innerHeight', 1000);
-    
-    // Initial setup (done in beforeEach)
-    
-    // Trigger resize
-    vi.stubGlobal('innerWidth', 2000);
-    vi.stubGlobal('innerHeight', 2000);
-    listeners['resize']();
+  it('updates target input based on state.viewport after resize', () => {
+    state.viewport.width = 2000;
+    state.viewport.height = 2000;
+    state.viewport.centerX = 1000;
+    state.viewport.centerY = 1000;
     
     listeners['mousedown'](new MouseEvent('mousedown'));
     // (500, 500) in 2000x2000 should be (-0.5, 0.5)

@@ -7,6 +7,13 @@ import { Player } from './entities/Player';
 
 export type GamePhase = 'DOGFIGHT' | 'SURFACE' | 'TRENCH';
 
+export interface Viewport {
+  width: number;
+  height: number;
+  centerX: number;
+  centerY: number;
+}
+
 export interface GameState {
   score: number;
   shields: number;
@@ -14,7 +21,11 @@ export interface GameState {
   phase: GamePhase;
   isGameOver: boolean;
   player: Player | null;
+  viewport: Viewport;
 }
+
+const initialWidth = typeof window !== 'undefined' ? window.innerWidth : 1024;
+const initialHeight = typeof window !== 'undefined' ? window.innerHeight : 768;
 
 export const state: GameState = {
   score: 0,
@@ -23,6 +34,12 @@ export const state: GameState = {
   phase: 'DOGFIGHT',
   isGameOver: false,
   player: null,
+  viewport: {
+    width: initialWidth,
+    height: initialHeight,
+    centerX: initialWidth / 2,
+    centerY: initialHeight / 2,
+  },
 };
 
 export function initGame() {

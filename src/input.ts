@@ -1,12 +1,11 @@
 import * as THREE from 'three';
+import { state } from './state';
 
 export class InputManager {
   private input: THREE.Vector2 = new THREE.Vector2(0, 0);
   private targetInput: THREE.Vector2 = new THREE.Vector2(0, 0);
   private keys: Set<string> = new Set();
   private isDragging: boolean = false;
-  private width: number = window.innerWidth;
-  private height: number = window.innerHeight;
   
   private readonly SENSITIVITY = 5.0; // Units per second
 
@@ -50,22 +49,16 @@ export class InputManager {
     event.preventDefault(); // Prevent scrolling while playing
   };
 
-  private handleResize = () => {
-    this.width = window.innerWidth;
-    this.height = window.innerHeight;
-  };
-
   private updatePointerInput(clientX: number, clientY: number) {
-    const centerX = this.width / 2;
-    const centerY = this.height / 2;
+    const { centerX, centerY } = state.viewport;
     
     // Normalize to [-1, 1]
     const x = (clientX - centerX) / centerX;
     const y = (centerY - clientY) / centerY; // Invert Y: top is 1, bottom is -1
     
     this.targetInput.set(
-      Math.max(-1, Math.min(1, x)),
-      Math.max(-1, Math.min(1, y))
+      THREE.MathUtils.clamp(x, -1, 1),
+      THREE.MathUtils.clamp(y, -1, 1)
     );
     
     // For pointer input, we usually want immediate response
@@ -93,7 +86,6 @@ export class InputManager {
     window.addEventListener('touchstart', this.handleTouchStart, { passive: false });
     window.addEventListener('touchend', this.handleMouseUp);
     window.addEventListener('touchmove', this.handleTouchMove, { passive: false });
-    window.addEventListener('resize', this.handleResize);
   }
 
   public teardown(): void {
@@ -105,7 +97,6 @@ export class InputManager {
     window.removeEventListener('touchstart', this.handleTouchStart);
     window.removeEventListener('touchend', this.handleMouseUp);
     window.removeEventListener('touchmove', this.handleTouchMove);
-    window.removeEventListener('resize', this.handleResize);
   }
 
   public update(dt: number): void {

@@ -4,6 +4,7 @@
 import { expect, test, describe, vi } from 'vitest'
 import * as THREE from 'three'
 import { updateCamera, initRenderer } from './renderer'
+import { state } from './state'
 
 vi.mock('three', async () => {
   const actual = await vi.importActual('three') as any;
@@ -58,6 +59,10 @@ describe('Renderer Utils', () => {
     window.innerHeight = 768;
     window.dispatchEvent(new Event('resize'));
 
+    expect(state.viewport.width).toBe(1024);
+    expect(state.viewport.height).toBe(768);
+    expect(state.viewport.centerX).toBe(512);
+    expect(state.viewport.centerY).toBe(384);
     expect(camera.aspect).toBe(1024 / 768);
     expect(updateProjectionMatrixSpy).toHaveBeenCalled();
     expect(setSizeSpy).toHaveBeenCalledWith(1024, 768);

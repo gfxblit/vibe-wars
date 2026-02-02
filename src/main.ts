@@ -17,14 +17,6 @@ scene.add(starField.points)
 
 const cursorElement = document.getElementById('cursor');
 
-let width = window.innerWidth;
-let height = window.innerHeight;
-
-window.addEventListener('resize', () => {
-  width = window.innerWidth;
-  height = window.innerHeight;
-});
-
 if (state.player) {
   scene.add(state.player.mesh)
 }
@@ -41,14 +33,17 @@ function animate(time: number) {
   
   // Update visual cursor
   if (cursorElement) {
-    const centerX = width / 2;
-    const centerY = height / 2;
+    const { centerX, centerY } = state.viewport;
     const cursorX = centerX + input.x * centerX;
     const cursorY = centerY - input.y * centerY; // Invert Y back to screen space
     
-    cursorElement.style.left = `${cursorX}px`;
-    cursorElement.style.top = `${cursorY}px`;
-    cursorElement.style.display = 'block';
+    // Use transform for better performance
+    cursorElement.style.transform = `translate3d(calc(${cursorX}px - 50%), calc(${cursorY}px - 50%), 0)`;
+    
+    // Only set display once
+    if (cursorElement.style.display !== 'block') {
+      cursorElement.style.display = 'block';
+    }
   }
 
   if (state.player) {
