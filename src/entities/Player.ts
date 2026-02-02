@@ -3,17 +3,15 @@ import { Entity } from './Entity';
 
 export class Player extends Entity {
   public readonly mesh: THREE.LineSegments;
+  public yaw: number = 0;
+  public pitch: number = 0;
 
   private readonly FORWARD_SPEED = 20;
-  private readonly HORIZONTAL_SPEED = 15;
-  private readonly VERTICAL_SPEED = 15;
+  private readonly TURN_SPEED_YAW = Math.PI / 1.5; // ~120 degrees per second
+  private readonly TURN_SPEED_PITCH = Math.PI / 1.5;
   
   private readonly MAX_BANK = Math.PI / 4; // 45 degrees
-  private readonly MAX_PITCH = Math.PI / 6; // 30 degrees
   
-  private readonly BOUNDS_X = 15;
-  private readonly BOUNDS_Y = 10;
-
   public get position(): THREE.Vector3 {
     return this.mesh.position;
   }
@@ -28,32 +26,27 @@ export class Player extends Entity {
   }
 
   public update(input: THREE.Vector2, deltaTime: number): void {
-    // Forward motion (negative Z)
-    this.position.z -= this.FORWARD_SPEED * deltaTime;
+    // Accumulate heading
+    // Left input (negative X) -> Increase yaw (turn left)
+    // Right input (positive X) -> Decrease yaw (turn right)
+    this.yaw -= input.x * this.TURN_SPEED_YAW * deltaTime;
+    
+    // Up input (positive Y) -> Increase pitch (tilt up)
+    // Down input (negative Y) -> Decrease pitch (tilt down)
+    this.pitch += input.y * this.TURN_SPEED_PITCH * deltaTime;
 
-    // Horizontal and Vertical motion
-    this.position.x += input.x * this.HORIZONTAL_SPEED * deltaTime;
-    this.position.y += input.y * this.VERTICAL_SPEED * deltaTime;
+    // Bank (Roll) based on X input
+    const bank = -input.x * this.MAX_BANK;
 
-    // Clamp within bounds
-    this.position.x = THREE.MathUtils.clamp(this.position.x, -this.BOUNDS_X, this.BOUNDS_X);
-    this.position.y = THREE.MathUtils.clamp(this.position.y, -this.BOUNDS_Y, this.BOUNDS_Y);
+    // Update mesh rotation using YXZ order (Yaw, then Pitch, then Roll)
+    this.mesh.rotation.set(this.pitch, this.yaw, bank, 'YXZ');
 
-    // Rotation (Banking and Pitching)
-    // Bank (Roll around Z) based on X input.
-    // Negative X input (left) -> positive Z rotation (bank right? usually bank left)
-    // Let's match typical flight sim: left input -> roll left.
-    // Roll left is positive rotation around Z if using right-handed system?
-    // In Three.js, positive Z rotation is counter-clockwise.
-    // If looking down negative Z, counter-clockwise is rolling left. Correct.
-    this.mesh.rotation.z = -input.x * this.MAX_BANK;
-
-    // Pitch (around X) based on Y input.
-    // Up input (positive Y) -> tilt up.
-    // Tilt up is positive rotation around X? 
-    // If looking down negative Z, positive X is right.
-    // Positive rotation around X is tilt down (towards negative Y).
-    // So positive Y input should be negative X rotation.
-    this.mesh.rotation.x = -input.y * this.MAX_PITCH;
+    // Calculate forward vector based on current yaw and pitch
+    // Initial direction is negative Z
+    const forward = new THREE.Vector3(0, 0, -1);
+    forward.applyEuler(new THREE.Euler(this.pitch, this.yaw, 0, 'YXZ'));
+    
+    // Move position forward
+    this.position.add(forward.multiplyScalar(this.FORWARD_SPEED * deltaTime));
   }
 }

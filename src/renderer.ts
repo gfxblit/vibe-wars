@@ -4,10 +4,15 @@
  */
 import * as THREE from 'three';
 import { GameState, state } from './state';
+import { Player } from './entities/Player';
 
-export function updateCamera(camera: THREE.Camera, playerPosition: THREE.Vector3) {
-  camera.position.set(playerPosition.x, playerPosition.y + 2, playerPosition.z + 10);
-  camera.lookAt(playerPosition);
+export function updateCamera(camera: THREE.Camera, player: Player) {
+  // Offset relative to player heading
+  const offset = new THREE.Vector3(0, 2, 10);
+  offset.applyEuler(player.mesh.rotation);
+  
+  camera.position.copy(player.position).add(offset);
+  camera.lookAt(player.position);
 }
 
 export function initRenderer() {
@@ -51,7 +56,7 @@ export function render(
   state: GameState
 ) {
   if (state.player) {
-    updateCamera(camera, state.player.position);
+    updateCamera(camera, state.player);
   }
   renderer.render(scene, camera);
 }

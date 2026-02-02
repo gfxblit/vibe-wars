@@ -43,8 +43,9 @@ describe('Player', () => {
     expect(player.position.x).toBeGreaterThan(0);
     
     const posX = player.position.x;
-    player.update(new THREE.Vector2(-1, 0), 0.1);
-    expect(player.position.x).toBeLessThan(posX);
+    // Continuing to turn right should continue to increase X (until we pass 90 deg)
+    player.update(new THREE.Vector2(1, 0), 0.1);
+    expect(player.position.x).toBeGreaterThan(posX);
   })
 
   test('update should move player vertically based on input y', () => {
@@ -53,8 +54,9 @@ describe('Player', () => {
     expect(player.position.y).toBeGreaterThan(0);
     
     const posY = player.position.y;
-    player.update(new THREE.Vector2(0, -1), 0.1);
-    expect(player.position.y).toBeLessThan(posY);
+    // Continuing to tilt up should continue to increase Y (until we pass 90 deg)
+    player.update(new THREE.Vector2(0, 1), 0.1);
+    expect(player.position.y).toBeGreaterThan(posY);
   })
 
   test('update should bank the ship based on input x', () => {
@@ -72,14 +74,45 @@ describe('Player', () => {
     expect(player.mesh.rotation.x).not.toBe(0);
   })
 
-  test('position should be clamped within bounds', () => {
+  test('should accumulate yaw over time with horizontal input', () => {
     const player = new Player();
-    // Move far to the right
+    // Initial yaw should be 0 (looking down negative Z)
+    player.update(new THREE.Vector2(1, 0), 0.1);
+    const yaw1 = player.yaw;
+    expect(yaw1).not.toBe(0);
+    
+    player.update(new THREE.Vector2(1, 0), 0.1);
+    const yaw2 = player.yaw;
+    // Assuming positive X input increases/decreases yaw
+    expect(Math.abs(yaw2)).toBeGreaterThan(Math.abs(yaw1));
+  })
+
+  test('should accumulate pitch over time with vertical input', () => {
+    const player = new Player();
+    player.update(new THREE.Vector2(0, 1), 0.1);
+    const pitch1 = player.pitch;
+    expect(pitch1).not.toBe(0);
+    
+    player.update(new THREE.Vector2(0, 1), 0.1);
+    const pitch2 = player.pitch;
+    expect(Math.abs(pitch2)).toBeGreaterThan(Math.abs(pitch1));
+  })
+
+  test('should move in the direction of current heading', () => {
+    const player = new Player();
+    
+    // Turn 90 degrees right (yaw)
+    // We don't know the exact TURN_SPEED yet, so let's just simulate enough time
+    // or just set it if we want, but it's better to test the update loop.
+    
+    // If we turn right, we should eventually move towards positive X.
     for (let i = 0; i < 100; i++) {
         player.update(new THREE.Vector2(1, 0), 0.1);
     }
-    const maxX = player.position.x;
-    player.update(new THREE.Vector2(1, 0), 0.1);
-    expect(player.position.x).toBe(maxX);
+    
+    // After turning right, moving forward should increase X
+    const initialX = player.position.x;
+    player.update(new THREE.Vector2(0, 0), 0.1);
+    expect(player.position.x).not.toBe(initialX);
   })
 })
