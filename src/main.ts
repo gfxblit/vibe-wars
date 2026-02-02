@@ -17,6 +17,14 @@ scene.add(starField.points)
 
 const cursorElement = document.getElementById('cursor');
 
+let width = window.innerWidth;
+let height = window.innerHeight;
+
+window.addEventListener('resize', () => {
+  width = window.innerWidth;
+  height = window.innerHeight;
+});
+
 if (state.player) {
   scene.add(state.player.mesh)
 }
@@ -33,8 +41,8 @@ function animate(time: number) {
   
   // Update visual cursor
   if (cursorElement) {
-    const centerX = window.innerWidth / 2;
-    const centerY = window.innerHeight / 2;
+    const centerX = width / 2;
+    const centerY = height / 2;
     const cursorX = centerX + input.x * centerX;
     const cursorY = centerY - input.y * centerY; // Invert Y back to screen space
     

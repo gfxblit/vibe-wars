@@ -7,6 +7,8 @@ describe('InputManager', () => {
 
   beforeEach(() => {
     listeners = {};
+    vi.stubGlobal('innerWidth', 1000);
+    vi.stubGlobal('innerHeight', 1000);
     vi.spyOn(window, 'addEventListener').mockImplementation((event, listener) => {
         listeners[event] = listener;
     });
@@ -155,5 +157,27 @@ describe('InputManager', () => {
     // Touch end
     listeners['touchend'](new TouchEvent('touchend'));
     expect(inputManager.getInput().x).toBe(0);
+  });
+
+  it('updates target input based on cached window size after resize', () => {
+    vi.stubGlobal('innerWidth', 1000);
+    vi.stubGlobal('innerHeight', 1000);
+    
+    // Initial setup (done in beforeEach)
+    
+    // Trigger resize
+    vi.stubGlobal('innerWidth', 2000);
+    vi.stubGlobal('innerHeight', 2000);
+    listeners['resize']();
+    
+    listeners['mousedown'](new MouseEvent('mousedown'));
+    // (500, 500) in 2000x2000 should be (-0.5, 0.5)
+    // centerX = 1000, centerY = 1000
+    // x = (500 - 1000) / 1000 = -0.5
+    // y = (1000 - 500) / 1000 = 0.5
+    listeners['mousemove'](new MouseEvent('mousemove', { clientX: 500, clientY: 500 }));
+    
+    expect(inputManager.getInput().x).toBe(-0.5);
+    expect(inputManager.getInput().y).toBe(0.5);
   });
 });

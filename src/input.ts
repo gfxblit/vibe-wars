@@ -5,6 +5,8 @@ export class InputManager {
   private targetInput: THREE.Vector2 = new THREE.Vector2(0, 0);
   private keys: Set<string> = new Set();
   private isDragging: boolean = false;
+  private width: number = window.innerWidth;
+  private height: number = window.innerHeight;
   
   private readonly SENSITIVITY = 5.0; // Units per second
 
@@ -48,9 +50,14 @@ export class InputManager {
     event.preventDefault(); // Prevent scrolling while playing
   };
 
+  private handleResize = () => {
+    this.width = window.innerWidth;
+    this.height = window.innerHeight;
+  };
+
   private updatePointerInput(clientX: number, clientY: number) {
-    const centerX = window.innerWidth / 2;
-    const centerY = window.innerHeight / 2;
+    const centerX = this.width / 2;
+    const centerY = this.height / 2;
     
     // Normalize to [-1, 1]
     const x = (clientX - centerX) / centerX;
@@ -86,6 +93,7 @@ export class InputManager {
     window.addEventListener('touchstart', this.handleTouchStart, { passive: false });
     window.addEventListener('touchend', this.handleMouseUp);
     window.addEventListener('touchmove', this.handleTouchMove, { passive: false });
+    window.addEventListener('resize', this.handleResize);
   }
 
   public teardown(): void {
@@ -97,34 +105,28 @@ export class InputManager {
     window.removeEventListener('touchstart', this.handleTouchStart);
     window.removeEventListener('touchend', this.handleMouseUp);
     window.removeEventListener('touchmove', this.handleTouchMove);
+    window.removeEventListener('resize', this.handleResize);
   }
 
   public update(dt: number): void {
     // Keyboard input still uses gradual movement
     if (this.keys.size > 0 || (this.input.lengthSq() > 0 && !this.isDragging)) {
-      // Move x towards targetX
-      if (this.input.x < this.targetInput.x) {
-        this.input.x = Math.min(this.targetInput.x, this.input.x + this.SENSITIVITY * dt);
-      } else if (this.input.x > this.targetInput.x) {
-        this.input.x = Math.max(this.targetInput.x, this.input.x - this.SENSITIVITY * dt);
-      }
-
-      // Move y towards targetY
-      if (this.input.y < this.targetInput.y) {
-        this.input.y = Math.min(this.targetInput.y, this.input.y + this.SENSITIVITY * dt);
-      } else if (this.input.y > this.targetInput.y) {
-        this.input.y = Math.max(this.targetInput.y, this.input.y - this.SENSITIVITY * dt);
-      }
+      const step = this.SENSITIVITY * dt;
+      this.input.x = this.moveTowards(this.input.x, this.targetInput.x, step);
+      this.input.y = this.moveTowards(this.input.y, this.targetInput.y, step);
     }
     // If dragging, pointer input already set this.input immediately in updatePointerInput
   }
 
-    public getInput(): THREE.Vector2 {
-
-      return this.input;
-
-    }
-
+  private moveTowards(current: number, target: number, maxDelta: number): number {
+    if (Math.abs(target - current) <= maxDelta) return target;
+    return current + Math.sign(target - current) * maxDelta;
   }
+
+  public getInput(): THREE.Vector2 {
+    return this.input;
+  }
+}
+
 
   
