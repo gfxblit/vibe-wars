@@ -20,14 +20,19 @@ export function initRenderer() {
   document.body.appendChild(renderer.domElement);
   
   // Handle window resize
-  window.addEventListener('resize', () => {
+  const handleResize = () => {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
-  });
+  };
+  window.addEventListener('resize', handleResize);
+
+  const cleanup = () => {
+    window.removeEventListener('resize', handleResize);
+  };
 
   console.log('Renderer initialized');
-  return { scene, camera, renderer };
+  return { scene, camera, renderer, cleanup };
 }
 
 export function render(

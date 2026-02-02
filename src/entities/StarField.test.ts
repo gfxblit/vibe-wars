@@ -8,7 +8,7 @@ describe('StarField', () => {
     expect(starField.points).toBeInstanceOf(THREE.Points);
     const geometry = starField.points.geometry as THREE.BufferGeometry;
     const positions = geometry.attributes.position.array;
-    expect(positions.length).toBe(1500 * 3);
+    expect(positions.length).toBe(StarField.NUM_STARS * 3);
   })
 
   test('should recycle stars that are too far behind', () => {
@@ -19,17 +19,13 @@ describe('StarField', () => {
     const geometry = starField.points.geometry as THREE.BufferGeometry;
     const positions = geometry.attributes.position.array as Float32Array;
     
-    // Set first star at Z = 251 (behind camera if moving towards -Z)
-    // Actually the issue says "moving into the screen" which usually means -Z.
-    // "if a star is > 250 units behind, move it 500 units forward"
-    // If player is at 0 and moving towards -Z, "behind" is positive Z.
-    
-    positions[2] = 251; 
+    // Set first star at Z > FIELD_SIZE / 2
+    const halfSize = StarField.FIELD_SIZE / 2;
+    positions[2] = halfSize + 1; 
     starField.update(playerPosition);
     
-    // It should have moved 500 units forward (towards -Z)
-    // 251 - 500 = -249
-    expect(positions[2]).toBe(-249);
+    // It should have moved FIELD_SIZE units forward (towards -Z)
+    expect(positions[2]).toBe(halfSize + 1 - StarField.FIELD_SIZE);
   })
 
   test('should recycle stars that are too far ahead', () => {
@@ -39,12 +35,12 @@ describe('StarField', () => {
     const geometry = starField.points.geometry as THREE.BufferGeometry;
     const positions = geometry.attributes.position.array as Float32Array;
     
-    // Set first star at Z = -251 (too far ahead)
-    positions[2] = -251;
+    // Set first star at Z < -FIELD_SIZE / 2
+    const halfSize = StarField.FIELD_SIZE / 2;
+    positions[2] = -halfSize - 1;
     starField.update(playerPosition);
     
-    // It should move 500 units back
-    // -251 + 500 = 249
-    expect(positions[2]).toBe(249);
+    // It should move FIELD_SIZE units back
+    expect(positions[2]).toBe(-halfSize - 1 + StarField.FIELD_SIZE);
   })
 })

@@ -2,21 +2,21 @@ import * as THREE from 'three';
 import { Entity } from './Entity';
 
 export class StarField extends Entity {
+  public static readonly NUM_STARS = 1500;
+  public static readonly FIELD_SIZE = 500;
   public points: THREE.Points;
   private geometry: THREE.BufferGeometry;
   private material: THREE.PointsMaterial;
-  private numStars: number = 1500;
-  private fieldSize: number = 500;
 
   constructor() {
     super();
     this.geometry = new THREE.BufferGeometry();
-    const positions = new Float32Array(this.numStars * 3);
+    const positions = new Float32Array(StarField.NUM_STARS * 3);
 
-    for (let i = 0; i < this.numStars; i++) {
-      positions[i * 3] = (Math.random() - 0.5) * this.fieldSize;     // X
-      positions[i * 3 + 1] = (Math.random() - 0.5) * this.fieldSize; // Y
-      positions[i * 3 + 2] = (Math.random() - 0.5) * this.fieldSize; // Z
+    for (let i = 0; i < StarField.NUM_STARS; i++) {
+      positions[i * 3] = (Math.random() - 0.5) * StarField.FIELD_SIZE;     // X
+      positions[i * 3 + 1] = (Math.random() - 0.5) * StarField.FIELD_SIZE; // Y
+      positions[i * 3 + 2] = (Math.random() - 0.5) * StarField.FIELD_SIZE; // Z
     }
 
     this.geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
@@ -30,17 +30,17 @@ export class StarField extends Entity {
 
   public update(playerPosition: THREE.Vector3) {
     const positions = this.geometry.attributes.position.array as Float32Array;
-    const halfSize = this.fieldSize / 2;
+    const halfSize = StarField.FIELD_SIZE / 2;
 
-    for (let i = 0; i < this.numStars; i++) {
+    for (let i = 0; i < StarField.NUM_STARS; i++) {
       const zIndex = i * 3 + 2;
       let z = positions[zIndex];
 
       // Recycle stars
       if (z - playerPosition.z > halfSize) {
-        positions[zIndex] -= this.fieldSize;
+        positions[zIndex] -= StarField.FIELD_SIZE;
       } else if (z - playerPosition.z < -halfSize) {
-        positions[zIndex] += this.fieldSize;
+        positions[zIndex] += StarField.FIELD_SIZE;
       }
     }
     this.geometry.attributes.position.needsUpdate = true;
