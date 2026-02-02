@@ -36,8 +36,8 @@ export class Player extends Entity {
     this.position.y += input.y * this.VERTICAL_SPEED * deltaTime;
 
     // Clamp within bounds
-    this.position.x = Math.max(-this.BOUNDS_X, Math.min(this.BOUNDS_X, this.position.x));
-    this.position.y = Math.max(-this.BOUNDS_Y, Math.min(this.BOUNDS_Y, this.position.y));
+    this.position.x = THREE.MathUtils.clamp(this.position.x, -this.BOUNDS_X, this.BOUNDS_X);
+    this.position.y = THREE.MathUtils.clamp(this.position.y, -this.BOUNDS_Y, this.BOUNDS_Y);
 
     // Rotation (Banking and Pitching)
     // Bank (Roll around Z) based on X input.
