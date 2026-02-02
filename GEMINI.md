@@ -5,3 +5,4 @@
 - [2026-02-01 16:23:02] The CI deployment step must explicitly exclude the `dist-new` directory from the cleanup process to prevent build artifacts from being deleted before they are deployed.- [2026-02-01 16:37:41] Using a `BufferGeometry` with a `Points` material for the star field provides an efficient way to render thousands of stars in a single draw call.
 
 Q.E.D. ■
+- [2026-02-01 16:57:19] Disabling frustum culling on the `StarField` entity's `Points` object prevents the entire star field from disappearing when the camera moves or rotates, ensuring the wrapping stars remain visible.

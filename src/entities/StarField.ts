@@ -26,6 +26,7 @@ export class StarField extends Entity {
     });
 
     this.points = new THREE.Points(this.geometry, this.material);
+    this.points.frustumCulled = false;
   }
 
   public update(playerPosition: THREE.Vector3) {
