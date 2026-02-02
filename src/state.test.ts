@@ -1,6 +1,7 @@
 import { expect, test, beforeEach, describe } from 'vitest'
-import { state, initGame, addScore, takeDamage, nextPhase, checkCollision } from './state'
+import { state, initGame, addScore, takeDamage, nextPhase, checkCollision, updateState } from './state'
 import * as THREE from 'three';
+import { Player } from './entities/Player';
 
 beforeEach(() => {
   initGame();
@@ -11,6 +12,23 @@ describe('Game State', () => {
     expect(state.score).toBe(0)
     expect(state.shields).toBe(6)
     expect(state.phase).toBe('DOGFIGHT')
+    expect(state.player).toBeInstanceOf(Player)
+  })
+
+  test('updateState moves player forward', () => {
+    const initialZ = state.player!.position.z;
+    updateState(1); // 1 second
+    // Forward motion is negative Z.
+    // Let's assume some speed, e.g., 10 units/sec.
+    expect(state.player!.position.z).toBeLessThan(initialZ);
+  })
+
+  test('updateState should not move player if game is over', () => {
+    takeDamage(6);
+    expect(state.isGameOver).toBe(true);
+    const initialZ = state.player!.position.z;
+    updateState(1);
+    expect(state.player!.position.z).toBe(initialZ);
   })
 
   test('addScore increases score', () => {
