@@ -9,7 +9,7 @@ import { Player } from './entities/Player';
 export function updateCamera(camera: THREE.Camera, player: Player) {
   // Offset relative to player heading
   const offset = new THREE.Vector3(0, 2, 10);
-  offset.applyEuler(player.mesh.rotation);
+  offset.applyQuaternion(player.mesh.quaternion);
   
   camera.position.copy(player.position).add(offset);
   camera.lookAt(player.position);

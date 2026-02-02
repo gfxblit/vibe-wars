@@ -6,7 +6,7 @@ describe('Player', () => {
   test('should have a position and a mesh', () => {
     const player = new Player();
     expect(player.position).toBeInstanceOf(THREE.Vector3);
-    expect(player.mesh).toBeInstanceOf(THREE.LineSegments);
+    expect(player.mesh).toBeInstanceOf(THREE.Group);
   })
 
   test('should initialize position at origin', () => {
@@ -59,43 +59,43 @@ describe('Player', () => {
     expect(player.position.y).toBeGreaterThan(posY);
   })
 
-  test('update should bank the ship based on input x', () => {
+  test('update should bank the visual mesh based on input x', () => {
     const player = new Player();
     player.update(new THREE.Vector2(1, 0), 0.1);
-    // Banking is rotation around Z. 
-    // Positive X input should roll the ship (bank).
-    expect(player.mesh.rotation.z).not.toBe(0);
+    // Banking is rotation around Z of the visual mesh.
+    // We can access it via mesh.children[0] or we could expose it, 
+    // but for tests let's just check children.
+    const visualMesh = player.mesh.children[0] as THREE.Object3D;
+    expect(visualMesh.rotation.z).not.toBe(0);
   })
 
-  test('update should tilt the ship based on input y', () => {
+  test('update should rotate the player mesh based on input y', () => {
     const player = new Player();
     player.update(new THREE.Vector2(0, 1), 0.1);
-    // Tilting is rotation around X.
+    // Tilting is rotation around X of the main mesh.
     expect(player.mesh.rotation.x).not.toBe(0);
   })
 
-  test('should accumulate yaw over time with horizontal input', () => {
+  test('should rotate over time with horizontal input', () => {
     const player = new Player();
-    // Initial yaw should be 0 (looking down negative Z)
     player.update(new THREE.Vector2(1, 0), 0.1);
-    const yaw1 = player.yaw;
-    expect(yaw1).not.toBe(0);
+    const quat1 = player.mesh.quaternion.clone();
+    expect(quat1.equals(new THREE.Quaternion())).toBe(false);
     
     player.update(new THREE.Vector2(1, 0), 0.1);
-    const yaw2 = player.yaw;
-    // Assuming positive X input increases/decreases yaw
-    expect(Math.abs(yaw2)).toBeGreaterThan(Math.abs(yaw1));
+    const quat2 = player.mesh.quaternion.clone();
+    expect(quat2.equals(quat1)).toBe(false);
   })
 
-  test('should accumulate pitch over time with vertical input', () => {
+  test('should rotate over time with vertical input', () => {
     const player = new Player();
     player.update(new THREE.Vector2(0, 1), 0.1);
-    const pitch1 = player.pitch;
-    expect(pitch1).not.toBe(0);
+    const quat1 = player.mesh.quaternion.clone();
+    expect(quat1.equals(new THREE.Quaternion())).toBe(false);
     
     player.update(new THREE.Vector2(0, 1), 0.1);
-    const pitch2 = player.pitch;
-    expect(Math.abs(pitch2)).toBeGreaterThan(Math.abs(pitch1));
+    const quat2 = player.mesh.quaternion.clone();
+    expect(quat2.equals(quat1)).toBe(false);
   })
 
   test('should move in the direction of current heading', () => {

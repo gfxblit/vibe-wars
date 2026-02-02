@@ -22,10 +22,12 @@ vi.mock('three', async () => {
 describe('Renderer Utils', () => {
   test('updateCamera should position camera behind player relative to orientation', () => {
     const camera = new THREE.PerspectiveCamera();
+    const rotation = new THREE.Euler(0, Math.PI / 2, 0);
     const player = {
       position: new THREE.Vector3(0, 0, 0),
       mesh: {
-        rotation: new THREE.Euler(0, Math.PI / 2, 0) // Looking right (+X)
+        rotation: rotation,
+        quaternion: new THREE.Quaternion().setFromEuler(rotation)
       }
     } as any;
     
