@@ -18,7 +18,8 @@ describe('Player Relative Turning with Bank', () => {
     
     const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(player.mesh.quaternion);
     
-    // If it's relative to the BANKED ship, forward.y should change from 0.
-    expect(forward.y).not.toBe(0);
+    // If turning is decoupled from visual bank, then turning right on a level plane 
+    // should NOT change forward.y, even though the ship is visually banked.
+    expect(forward.y).toBeCloseTo(0, 5);
   })
 })

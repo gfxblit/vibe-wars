@@ -29,29 +29,22 @@ export class Player extends Entity {
   }
 
   public update(input: THREE.Vector2, deltaTime: number): void {
-    // Determine current visual bank (roll)
-    const bankRoll = -input.x * this.MAX_BANK;
-
-    // Calculate rotation axes relative to the banked orientation
-    // These axes are in the local space of the player entity (before banking is applied)
-    const localUp = new THREE.Vector3(0, 1, 0);
-    const localRight = new THREE.Vector3(1, 0, 0);
-    
-    // Create a temporary bank quaternion to tilt the rotation axes
-    const qBank = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), bankRoll);
-    localUp.applyQuaternion(qBank);
-    localRight.applyQuaternion(qBank);
-
-    // Relative turning around the banked axes
-    // Left input (negative X) -> Rotate around banked local up
+    // Relative turning amounts
     const yawAmount = -input.x * this.TURN_SPEED_YAW * deltaTime;
-    this.mesh.rotateOnAxis(localUp, yawAmount);
-    
-    // Up input (positive Y) -> Rotate around banked local right
     const pitchAmount = input.y * this.TURN_SPEED_PITCH * deltaTime;
-    this.mesh.rotateOnAxis(localRight, pitchAmount);
+
+    // Create relative rotation quaternion from Euler angles
+    // Order 'YXZ' is standard for relative orientation changes (Yaw then Pitch)
+    const qRelative = new THREE.Quaternion().setFromEuler(
+      new THREE.Euler(pitchAmount, yawAmount, 0, 'YXZ')
+    );
+    
+    // Apply relative rotation to current orientation
+    // Post-multiplication applies the rotation in the object's local space
+    this.mesh.quaternion.multiply(qRelative);
 
     // Visual Bank (Roll) - non-accumulating
+    const bankRoll = -input.x * this.MAX_BANK;
     this.visualMesh.rotation.z = bankRoll;
 
     // Calculate forward vector based on current orientation
