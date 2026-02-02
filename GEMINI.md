@@ -8,3 +8,4 @@
 - [2026-02-01 17:58:11] The `InputManager` requires an explicit `teardown()` call in tests to remove global event listeners and ensure test isolation.
 - [2026-02-01 18:16:02] Centralizing viewport dimensions and center coordinates in the global state ensures consistent input-to-world mapping and rendering across the application.
 - [2026-02-01 18:58:00] Applying the player's rotation to the camera's offset vector ensures the camera maintains a consistent third-person perspective during continuous turning.
+- [2026-02-01 19:34:27] Separate visual-only transformations like banking from the primary orientation quaternion to ensure that local-axis turning remains stable and decoupled from visual effects.
