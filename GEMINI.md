@@ -6,3 +6,4 @@
 
 Q.E.D. ■
 - [2026-02-01 16:57:19] Disabling frustum culling on the `StarField` entity's `Points` object prevents the entire star field from disappearing when the camera moves or rotates, ensuring the wrapping stars remain visible.
+- [2026-02-01 17:13:57] Setting the base path to './' in `vite.config.ts` ensures that built assets use relative paths, allowing the application to load correctly in subdirectory-based deployment environments like PR previews.
