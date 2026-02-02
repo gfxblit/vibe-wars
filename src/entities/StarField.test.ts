@@ -69,4 +69,9 @@ describe('StarField', () => {
     starField.update(playerPosition);
     expect(positions[1]).toBe(-halfSize - 1 + StarField.FIELD_SIZE);
   })
+
+  test('should disable frustum culling', () => {
+    const starField = new StarField();
+    expect(starField.points.frustumCulled).toBe(false);
+  })
 })
