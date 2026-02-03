@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { state } from './state';
+import { GameConfig } from './config';
 
 export class InputManager {
   private input: THREE.Vector2 = new THREE.Vector2(0, 0);
@@ -11,9 +12,6 @@ export class InputManager {
   private useRelativeInput: boolean = false;
   private pointerAnchor: THREE.Vector2 = new THREE.Vector2(0, 0);
   
-  private readonly SENSITIVITY = 5.0; // Units per second
-  private readonly TOUCH_RADIUS = 100; // Pixels for full deflection
-
   private handleKeyDown = (event: KeyboardEvent) => {
     this.keys.add(event.code);
     this.updateKeyboardTarget();
@@ -63,8 +61,8 @@ export class InputManager {
     if (this.useRelativeInput) {
       const dx = clientX - this.pointerAnchor.x;
       const dy = this.pointerAnchor.y - clientY; // Invert Y: up is positive
-      x = dx / this.TOUCH_RADIUS;
-      y = dy / this.TOUCH_RADIUS;
+      x = dx / GameConfig.input.touchRadius;
+      y = dy / GameConfig.input.touchRadius;
     } else {
       const { centerX, centerY } = state.viewport;
       
@@ -115,7 +113,7 @@ export class InputManager {
 
   public update(dt: number): void {
     // Smoothed keyboard input
-    const step = this.SENSITIVITY * dt;
+    const step = GameConfig.input.sensitivity * dt;
     this.keyboardInput.x = this.moveTowards(this.keyboardInput.x, this.keyboardTarget.x, step);
     this.keyboardInput.y = this.moveTowards(this.keyboardInput.y, this.keyboardTarget.y, step);
 

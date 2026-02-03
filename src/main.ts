@@ -3,6 +3,7 @@ import { initGame, state, updateState } from './state'
 import { initRenderer, render, attachCameraToPlayer } from './renderer'
 import { InputManager } from './input'
 import { StarField } from './entities/StarField'
+import { GameConfig } from './config'
 
 console.log('Vibe Wars starting...')
 
@@ -25,7 +26,7 @@ if (state.player) {
 let lastTime = 0
 function animate(time: number) {
   // Use a reasonable cap for deltaTime to avoid huge jumps
-  const deltaTime = Math.min((time - lastTime) / 1000, 0.1);
+  const deltaTime = Math.min((time - lastTime) / 1000, GameConfig.core.deltaTimeCap);
   lastTime = time
 
   inputManager.update(deltaTime)
