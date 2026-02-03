@@ -3,8 +3,9 @@
  */
 import { expect, test, describe, vi } from 'vitest'
 import * as THREE from 'three'
-import { updateCamera, initRenderer } from './renderer'
+import { attachCameraToPlayer, initRenderer } from './renderer'
 import { state } from './state'
+import { Player } from './entities/Player'
 
 vi.mock('three', async () => {
   const actual = await vi.importActual('three') as any;
@@ -20,15 +21,22 @@ vi.mock('three', async () => {
 });
 
 describe('Renderer Utils', () => {
-  test('updateCamera should position camera behind player', () => {
+  test('attachCameraToPlayer should add camera as child of player mesh with correct offset', () => {
     const camera = new THREE.PerspectiveCamera();
-    const playerPosition = new THREE.Vector3(0, 0, -100);
+    const player = new Player();
     
-    updateCamera(camera, playerPosition);
+    attachCameraToPlayer(camera, player);
     
+    expect(camera.parent).toBe(player.mesh);
     expect(camera.position.x).toBe(0);
     expect(camera.position.y).toBe(2);
-    expect(camera.position.z).toBe(-90); // -100 + 10
+    expect(camera.position.z).toBe(10);
+    
+    // Check orientation (looking at player center)
+    const target = new THREE.Vector3(0, 0, 0);
+    const cameraDir = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion);
+    const toPlayer = new THREE.Vector3().subVectors(target, camera.position).normalize();
+    expect(cameraDir.dot(toPlayer)).toBeGreaterThan(0.9);
   })
 
   test('initRenderer should return scene, camera, renderer and a cleanup function', () => {

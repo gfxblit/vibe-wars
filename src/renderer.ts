@@ -3,29 +3,31 @@
  * major refactoring as the architecture is finalized.
  */
 import * as THREE from 'three';
-import { GameState, state } from './state';
+import { state } from './state';
+import { Player } from './entities/Player';
 
-export function updateCamera(camera: THREE.Camera, playerPosition: THREE.Vector3) {
-  camera.position.set(playerPosition.x, playerPosition.y + 2, playerPosition.z + 10);
-  camera.lookAt(playerPosition);
+export function attachCameraToPlayer(camera: THREE.Camera, player: Player) {
+  player.mesh.add(camera);
+  camera.position.set(0, 2, 10);
+  camera.lookAt(0, 0, 0); // Look at player center in local space
 }
 
 export function initRenderer() {
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0x000000); // Black background for retro aesthetic
-  
+
   const camera = new THREE.PerspectiveCamera(75, state.viewport.width / state.viewport.height, 0.1, 1000);
   const renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setSize(state.viewport.width, state.viewport.height);
   document.body.appendChild(renderer.domElement);
-  
+
   // Handle window resize
   const handleResize = () => {
     state.viewport.width = window.innerWidth;
     state.viewport.height = window.innerHeight;
     state.viewport.centerX = state.viewport.width / 2;
     state.viewport.centerY = state.viewport.height / 2;
-    
+
     camera.aspect = state.viewport.width / state.viewport.height;
     camera.updateProjectionMatrix();
     renderer.setSize(state.viewport.width, state.viewport.height);
@@ -45,13 +47,9 @@ export function initRenderer() {
 }
 
 export function render(
-  renderer: THREE.WebGLRenderer, 
-  scene: THREE.Scene, 
-  camera: THREE.PerspectiveCamera, 
-  state: GameState
+  renderer: THREE.WebGLRenderer,
+  scene: THREE.Scene,
+  camera: THREE.PerspectiveCamera
 ) {
-  if (state.player) {
-    updateCamera(camera, state.player.position);
-  }
   renderer.render(scene, camera);
 }

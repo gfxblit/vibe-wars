@@ -3,7 +3,9 @@ import { state } from './state';
 
 export class InputManager {
   private input: THREE.Vector2 = new THREE.Vector2(0, 0);
-  private targetInput: THREE.Vector2 = new THREE.Vector2(0, 0);
+  private keyboardInput: THREE.Vector2 = new THREE.Vector2(0, 0);
+  private keyboardTarget: THREE.Vector2 = new THREE.Vector2(0, 0);
+  private pointerInput: THREE.Vector2 = new THREE.Vector2(0, 0);
   private keys: Set<string> = new Set();
   private isDragging: boolean = false;
   
@@ -11,12 +13,12 @@ export class InputManager {
 
   private handleKeyDown = (event: KeyboardEvent) => {
     this.keys.add(event.code);
-    this.updateTargetInput();
+    this.updateKeyboardTarget();
   };
 
   private handleKeyUp = (event: KeyboardEvent) => {
     this.keys.delete(event.code);
-    this.updateTargetInput();
+    this.updateKeyboardTarget();
   };
 
   private handleMouseDown = () => {
@@ -25,8 +27,7 @@ export class InputManager {
 
   private handleMouseUp = () => {
     this.isDragging = false;
-    this.targetInput.set(0, 0);
-    this.input.set(0, 0); // Snap back on release
+    this.pointerInput.set(0, 0);
   };
 
   private handleMouseMove = (event: MouseEvent) => {
@@ -56,16 +57,13 @@ export class InputManager {
     const x = (clientX - centerX) / centerX;
     const y = (centerY - clientY) / centerY; // Invert Y: top is 1, bottom is -1
     
-    this.targetInput.set(
+    this.pointerInput.set(
       THREE.MathUtils.clamp(x, -1, 1),
       THREE.MathUtils.clamp(y, -1, 1)
     );
-    
-    // For pointer input, we usually want immediate response
-    this.input.copy(this.targetInput);
   }
 
-  private updateTargetInput() {
+  private updateKeyboardTarget() {
     let x = 0;
     let y = 0;
 
@@ -74,7 +72,7 @@ export class InputManager {
     if (this.keys.has('ArrowUp') || this.keys.has('KeyW')) y += 1;
     if (this.keys.has('ArrowDown') || this.keys.has('KeyS')) y -= 1;
 
-    this.targetInput.set(x, y);
+    this.keyboardTarget.set(x, y);
   }
 
   public setup(): void {
@@ -100,13 +98,16 @@ export class InputManager {
   }
 
   public update(dt: number): void {
-    // Keyboard input still uses gradual movement
-    if (this.keys.size > 0 || (this.input.lengthSq() > 0 && !this.isDragging)) {
-      const step = this.SENSITIVITY * dt;
-      this.input.x = this.moveTowards(this.input.x, this.targetInput.x, step);
-      this.input.y = this.moveTowards(this.input.y, this.targetInput.y, step);
-    }
-    // If dragging, pointer input already set this.input immediately in updatePointerInput
+    // Smoothed keyboard input
+    const step = this.SENSITIVITY * dt;
+    this.keyboardInput.x = this.moveTowards(this.keyboardInput.x, this.keyboardTarget.x, step);
+    this.keyboardInput.y = this.moveTowards(this.keyboardInput.y, this.keyboardTarget.y, step);
+
+    // Merge keyboard and pointer input
+    this.input.set(
+        THREE.MathUtils.clamp(this.keyboardInput.x + this.pointerInput.x, -1, 1),
+        THREE.MathUtils.clamp(this.keyboardInput.y + this.pointerInput.y, -1, 1)
+    );
   }
 
   private moveTowards(current: number, target: number, maxDelta: number): number {
@@ -118,6 +119,3 @@ export class InputManager {
     return this.input;
   }
 }
-
-
-  

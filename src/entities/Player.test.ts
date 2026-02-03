@@ -6,7 +6,7 @@ describe('Player', () => {
   test('should have a position and a mesh', () => {
     const player = new Player();
     expect(player.position).toBeInstanceOf(THREE.Vector3);
-    expect(player.mesh).toBeInstanceOf(THREE.LineSegments);
+    expect(player.mesh).toBeInstanceOf(THREE.Group);
   })
 
   test('should initialize position at origin', () => {
@@ -43,8 +43,9 @@ describe('Player', () => {
     expect(player.position.x).toBeGreaterThan(0);
     
     const posX = player.position.x;
-    player.update(new THREE.Vector2(-1, 0), 0.1);
-    expect(player.position.x).toBeLessThan(posX);
+    // Continuing to turn right should continue to increase X (until we pass 90 deg)
+    player.update(new THREE.Vector2(1, 0), 0.1);
+    expect(player.position.x).toBeGreaterThan(posX);
   })
 
   test('update should move player vertically based on input y', () => {
@@ -53,33 +54,65 @@ describe('Player', () => {
     expect(player.position.y).toBeGreaterThan(0);
     
     const posY = player.position.y;
-    player.update(new THREE.Vector2(0, -1), 0.1);
-    expect(player.position.y).toBeLessThan(posY);
+    // Continuing to tilt up should continue to increase Y (until we pass 90 deg)
+    player.update(new THREE.Vector2(0, 1), 0.1);
+    expect(player.position.y).toBeGreaterThan(posY);
   })
 
-  test('update should bank the ship based on input x', () => {
+  test('update should bank the visual mesh based on input x', () => {
     const player = new Player();
     player.update(new THREE.Vector2(1, 0), 0.1);
-    // Banking is rotation around Z. 
-    // Positive X input should roll the ship (bank).
-    expect(player.mesh.rotation.z).not.toBe(0);
+    // Banking is rotation around Z of the visual mesh.
+    // We can access it via mesh.children[0] or we could expose it, 
+    // but for tests let's just check children.
+    const visualMesh = player.mesh.children[0] as THREE.Object3D;
+    expect(visualMesh.rotation.z).not.toBe(0);
   })
 
-  test('update should tilt the ship based on input y', () => {
+  test('update should rotate the player mesh based on input y', () => {
     const player = new Player();
     player.update(new THREE.Vector2(0, 1), 0.1);
-    // Tilting is rotation around X.
+    // Tilting is rotation around X of the main mesh.
     expect(player.mesh.rotation.x).not.toBe(0);
   })
 
-  test('position should be clamped within bounds', () => {
+  test('should rotate over time with horizontal input', () => {
     const player = new Player();
-    // Move far to the right
+    player.update(new THREE.Vector2(1, 0), 0.1);
+    const quat1 = player.mesh.quaternion.clone();
+    expect(quat1.equals(new THREE.Quaternion())).toBe(false);
+    
+    player.update(new THREE.Vector2(1, 0), 0.1);
+    const quat2 = player.mesh.quaternion.clone();
+    expect(quat2.equals(quat1)).toBe(false);
+  })
+
+  test('should rotate over time with vertical input', () => {
+    const player = new Player();
+    player.update(new THREE.Vector2(0, 1), 0.1);
+    const quat1 = player.mesh.quaternion.clone();
+    expect(quat1.equals(new THREE.Quaternion())).toBe(false);
+    
+    player.update(new THREE.Vector2(0, 1), 0.1);
+    const quat2 = player.mesh.quaternion.clone();
+    expect(quat2.equals(quat1)).toBe(false);
+  })
+
+  test('should move in the direction of current heading', () => {
+    const player = new Player();
+    
+    // Turn 90 degrees right (yaw)
+    // We don't know the exact TURN_SPEED yet, so let's just simulate enough time
+    // or just set it if we want, but it's better to test the update loop.
+    
+    // If we turn right, we should eventually move towards positive X.
     for (let i = 0; i < 100; i++) {
         player.update(new THREE.Vector2(1, 0), 0.1);
     }
-    const maxX = player.position.x;
-    player.update(new THREE.Vector2(1, 0), 0.1);
-    expect(player.position.x).toBe(maxX);
+    
+    // After turning right, moving forward should increase X
+    const initialX = player.position.x;
+    player.update(new THREE.Vector2(0, 0), 0.1);
+    expect(player.position.x).not.toBe(initialX);
   })
 })
