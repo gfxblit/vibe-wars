@@ -5,18 +5,25 @@
 import * as THREE from 'three';
 import { state } from './state';
 import { Player } from './entities/Player';
+import { GameConfig } from './config';
 
 export function attachCameraToPlayer(camera: THREE.Camera, player: Player) {
   player.mesh.add(camera);
-  camera.position.set(0, 2, 10);
-  camera.lookAt(0, 0, 0); // Look at player center in local space
+  const { position, lookAt } = GameConfig.camera;
+  camera.position.set(position.x, position.y, position.z);
+  camera.lookAt(lookAt.x, lookAt.y, lookAt.z); // Look at player center in local space
 }
 
 export function initRenderer() {
   const scene = new THREE.Scene();
-  scene.background = new THREE.Color(0x000000); // Black background for retro aesthetic
+  scene.background = new THREE.Color(GameConfig.camera.backgroundColor);
 
-  const camera = new THREE.PerspectiveCamera(75, state.viewport.width / state.viewport.height, 0.1, 1000);
+  const camera = new THREE.PerspectiveCamera(
+    GameConfig.camera.fov,
+    state.viewport.width / state.viewport.height,
+    GameConfig.camera.near,
+    GameConfig.camera.far
+  );
   const renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setSize(state.viewport.width, state.viewport.height);
   document.body.appendChild(renderer.domElement);

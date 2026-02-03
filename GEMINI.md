@@ -13,4 +13,6 @@
 - [2026-02-02 07:24:02] Parenting the camera directly to the player mesh simplifies follow-camera logic and ensures consistent perspective by leveraging automatic scene graph transform inheritance.
 - [2026-02-02 09:15:00] When creating relative rotation quaternions from 2D input, use Euler order 'YXZ' (Yaw then Pitch) to prevent pitch input from inducing unwanted roll artifacts during turns.
 - [2026-02-02 21:31:16] Implement relative touch input by anchoring the initial touch position and normalizing displacement against a fixed radius to provide intuitive mobile controls and consistent sensitivity across different screen sizes.
+- [2026-02-02 21:32:28] Centralize all tunable game parameters, including camera properties, input sensitivity, and entity constants, within the `GameConfig` object in `src/config.ts` to maintain a single source of truth for game balance.
 - [2026-02-03 06:18:12] Unify input clamping after all coordinate transformations to ensure consistent normalized bounds across different control modes.
+- [2026-02-03 06:22:10] Apply `as const` to the `GameConfig` object in `src/config.ts` to enforce type-level immutability and prevent accidental modifications of game parameters.

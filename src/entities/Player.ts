@@ -1,15 +1,10 @@
 import * as THREE from 'three';
 import { Entity } from './Entity';
+import { GameConfig } from '../config';
 
 export class Player extends Entity {
   public readonly mesh: THREE.Group;
   private readonly visualMesh: THREE.LineSegments;
-
-  private readonly FORWARD_SPEED = 100;
-  private readonly TURN_SPEED_YAW = Math.PI / 1.5; // ~120 degrees per second
-  private readonly TURN_SPEED_PITCH = Math.PI / 1.5;
-
-  private readonly MAX_BANK = Math.PI / 4; // 45 degrees
 
   public get position(): THREE.Vector3 {
     return this.mesh.position;
@@ -19,9 +14,13 @@ export class Player extends Entity {
     super();
     this.mesh = new THREE.Group();
 
-    const geometry = new THREE.BoxGeometry(1, 1, 1);
+    const geometry = new THREE.BoxGeometry(
+      GameConfig.player.meshSize,
+      GameConfig.player.meshSize,
+      GameConfig.player.meshSize
+    );
     const edges = new THREE.EdgesGeometry(geometry);
-    const material = new THREE.LineBasicMaterial({ color: 0x00ff00 }); // Green wireframe
+    const material = new THREE.LineBasicMaterial({ color: GameConfig.player.meshColor });
     this.visualMesh = new THREE.LineSegments(edges, material);
 
     this.mesh.add(this.visualMesh);
@@ -30,8 +29,8 @@ export class Player extends Entity {
 
   public update(input: THREE.Vector2, deltaTime: number): void {
     // Relative turning amounts
-    const yawAmount = -input.x * this.TURN_SPEED_YAW * deltaTime;
-    const pitchAmount = input.y * this.TURN_SPEED_PITCH * deltaTime;
+    const yawAmount = -input.x * GameConfig.player.turnSpeedYaw * deltaTime;
+    const pitchAmount = input.y * GameConfig.player.turnSpeedPitch * deltaTime;
 
     // Create relative rotation quaternion from Euler angles
     // Order 'YXZ' is standard for relative orientation changes (Yaw then Pitch)
@@ -44,7 +43,7 @@ export class Player extends Entity {
     this.mesh.quaternion.multiply(qRelative);
 
     // Visual Bank (Roll) - non-accumulating
-    const bankRoll = -input.x * this.MAX_BANK;
+    const bankRoll = -input.x * GameConfig.player.maxBank;
     this.visualMesh.rotation.z = bankRoll;
 
     // Calculate forward vector based on current orientation
@@ -52,6 +51,6 @@ export class Player extends Entity {
     const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(this.mesh.quaternion);
 
     // Move position forward
-    this.position.add(forward.multiplyScalar(this.FORWARD_SPEED * deltaTime));
+    this.position.add(forward.multiplyScalar(GameConfig.player.forwardSpeed * deltaTime));
   }
 }
