@@ -12,3 +12,5 @@
 - [2026-02-01 19:46:36] Transforming the local rotation axes by the visual bank quaternion before applying yaw and pitch rotations enables arcade-style flight mechanics where the turn direction follows the ship's roll.
 - [2026-02-02 07:24:02] Parenting the camera directly to the player mesh simplifies follow-camera logic and ensures consistent perspective by leveraging automatic scene graph transform inheritance.
 - [2026-02-02 09:15:00] When creating relative rotation quaternions from 2D input, use Euler order 'YXZ' (Yaw then Pitch) to prevent pitch input from inducing unwanted roll artifacts during turns.
+- [2026-02-02 21:31:16] Implement relative touch input by anchoring the initial touch position and normalizing displacement against a fixed radius to provide intuitive mobile controls and consistent sensitivity across different screen sizes.
+- [2026-02-03 06:18:12] Unify input clamping after all coordinate transformations to ensure consistent normalized bounds across different control modes.

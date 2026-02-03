@@ -145,31 +145,70 @@ describe('InputManager', () => {
     vi.stubGlobal('innerWidth', 1000);
     vi.stubGlobal('innerHeight', 1000);
 
-    // Touch start
+    // Touch start at (500, 500)
     const touchStartEvent = {
-        touches: [{ clientX: 0, clientY: 0 }],
+        touches: [{ clientX: 500, clientY: 500 }],
         preventDefault: vi.fn()
     };
     listeners['touchstart'](touchStartEvent);
     inputManager.update(0);
-    expect(inputManager.getInput().x).toBe(-1);
-    expect(inputManager.getInput().y).toBe(1);
+    // Relative: should be zero at start
+    expect(inputManager.getInput().x).toBe(0);
+    expect(inputManager.getInput().y).toBe(0);
 
-    // Touch move
+    // Touch move to (600, 400)
+    // dx = 600 - 500 = 100 -> x = 1.0
+    // dy = 500 - 400 = 100 -> y = 1.0
     const touchMoveEvent = {
-        touches: [{ clientX: 500, clientY: 500 }],
+        touches: [{ clientX: 600, clientY: 400 }],
         preventDefault: vi.fn()
     };
     listeners['touchmove'](touchMoveEvent);
     inputManager.update(0);
-    expect(inputManager.getInput().x).toBe(0);
-    expect(inputManager.getInput().y).toBe(0);
+    expect(inputManager.getInput().x).toBe(1);
+    expect(inputManager.getInput().y).toBe(1);
     expect(touchMoveEvent.preventDefault).toHaveBeenCalled();
 
     // Touch end
     listeners['touchend'](new TouchEvent('touchend'));
     inputManager.update(0);
     expect(inputManager.getInput().x).toBe(0);
+  });
+
+  it('sets touch anchor on touchstart and produces zero input initially', () => {
+    const touchStartEvent = {
+        touches: [{ clientX: 300, clientY: 400 }],
+        preventDefault: vi.fn()
+    };
+    listeners['touchstart'](touchStartEvent);
+    inputManager.update(0);
+    expect(inputManager.getInput().x).toBe(0);
+    expect(inputManager.getInput().y).toBe(0);
+  });
+
+  it('clamps relative touch input to [-1, 1]', () => {
+    listeners['touchstart']({
+        touches: [{ clientX: 300, clientY: 400 }],
+        preventDefault: vi.fn()
+    });
+    
+    // Move 200 pixels left (300 - 200 = 100) -> -2.0 clamped to -1.0
+    listeners['touchmove']({
+        touches: [{ clientX: 100, clientY: 400 }],
+        preventDefault: vi.fn()
+    });
+    inputManager.update(0);
+    expect(inputManager.getInput().x).toBe(-1.0);
+    expect(inputManager.getInput().y).toBe(0);
+
+    // Move 200 pixels up (400 - 200 = 200) -> dy = 400 - 200 = 200 -> 2.0 clamped to 1.0
+    listeners['touchmove']({
+        touches: [{ clientX: 300, clientY: 200 }],
+        preventDefault: vi.fn()
+    });
+    inputManager.update(0);
+    expect(inputManager.getInput().x).toBe(0);
+    expect(inputManager.getInput().y).toBe(1.0);
   });
 
   it('updates target input based on state.viewport after resize', () => {
