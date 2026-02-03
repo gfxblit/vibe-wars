@@ -9,16 +9,9 @@ import { GameConfig } from './config';
 
 export function attachCameraToPlayer(camera: THREE.Camera, player: Player) {
   player.mesh.add(camera);
-  camera.position.set(
-    GameConfig.camera.position.x,
-    GameConfig.camera.position.y,
-    GameConfig.camera.position.z
-  );
-  camera.lookAt(
-    GameConfig.camera.lookAt.x,
-    GameConfig.camera.lookAt.y,
-    GameConfig.camera.lookAt.z
-  ); // Look at player center in local space
+  const { position, lookAt } = GameConfig.camera;
+  camera.position.set(position.x, position.y, position.z);
+  camera.lookAt(lookAt.x, lookAt.y, lookAt.z); // Look at player center in local space
 }
 
 export function initRenderer() {

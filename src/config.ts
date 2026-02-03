@@ -28,4 +28,4 @@ export const GameConfig = {
     sensitivity: 5.0,
     touchRadius: 100,
   },
-};
+} as const;

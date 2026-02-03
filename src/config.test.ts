@@ -34,4 +34,12 @@ describe('GameConfig', () => {
   it('should have input settings', () => {
     expect(GameConfig.input.sensitivity).toBe(5.0);
   });
+
+  it('should be immutable (type-level check)', () => {
+    if (false as boolean) {
+      // @ts-expect-error - GameConfig should be immutable
+      GameConfig.core.deltaTimeCap = 0.2;
+    }
+    expect(GameConfig.core.deltaTimeCap).toBe(0.1);
+  });
 });
