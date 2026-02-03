@@ -6,7 +6,23 @@
     <title>Vibe Wars</title>
   </head>
   <body>
-    <div id="cursor"></div>
+    <div id="cursor">
+      <svg width="50" height="50" viewBox="0 0 50 50" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Central Cross -->
+        <line x1="20" y1="25" x2="30" y2="25" stroke="white" stroke-width="1.5" />
+        <line x1="25" y1="20" x2="25" y2="30" stroke="white" stroke-width="1.5" />
+        
+        <!-- Corners -->
+        <!-- Top Left -->
+        <path d="M0 10V0H10" stroke="white" stroke-width="1.5" />
+        <!-- Top Right -->
+        <path d="M40 0H50V10" stroke="white" stroke-width="1.5" />
+        <!-- Bottom Right -->
+        <path d="M50 40V50H40" stroke="white" stroke-width="1.5" />
+        <!-- Bottom Left -->
+        <path d="M10 50H0V40" stroke="white" stroke-width="1.5" />
+      </svg>
+    </div>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
