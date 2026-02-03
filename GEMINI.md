@@ -10,3 +10,4 @@ Q.E.D. ■
 - [2026-02-01 17:21:45] Using `beforeAll` to trigger the build and `afterAll` for `dist` directory cleanup in `src/build_assets.test.ts` ensures that integration tests for relative asset paths are isolated and efficient.
 - [2026-02-01 17:58:11] The `InputManager` requires an explicit `teardown()` call in tests to remove global event listeners and ensure test isolation.
 - [2026-02-01 18:16:02] Centralizing viewport dimensions and center coordinates in the global state ensures consistent input-to-world mapping and rendering across the application.
+- [2026-02-02 20:29:30] Configuring `server.allowedHosts: true` in `vite.config.ts` allows the development server to respond to requests from external hosts, preventing blocked request errors.
