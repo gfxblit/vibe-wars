@@ -57,26 +57,26 @@ export class InputManager {
   };
 
   private updatePointerInput(clientX: number, clientY: number) {
+    let x: number;
+    let y: number;
+
     if (this.useRelativeInput) {
       const dx = clientX - this.pointerAnchor.x;
       const dy = this.pointerAnchor.y - clientY; // Invert Y: up is positive
-
-      this.pointerInput.set(
-        THREE.MathUtils.clamp(dx / this.TOUCH_RADIUS, -1, 1),
-        THREE.MathUtils.clamp(dy / this.TOUCH_RADIUS, -1, 1)
-      );
+      x = dx / this.TOUCH_RADIUS;
+      y = dy / this.TOUCH_RADIUS;
     } else {
       const { centerX, centerY } = state.viewport;
       
       // Normalize to [-1, 1]
-      const x = (clientX - centerX) / centerX;
-      const y = (centerY - clientY) / centerY; // Invert Y: top is 1, bottom is -1
-      
-      this.pointerInput.set(
-        THREE.MathUtils.clamp(x, -1, 1),
-        THREE.MathUtils.clamp(y, -1, 1)
-      );
+      x = (clientX - centerX) / centerX;
+      y = (centerY - clientY) / centerY; // Invert Y: top is 1, bottom is -1
     }
+    
+    this.pointerInput.set(
+      THREE.MathUtils.clamp(x, -1, 1),
+      THREE.MathUtils.clamp(y, -1, 1)
+    );
   }
 
   private updateKeyboardTarget() {

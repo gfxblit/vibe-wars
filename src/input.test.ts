@@ -199,6 +199,7 @@ describe('InputManager', () => {
     });
     inputManager.update(0);
     expect(inputManager.getInput().x).toBe(-1.0);
+    expect(inputManager.getInput().y).toBe(0);
 
     // Move 200 pixels up (400 - 200 = 200) -> dy = 400 - 200 = 200 -> 2.0 clamped to 1.0
     listeners['touchmove']({
@@ -206,6 +207,7 @@ describe('InputManager', () => {
         preventDefault: vi.fn()
     });
     inputManager.update(0);
+    expect(inputManager.getInput().x).toBe(0);
     expect(inputManager.getInput().y).toBe(1.0);
   });
 
