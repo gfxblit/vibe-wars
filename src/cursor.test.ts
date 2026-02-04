@@ -34,11 +34,8 @@ describe('Cursor Visuals', () => {
 
   it('should have corner brackets in the SVG', () => {
     const cursor = document.getElementById('cursor');
-    // Corner brackets could be paths or multiple lines. 
-    // The requirement says four "L" shaped brackets.
-    // Each L is 2 lines, so 4 * 2 = 8 lines, plus 2 for the cross = 10 lines.
-    // Or they could be paths. Let's just check for enough elements.
-    const svgElements = cursor?.querySelectorAll('svg line, svg path, svg polyline');
-    expect(svgElements?.length).toBeGreaterThanOrEqual(6); // 2 for cross + some for corners
+    // The corner brackets are implemented using <path> elements.
+    const paths = cursor?.querySelectorAll('svg path');
+    expect(paths?.length).toBe(4);
   });
 });
