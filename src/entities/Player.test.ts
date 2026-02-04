@@ -115,4 +115,28 @@ describe('Player', () => {
     player.update(new THREE.Vector2(0, 0), 0.1);
     expect(player.position.x).not.toBe(initialX);
   })
+
+  describe('Cockpit', () => {
+    test('should build cockpit group', () => {
+      const player = new Player();
+      const cockpit = player.mesh.children.find(c => c.name === 'cockpit');
+      expect(cockpit).toBeDefined();
+      expect(cockpit).toBeInstanceOf(THREE.Group);
+    });
+
+    test('cockpit should have nose and two guns', () => {
+      const player = new Player();
+      const cockpit = player.mesh.children.find(c => c.name === 'cockpit');
+      // Should have at least 3 children (nose, gunL, gunR)
+      expect(cockpit?.children.length).toBeGreaterThanOrEqual(3);
+    });
+    
+    test('cockpit components should be LineSegments', () => {
+      const player = new Player();
+      const cockpit = player.mesh.children.find(c => c.name === 'cockpit');
+      cockpit?.children.forEach(child => {
+        expect(child).toBeInstanceOf(THREE.LineSegments);
+      });
+    });
+  })
 })
