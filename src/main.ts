@@ -4,6 +4,7 @@ import { initRenderer, render, attachCameraToPlayer } from './renderer'
 import { InputManager } from './input'
 import { StarField } from './entities/StarField'
 import { GameConfig } from './config'
+import { Cursor } from './Cursor'
 
 console.log('Vibe Wars starting...')
 
@@ -13,10 +14,10 @@ initGame()
 const inputManager = new InputManager()
 inputManager.setup()
 
+const cursor = new Cursor()
+
 const starField = new StarField()
 scene.add(starField.points)
-
-const cursorElement = document.getElementById('cursor');
 
 if (state.player) {
   scene.add(state.player.mesh)
@@ -33,20 +34,7 @@ function animate(time: number) {
   const input = inputManager.getInput()
   updateState(deltaTime, input)
   
-  // Update visual cursor
-  if (cursorElement) {
-    const { centerX, centerY } = state.viewport;
-    const cursorX = centerX + input.x * centerX;
-    const cursorY = centerY - input.y * centerY; // Invert Y back to screen space
-    
-    // Use transform for better performance
-    cursorElement.style.transform = `translate3d(calc(${cursorX}px - 50%), calc(${cursorY}px - 50%), 0)`;
-    
-    // Only set display once
-    if (cursorElement.style.display !== 'block') {
-      cursorElement.style.display = 'block';
-    }
-  }
+  cursor.update(input)
 
   if (state.player) {
     starField.update(state.player.position)
