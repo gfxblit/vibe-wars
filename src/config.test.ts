@@ -8,11 +8,17 @@ describe('GameConfig', () => {
 
   it('should have camera settings', () => {
     expect(GameConfig.camera.fov).toBe(75);
-    expect(GameConfig.camera.near).toBe(0.1);
+    expect(GameConfig.camera.near).toBe(0.05);
     expect(GameConfig.camera.far).toBe(1000);
-    expect(GameConfig.camera.position).toEqual({ x: 0, y: 2, z: 10 });
-    expect(GameConfig.camera.lookAt).toEqual({ x: 0, y: 0, z: 0 });
+    expect(GameConfig.camera.position).toEqual({ x: 0, y: 0, z: 0 });
+    expect(GameConfig.camera.lookAt).toEqual({ x: 0, y: 0, z: -1 });
     expect(GameConfig.camera.backgroundColor).toBe(0x000000);
+  });
+
+  it('should have cockpit settings', () => {
+    expect(GameConfig.cockpit.colors).toEqual({ primary: 0xff0000, secondary: 0x0000ff });
+    expect(GameConfig.cockpit.nose).toBeDefined();
+    expect(GameConfig.cockpit.guns).toBeDefined();
   });
 
   it('should have player settings', () => {

@@ -4,6 +4,7 @@
  */
 import * as THREE from 'three';
 import { Player } from './entities/Player';
+import { Cockpit } from './entities/components/Cockpit';
 
 export type GamePhase = 'DOGFIGHT' | 'SURFACE' | 'TRENCH';
 
@@ -49,6 +50,7 @@ export function initGame() {
   state.phase = 'DOGFIGHT';
   state.isGameOver = false;
   state.player = new Player();
+  state.player.addComponent(new Cockpit());
   console.log('Game initialized');
 }
 

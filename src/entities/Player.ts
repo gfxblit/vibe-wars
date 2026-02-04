@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { Entity } from './Entity';
 import { GameConfig } from '../config';
+import { VisualComponent } from './components/VisualComponent';
 
 export class Player extends Entity {
   public readonly mesh: THREE.Group;
@@ -24,7 +25,12 @@ export class Player extends Entity {
     this.visualMesh = new THREE.LineSegments(edges, material);
 
     this.mesh.add(this.visualMesh);
+    
     this.position.set(0, 0, 0);
+  }
+
+  public addComponent(component: VisualComponent): void {
+    this.mesh.add(component.mesh);
   }
 
   public update(input: THREE.Vector2, deltaTime: number): void {

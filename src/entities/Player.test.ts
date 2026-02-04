@@ -115,4 +115,16 @@ describe('Player', () => {
     player.update(new THREE.Vector2(0, 0), 0.1);
     expect(player.position.x).not.toBe(initialX);
   })
+
+  describe('Components', () => {
+    test('should allow adding visual components', () => {
+      const player = new Player();
+      const mockMesh = new THREE.Mesh();
+      const mockComponent = { mesh: mockMesh };
+      
+      player.addComponent(mockComponent);
+      
+      expect(player.mesh.children).toContain(mockMesh);
+    });
+  })
 })
