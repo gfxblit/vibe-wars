@@ -75,4 +75,10 @@ describe('UIManager', () => {
     uiManager.update(mockState);
     expect(gameOver?.classList.contains('hidden')).toBe(false);
   });
+
+  it('should remove HUD container on destroy', () => {
+    uiManager.destroy();
+    const hud = document.getElementById('hud');
+    expect(hud).toBeNull();
+  });
 });

@@ -10,63 +10,73 @@ export class UIManager {
   private gameOver!: HTMLElement;
 
   constructor() {
-    this.hud = this.createHUD();
+    // Root HUD container
+    this.hud = this.createEl('div', 'fixed inset-0 pointer-events-none z-10 font-retro flex flex-col justify-between p-4');
+    this.hud.id = 'hud';
+
+    const topBar = this.createEl('div', 'flex justify-between items-start w-full', this.hud);
+
+    this.createScoreSection(topBar);
+    this.createShieldSection(topBar);
+    this.createWaveSection(topBar);
+    this.createGameOverOverlay();
+
     document.body.appendChild(this.hud);
-    this.cacheElements();
   }
 
-  private createHUD(): HTMLElement {
-    const hud = document.createElement('div');
-    hud.id = 'hud';
-    hud.className = 'fixed inset-0 pointer-events-none z-10 font-retro flex flex-col justify-between p-4';
-    
-    hud.innerHTML = `
-      <div class="flex justify-between items-start w-full">
-        <!-- Left: Score -->
-        <div class="flex flex-col">
-          <div class="flex space-x-2">
-            <span class="text-vector-red">SCORE</span>
-            <span id="score-value" class="text-vector-green">0</span>
-          </div>
-          <div class="flex space-x-2 text-sm">
-            <span class="text-vector-yellow">HI-SCORE</span>
-            <span id="high-score-value" class="text-vector-yellow">${GameConfig.ui.highScore}</span>
-          </div>
-        </div>
-
-        <!-- Center: Shield -->
-        <div class="flex flex-col items-center">
-          <div class="flex space-x-2">
-            <span class="text-vector-green">SHIELD</span>
-            <span id="shield-value" class="text-vector-green">${GameConfig.player.maxShields}</span>
-          </div>
-          <div class="w-48 h-4 border border-vector-green mt-1">
-            <div id="shield-bar" class="h-full bg-vector-green transition-all duration-300" style="width: 100%"></div>
-          </div>
-        </div>
-
-        <!-- Right: Wave -->
-        <div class="flex space-x-2">
-          <span class="text-vector-red">WAVE</span>
-          <span id="wave-value" class="text-vector-green">1</span>
-        </div>
-      </div>
-
-      <!-- Game Over Overlay -->
-      <div id="game-over" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
-        <div class="text-vector-red text-6xl font-retro animate-pulse">GAME OVER</div>
-      </div>
-    `;
-
-    return hud;
+  private createEl(tag: string, className: string, parent?: HTMLElement): HTMLElement {
+    const el = document.createElement(tag);
+    el.className = className;
+    if (parent) parent.appendChild(el);
+    return el;
   }
 
-  private cacheElements() {
-    this.scoreValue = document.getElementById('score-value')!;
-    this.shieldValue = document.getElementById('shield-value')!;
-    this.shieldBar = document.getElementById('shield-bar')!;
-    this.waveValue = document.getElementById('wave-value')!;
-    this.gameOver = document.getElementById('game-over')!;
+  private createScoreSection(parent: HTMLElement) {
+    const container = this.createEl('div', 'flex flex-col', parent);
+    const currentRow = this.createEl('div', 'flex space-x-2', container);
+    this.createEl('span', 'text-vector-red', currentRow).textContent = 'SCORE';
+    this.scoreValue = this.createEl('span', 'text-vector-green', currentRow);
+    this.scoreValue.id = 'score-value';
+    this.scoreValue.textContent = '0';
+
+    const highScoreRow = this.createEl('div', 'flex space-x-2 text-sm', container);
+    this.createEl('span', 'text-vector-yellow', highScoreRow).textContent = 'HI-SCORE';
+    const highScoreValue = this.createEl('span', 'text-vector-yellow', highScoreRow);
+    highScoreValue.id = 'high-score-value';
+    highScoreValue.textContent = GameConfig.ui.highScore.toString();
+  }
+
+  private createShieldSection(parent: HTMLElement) {
+    const container = this.createEl('div', 'flex flex-col items-center', parent);
+    const textRow = this.createEl('div', 'flex space-x-2', container);
+    this.createEl('span', 'text-vector-green', textRow).textContent = 'SHIELD';
+    this.shieldValue = this.createEl('span', 'text-vector-green', textRow);
+    this.shieldValue.id = 'shield-value';
+    this.shieldValue.textContent = GameConfig.player.maxShields.toString();
+
+    const barContainer = this.createEl('div', 'w-48 h-4 border border-vector-green mt-1', container);
+    this.shieldBar = this.createEl('div', 'h-full bg-vector-green transition-all duration-300', barContainer);
+    this.shieldBar.id = 'shield-bar';
+    this.shieldBar.style.width = '100%';
+  }
+
+  private createWaveSection(parent: HTMLElement) {
+    const container = this.createEl('div', 'flex space-x-2', parent);
+    this.createEl('span', 'text-vector-red', container).textContent = 'WAVE';
+    this.waveValue = this.createEl('span', 'text-vector-green', container);
+    this.waveValue.id = 'wave-value';
+    this.waveValue.textContent = '1';
+  }
+
+  private createGameOverOverlay() {
+    this.gameOver = this.createEl('div', 'fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden', this.hud);
+    this.gameOver.id = 'game-over';
+    const text = this.createEl('div', 'text-vector-red text-6xl font-retro animate-pulse', this.gameOver);
+    text.textContent = 'GAME OVER';
+  }
+
+  destroy() {
+    this.hud.remove();
   }
 
   update(state: GameState) {
