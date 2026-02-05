@@ -7,52 +7,74 @@ import { GameConfig } from './config'
 import { Cursor } from './Cursor'
 import { UIManager } from './UIManager'
 
-console.log('Vibe Wars starting...')
+export function init() {
+  console.log('Vibe Wars starting...')
+  const { scene, camera, renderer: webglRenderer } = initRenderer()
+  initGame()
 
-const { scene, camera, renderer: webglRenderer } = initRenderer()
-initGame()
+  const inputManager = new InputManager()
+  inputManager.setup()
 
-const uiManager = new UIManager()
+  const uiManager = new UIManager()
 
-const inputManager = new InputManager()
-inputManager.setup()
+  const starField = new StarField()
+  scene.add(starField.points)
 
-const cursor = new Cursor()
-
-const starField = new StarField()
-scene.add(starField.points)
-
-if (state.player) {
-  scene.add(state.player.mesh)
-  attachCameraToPlayer(camera, state.player)
-}
-
-state.tieFighters.forEach(tf => {
-  scene.add(tf.mesh)
-});
-
-let lastTime = 0
-function animate(time: number) {
-  // Use a reasonable cap for deltaTime to avoid huge jumps
-  const deltaTime = Math.min((time - lastTime) / 1000, GameConfig.core.deltaTimeCap);
-  lastTime = time
-
-  inputManager.update(deltaTime)
-  const input = inputManager.getInput()
-  updateState(deltaTime, input)
-  
-  cursor.update(input)
-  uiManager.update(state)
+  const cursor = new Cursor()
+  const overlayElement = document.getElementById('overlay');
 
   if (state.player) {
-    starField.update(state.player.position)
-    render(webglRenderer, scene, camera)
+    scene.add(state.player.mesh)
+    attachCameraToPlayer(camera, state.player)
   }
 
-  requestAnimationFrame(animate)
+  state.tieFighters.forEach(tf => {
+    scene.add(tf.mesh)
+  });
+
+  let lastTime = 0
+  function animate(time: number) {
+    // Use a reasonable cap for deltaTime to avoid huge jumps
+    const deltaTime = Math.min((time - lastTime) / 1000, GameConfig.core.deltaTimeCap);
+    lastTime = time
+
+    inputManager.update(deltaTime)
+    const input = inputManager.getInput()
+    updateState(deltaTime, input)
+    
+    const isLocked = document.pointerLockElement === document.body;
+
+    // Update visual cursor
+    cursor.update(input)
+    const cursorElement = document.getElementById('cursor');
+    if (cursorElement) {
+      cursorElement.style.display = isLocked ? 'block' : 'none';
+    }
+
+    // Update overlay
+    if (overlayElement) {
+      overlayElement.style.display = isLocked ? 'none' : 'flex';
+    }
+
+    uiManager.update(state)
+
+    if (state.player) {
+      starField.update(state.player.position)
+      render(webglRenderer, scene, camera)
+    }
+
+    requestAnimationFrame(animate)
+  }
+
+  requestAnimationFrame((time) => {
+    lastTime = time
+    requestAnimationFrame(animate)
+  })
+
+  return { inputManager, starField };
 }
 
-requestAnimationFrame((time) => {
-  lastTime = time
-  requestAnimationFrame(animate)
-})
+// Only run automatically if not in a test environment
+if (typeof process === 'undefined' || process.env.NODE_ENV !== 'test') {
+  init();
+}
