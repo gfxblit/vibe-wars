@@ -24,10 +24,12 @@ A first-person space combat simulator that puts the player in the role of Luke S
 
 The control scheme simulates the original flight yoke using modern input methods. The ship's nose "chases" the crosshair, meaning the crosshair moves slightly faster than the ship to allow for precision targeting.
 
-**A. PC / Desktop (Mouse & Keyboard)**
-* **Steering (Mouse):**
-    * Moving the mouse moves the targeting crosshair.
-    * Moving the crosshair to the edges of the screen banks and pitches the X-Wing.
+**A. PC / Desktop (Mouse)**
+* **Steering (Mouse - Pointer Lock):**
+    * Clicking anywhere enters Pointer Lock mode.
+    * Moving the mouse controls a virtual cursor that dictates the ship's turning direction (Pitch and Yaw).
+    * The further the virtual cursor is from the center, the faster the ship turns.
+    * The virtual cursor is visible on-screen to indicate current steering input.
 * **Combat:**
     * **Left Click:** Fire Laser Cannons (Quad-link fire).
     * **Right Click / Spacebar:** Fire Proton Torpedo (Only active during the final Trench Run moment).

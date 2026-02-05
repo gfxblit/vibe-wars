@@ -25,8 +25,8 @@ Vibe Wars is a state-driven, 3D space combat simulator inspired by the 1983 *Sta
 *   **Entity Mapping:** Maps game state entities to their visual representations.
 
 ### 3.3 Input Abstraction (`src/input.ts`)
-*   **Input Handling:** Normalizes mouse, keyboard, and touch events into a unified control scheme.
-*   **Virtual Yoke:** Implements the logic for virtual joystick controls on mobile.
+*   **Input Handling:** Normalizes mouse deltas (via Pointer Lock) and touch events into a unified control scheme.
+*   **Virtual Yoke:** Implements the logic for virtual joystick controls using relative displacement.
 
 ### 3.4 Entities (`src/entities/`)
 *   **Modular Actors:** Classes for X-Wings, TIE Fighters, fireballs, and towers.
