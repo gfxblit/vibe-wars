@@ -54,31 +54,10 @@ describe('InputManager', () => {
 
   it('requests pointer lock on click', () => {
     // Determine where the click listener is attached. Plan says "document.body".
-    // We mocked document.body.addEventListener.
-    if (listeners['click']) {
-        listeners['click'](new MouseEvent('click'));
-    } else {
-        // Fallback if attached to window or document (though plan said body)
-        // Let's assume standard implementation might attach to window/document as well for safety
-        // But for now, just trigger what we captured.
-        // If "click" isn't in listeners, this test might fail if the implementation isn't there yet (RED state).
-        // But wait, I am writing the TEST first. 
-        // If I assume implementation attaches to document.body:
-    }
-    
-    // We expect the implementation to attach a click listener. 
-    // Since we are in the RED phase, the implementation doesn't exist yet, so listeners['click'] might be undefined 
-    // if I only spy on window. 
-    // I added spies for document and document.body above.
-    
-    // Simulate the event if the listener exists
     if (listeners['click']) {
       listeners['click'](new MouseEvent('click'));
       expect(document.body.requestPointerLock).toHaveBeenCalled();
     } else {
-      // If no listener is attached yet, this expectation will fail (which is good for RED)
-      // effectively asserting that a listener SHOULD be attached.
-      // However, to make the test failure helpful, we can assert that the listener exists.
       expect(listeners['click']).toBeDefined(); 
     }
   });
@@ -136,6 +115,25 @@ describe('InputManager', () => {
     expect(Math.abs(input.y)).toBe(1); 
   });
 
+  it('handles zero viewport dimensions gracefully', () => {
+    state.viewport.width = 0;
+    state.viewport.height = 0;
+    
+    Object.defineProperty(document, 'pointerLockElement', { value: document.body });
+    
+    const moveEvent = new MouseEvent('mousemove');
+    Object.defineProperty(moveEvent, 'movementX', { value: 10 });
+    Object.defineProperty(moveEvent, 'movementY', { value: 10 });
+    
+    if (listeners['mousemove']) {
+      listeners['mousemove'](moveEvent);
+    }
+    
+    inputManager.update(0);
+    expect(inputManager.getInput().x).toBe(0);
+    expect(inputManager.getInput().y).toBe(0);
+  });
+
   it('does NOT respond to keyboard', () => {
     const keyEvent = new KeyboardEvent('keydown', { code: 'ArrowLeft' });
     if (listeners['keydown']) {
@@ -149,7 +147,8 @@ describe('InputManager', () => {
     it('sets input based on touch displacement', () => {
       const touchStartEvent = {
         touches: [{ clientX: 500, clientY: 500 }],
-        preventDefault: vi.fn()
+        preventDefault: vi.fn(),
+        cancelable: true
       };
       
       if (listeners['touchstart']) {
@@ -158,7 +157,8 @@ describe('InputManager', () => {
 
       const touchMoveEvent = {
         touches: [{ clientX: 550, clientY: 450 }],
-        preventDefault: vi.fn()
+        preventDefault: vi.fn(),
+        cancelable: true
       };
 
       if (listeners['touchmove']) {
@@ -192,6 +192,34 @@ describe('InputManager', () => {
         inputManager.update(0);
         expect(inputManager.getInput().x).toBe(0);
         expect(inputManager.getInput().y).toBe(0);
+    });
+
+    it('resets useRelativeInput when mouse is used after touch', () => {
+      // 1. Trigger touch
+      if (listeners['touchstart']) {
+        listeners['touchstart']({ touches: [{ clientX: 500, clientY: 500 }], preventDefault: vi.fn() });
+      }            
+      
+      // 2. Mock locked state for mouse
+      Object.defineProperty(document, 'pointerLockElement', { value: document.body });
+      
+      // 3. Move mouse
+      const moveEvent = new MouseEvent('mousemove');
+      Object.defineProperty(moveEvent, 'movementX', { value: 10 });
+      Object.defineProperty(moveEvent, 'movementY', { value: 0 });
+      
+      if (listeners['mousemove']) {
+        listeners['mousemove'](moveEvent);
+      }
+      
+      // 4. Trigger mouseup
+      if (listeners['mouseup']) {
+        listeners['mouseup'](new MouseEvent('mouseup'));
+      }
+      
+      // If useRelativeInput was NOT reset, virtualCursor would be (0,0) now.
+      inputManager.update(0);
+      expect(inputManager.getInput().x).toBeGreaterThan(0);
     });
   });
 });

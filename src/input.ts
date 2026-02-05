@@ -10,14 +10,13 @@ export class InputManager {
   private pointerAnchor: THREE.Vector2 = new THREE.Vector2(0, 0);
   
   private handleClick = () => {
-    document.body.requestPointerLock();
+    if (typeof document.body.requestPointerLock === 'function') {
+      document.body.requestPointerLock();
+    }
   };
 
   private handleMouseUp = () => {
     this.isDragging = false;
-    // For touch, we reset. For pointer lock, we might not want to reset on click release?
-    // Pointer lock is persistent until ESC.
-    // So this mainly affects touch now.
     if (this.useRelativeInput) {
         this.virtualCursor.set(0, 0);
     }
@@ -25,6 +24,7 @@ export class InputManager {
 
   private handleMouseMove = (event: MouseEvent) => {
     if (document.pointerLockElement === document.body) {
+      this.useRelativeInput = false;
       this.updatePointerLockInput(event.movementX, event.movementY);
     }
   };
@@ -43,32 +43,17 @@ export class InputManager {
     if (event.touches.length > 0) {
       this.updateTouchInput(event.touches[0].clientX, event.touches[0].clientY);
     }
-    event.preventDefault(); // Prevent scrolling while playing
+    if (event.cancelable) {
+      event.preventDefault();
+    }
   };
 
   private updatePointerLockInput(movementX: number, movementY: number) {
     const { width, height } = state.viewport;
-    
-    // Scale factor: movement / screenDim * sensitivity
-    // We use a separate constant or the existing one? Existing is 5.0.
     const sensitivity = GameConfig.input.sensitivity; 
     
-    const dx = (movementX / width) * sensitivity;
-    const dy = (movementY / height) * sensitivity;
-
-    // Accumulate
-    // Note: movementY is positive down.
-    // Screen coords: Top is 0, Bottom is Height.
-    // Game coords: Top is 1 (usually), Bottom is -1.
-    // So moving mouse down (positive Y) should decrease the cursor Y?
-    // Let's verify standard pitch controls. Mouse Down -> Pitch Up (Pilot)? Or Mouse Down -> Cursor Down?
-    // "Visual Feedback: The DOM cursor must track this virtual position."
-    // If I move mouse down, cursor should go down.
-    // In CSS/Screen, Down is positive.
-    // In our WebGL/ThreeJS logic (from previous code):
-    // y = (centerY - clientY) / centerY; -> Top (0) gives 1. Bottom (Height) gives -1.
-    // So standard Cartesian: Up is Positive.
-    // Mouse Move Down (+Y) -> Should reduce Y in Cartesian.
+    const dx = width > 0 ? (movementX / width) * sensitivity : 0;
+    const dy = height > 0 ? (movementY / height) * sensitivity : 0;
     
     this.virtualCursor.x += dx;
     this.virtualCursor.y -= dy; 
