@@ -11,6 +11,8 @@ export class Laser extends Entity {
     return this.mesh.position;
   }
 
+  private static readonly tempVector = new THREE.Vector3();
+
   constructor(origin: THREE.Vector3, direction: THREE.Vector3) {
     super();
     this.direction = direction.clone().normalize();
@@ -29,12 +31,21 @@ export class Laser extends Entity {
   }
 
   public update(dt: number): void {
-    const moveStep = this.direction.clone().multiplyScalar(GameConfig.laser.speed * dt);
-    this.position.add(moveStep);
+    Laser.tempVector.copy(this.direction).multiplyScalar(GameConfig.laser.speed * dt);
+    this.position.add(Laser.tempVector);
     this.lifeTimeRemaining -= dt;
   }
 
   public isExpired(): boolean {
     return this.lifeTimeRemaining <= 0;
+  }
+
+  public dispose(): void {
+    this.mesh.geometry.dispose();
+    if (Array.isArray(this.mesh.material)) {
+      this.mesh.material.forEach(m => m.dispose());
+    } else {
+      this.mesh.material.dispose();
+    }
   }
 }

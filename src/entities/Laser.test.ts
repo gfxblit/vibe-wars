@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import * as THREE from 'three';
 import { Laser } from './Laser';
 import { GameConfig } from '../config';
@@ -34,5 +34,16 @@ describe('Laser', () => {
       const laser = new Laser(new THREE.Vector3(), new THREE.Vector3(0,0,-1));
       const material = laser.mesh.material as THREE.LineBasicMaterial;
       expect(material.color.getHex()).toBe(GameConfig.laser.color);
+  });
+
+  it('disposes of geometry and material', () => {
+    const laser = new Laser(new THREE.Vector3(), new THREE.Vector3(0, 0, -1));
+    const geometryDisposeSpy = vi.spyOn(laser.mesh.geometry, 'dispose');
+    const materialDisposeSpy = vi.spyOn(laser.mesh.material as THREE.Material, 'dispose');
+    
+    laser.dispose();
+    
+    expect(geometryDisposeSpy).toHaveBeenCalled();
+    expect(materialDisposeSpy).toHaveBeenCalled();
   });
 });

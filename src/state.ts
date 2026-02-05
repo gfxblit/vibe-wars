@@ -72,6 +72,7 @@ export function updateState(deltaTime: number, input: UserInput = { x: 0, y: 0, 
 }
 
 export function spawnLasers(camera: THREE.Camera, crosshairPos: { x: number, y: number }): Laser[] {
+  camera.updateMatrixWorld();
   // Use world position of the camera
   const cameraWorldPos = new THREE.Vector3();
   camera.getWorldPosition(cameraWorldPos);

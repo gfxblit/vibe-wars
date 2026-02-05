@@ -1,4 +1,4 @@
-import { expect, test, beforeEach, describe } from 'vitest'
+import { expect, test, beforeEach, describe, vi } from 'vitest'
 import { state, initGame, addScore, takeDamage, nextPhase, checkCollision, updateState, spawnLasers } from './state'
 import * as THREE from 'three';
 import { TieFighter } from './entities/TieFighter';
@@ -26,11 +26,13 @@ describe('Game State', () => {
     camera.position.set(0, 0, 10);
     parent.add(camera);
     parent.updateMatrixWorld();
-    camera.updateMatrixWorld();
+    
+    const updateMatrixSpy = vi.spyOn(camera, 'updateMatrixWorld');
     
     const crosshairPos = { x: 0, y: 0 };
     const newLasers = spawnLasers(camera, crosshairPos);
     
+    expect(updateMatrixSpy).toHaveBeenCalled();
     expect(state.lasers.length).toBe(4);
     newLasers.forEach(laser => {
         expect(laser).toBeInstanceOf(Laser);

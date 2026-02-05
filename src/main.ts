@@ -60,6 +60,7 @@ function animate(time: number) {
     laser.update(deltaTime);
     if (laser.isExpired()) {
       scene.remove(laser.mesh);
+      laser.dispose();
       state.lasers.splice(i, 1);
     }
   }
