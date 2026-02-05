@@ -4,6 +4,7 @@
  */
 import * as THREE from 'three';
 import { Player } from './entities/Player';
+import { TieFighter } from './entities/TieFighter';
 
 export type GamePhase = 'DOGFIGHT' | 'SURFACE' | 'TRENCH';
 
@@ -21,6 +22,7 @@ export interface GameState {
   phase: GamePhase;
   isGameOver: boolean;
   player: Player | null;
+  tieFighters: TieFighter[];
   viewport: Viewport;
 }
 
@@ -34,6 +36,7 @@ export const state: GameState = {
   phase: 'DOGFIGHT',
   isGameOver: false,
   player: null,
+  tieFighters: [],
   viewport: {
     width: initialWidth,
     height: initialHeight,
@@ -49,6 +52,7 @@ export function initGame() {
   state.phase = 'DOGFIGHT';
   state.isGameOver = false;
   state.player = new Player();
+  state.tieFighters = [new TieFighter()];
   console.log('Game initialized');
 }
 
@@ -56,6 +60,10 @@ export function updateState(deltaTime: number, input: THREE.Vector2 = new THREE.
   if (state.isGameOver || !state.player) return;
 
   state.player.update(input, deltaTime);
+
+  state.tieFighters.forEach(tf => {
+    tf.update(deltaTime, state.player!.position, state.player!.mesh.quaternion);
+  });
 }
 
 export function addScore(points: number) {
