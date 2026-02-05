@@ -2,6 +2,7 @@
   "name": "vibe-wars",
   "version": "1.0.0",
   "description": "Vibe coding the classic Star Wars arcade game!",
+  "type": "module",
   "main": "src/main.ts",
   "scripts": {
     "dev": "vite",

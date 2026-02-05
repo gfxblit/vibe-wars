@@ -43,5 +43,9 @@ describe('main.ts initialization', () => {
     expect(initGameSpy).toHaveBeenCalledTimes(1);
     expect(setupInputSpy).toHaveBeenCalledTimes(1);
     expect(consoleLogSpy).toHaveBeenCalledWith('Vibe Wars starting...');
+
+    // Check if HUD is created
+    const hud = document.getElementById('hud');
+    expect(hud).not.toBeNull();
   });
 });

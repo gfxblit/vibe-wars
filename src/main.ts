@@ -5,11 +5,14 @@ import { InputManager } from './input'
 import { StarField } from './entities/StarField'
 import { GameConfig } from './config'
 import { Cursor } from './Cursor'
+import { UIManager } from './UIManager'
 
 console.log('Vibe Wars starting...')
 
 const { scene, camera, renderer: webglRenderer } = initRenderer()
 initGame()
+
+const uiManager = new UIManager()
 
 const inputManager = new InputManager()
 inputManager.setup()
@@ -35,6 +38,7 @@ function animate(time: number) {
   updateState(deltaTime, input)
   
   cursor.update(input)
+  uiManager.update(state)
 
   if (state.player) {
     starField.update(state.player.position)

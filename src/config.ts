@@ -17,6 +17,7 @@ export const GameConfig = {
     maxBank: Math.PI / 4,
     meshColor: 0x00ff00,
     meshSize: 1,
+    maxShields: 6,
   },
   starField: {
     numStars: 1500,
@@ -27,5 +28,8 @@ export const GameConfig = {
   input: {
     sensitivity: 5.0,
     touchRadius: 100,
+  },
+  ui: {
+    highScore: 10000,
   },
 } as const;

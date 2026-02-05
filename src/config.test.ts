@@ -22,6 +22,7 @@ describe('GameConfig', () => {
     expect(GameConfig.player.maxBank).toBeCloseTo(Math.PI / 4);
     expect(GameConfig.player.meshColor).toBe(0x00ff00);
     expect(GameConfig.player.meshSize).toBe(1);
+    expect(GameConfig.player.maxShields).toBe(6);
   });
 
   it('should have starfield settings', () => {
@@ -33,6 +34,10 @@ describe('GameConfig', () => {
 
   it('should have input settings', () => {
     expect(GameConfig.input.sensitivity).toBe(5.0);
+  });
+
+  it('should have ui settings', () => {
+    expect(GameConfig.ui.highScore).toBe(10000);
   });
 
   it('should be immutable (type-level check)', () => {
