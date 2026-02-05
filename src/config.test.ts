@@ -28,7 +28,7 @@ describe('GameConfig', () => {
     expect(GameConfig.starField.numStars).toBe(1500);
     expect(GameConfig.starField.fieldSize).toBe(500);
     expect(GameConfig.starField.starColor).toBe(0xffffff);
-    expect(GameConfig.starField.starSize).toBe(0.1);
+    expect(GameConfig.starField.starSize).toBe(0.5);
   });
 
   it('should have input settings', () => {

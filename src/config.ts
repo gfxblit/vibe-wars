@@ -22,7 +22,7 @@ export const GameConfig = {
     numStars: 1500,
     fieldSize: 500,
     starColor: 0xffffff,
-    starSize: 0.1,
+    starSize: 0.5,
   },
   input: {
     sensitivity: 5.0,
