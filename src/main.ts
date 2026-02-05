@@ -45,11 +45,7 @@ export function init() {
     const isLocked = document.pointerLockElement === document.body;
 
     // Update visual cursor
-    cursor.update(input)
-    const cursorElement = document.getElementById('cursor');
-    if (cursorElement) {
-      cursorElement.style.display = isLocked ? 'block' : 'none';
-    }
+    cursor.update(input, isLocked)
 
     // Update overlay
     if (overlayElement) {

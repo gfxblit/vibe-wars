@@ -7,8 +7,13 @@ export class Cursor {
     this.element = document.getElementById('cursor');
   }
 
-  public update(input: { x: number, y: number }): void {
+  public update(input: { x: number, y: number }, visible: boolean = true): void {
     if (!this.element) return;
+
+    if (!visible) {
+      this.element.style.display = 'none';
+      return;
+    }
 
     const { centerX, centerY } = state.viewport;
     const cursorX = centerX + input.x * centerX;
