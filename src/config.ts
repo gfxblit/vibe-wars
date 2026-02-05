@@ -41,4 +41,17 @@ export const GameConfig = {
     meshColor: 0xff0000,
     meshSize: 1,
   },
+  laser: {
+    speed: 600,
+    cooldown: 0.15,
+    targetDepth: 200,
+    lifetime: 2,
+    color: 0xff0000,
+    offsets: [
+      { x: -1, y: 1 },
+      { x: 1, y: 1 },
+      { x: -1, y: -1 },
+      { x: 1, y: -1 },
+    ],
+  },
 } as const;

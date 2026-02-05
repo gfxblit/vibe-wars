@@ -2,6 +2,12 @@ import * as THREE from 'three';
 import { state } from './state';
 import { GameConfig } from './config';
 
+export interface UserInput {
+  x: number;
+  y: number;
+  isFiring: boolean;
+}
+
 export class InputManager {
   private input: THREE.Vector2 = new THREE.Vector2(0, 0);
   private keyboardInput: THREE.Vector2 = new THREE.Vector2(0, 0);
@@ -9,6 +15,7 @@ export class InputManager {
   private pointerInput: THREE.Vector2 = new THREE.Vector2(0, 0);
   private keys: Set<string> = new Set();
   private isDragging: boolean = false;
+  private isFiring: boolean = false;
   private useRelativeInput: boolean = false;
   private pointerAnchor: THREE.Vector2 = new THREE.Vector2(0, 0);
   
@@ -24,11 +31,13 @@ export class InputManager {
 
   private handleMouseDown = () => {
     this.isDragging = true;
+    this.isFiring = true;
     this.useRelativeInput = false;
   };
 
   private handleMouseUp = () => {
     this.isDragging = false;
+    this.isFiring = false;
   };
 
   private handleMouseMove = (event: MouseEvent) => {
@@ -38,6 +47,7 @@ export class InputManager {
 
   private handleTouchStart = (event: TouchEvent) => {
     this.isDragging = true;
+    this.isFiring = true;
     this.useRelativeInput = true;
     if (event.touches.length > 0) {
       this.pointerAnchor.set(event.touches[0].clientX, event.touches[0].clientY);
@@ -142,7 +152,11 @@ export class InputManager {
     return current + Math.sign(target - current) * maxDelta;
   }
 
-  public getInput(): THREE.Vector2 {
-    return this.input;
+  public getInput(): UserInput {
+    return {
+      x: this.input.x,
+      y: this.input.y,
+      isFiring: this.isFiring
+    };
   }
 }

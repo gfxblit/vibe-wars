@@ -40,6 +40,21 @@ describe('GameConfig', () => {
     expect(GameConfig.ui.highScore).toBe(10000);
   });
 
+  it('should have laser settings', () => {
+    expect(GameConfig.laser.speed).toBe(600);
+    expect(GameConfig.laser.cooldown).toBe(0.15);
+    expect(GameConfig.laser.targetDepth).toBe(200);
+    expect(GameConfig.laser.lifetime).toBe(2);
+    expect(GameConfig.laser.color).toBe(0xff0000);
+    expect(GameConfig.laser.offsets).toEqual([
+      { x: -1, y: 1 },
+      { x: 1, y: 1 },
+      { x: -1, y: -1 },
+      { x: 1, y: -1 },
+    ]);
+  });
+  });
+
   it('should be immutable (type-level check)', () => {
     if (false as boolean) {
       // @ts-expect-error - GameConfig should be immutable

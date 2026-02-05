@@ -3,8 +3,9 @@
  * major refactoring as the architecture is finalized.
  */
 import * as THREE from 'three';
-import { Player } from './entities/Player';
 import { TieFighter } from './entities/TieFighter';
+import { UserInput } from './input';
+import { Laser } from './entities/Laser';
 import { GameConfig } from './config';
 
 export type GamePhase = 'DOGFIGHT' | 'SURFACE' | 'TRENCH';
@@ -25,6 +26,7 @@ export interface GameState {
   player: Player | null;
   tieFighters: TieFighter[];
   viewport: Viewport;
+  lasers: Laser[];
 }
 
 const initialWidth = typeof window !== 'undefined' ? window.innerWidth : 1024;
@@ -44,6 +46,7 @@ export const state: GameState = {
     centerX: initialWidth / 2,
     centerY: initialHeight / 2,
   },
+  lasers: [],
 };
 
 export function initGame() {
@@ -54,10 +57,11 @@ export function initGame() {
   state.isGameOver = false;
   state.player = new Player();
   state.tieFighters = [new TieFighter()];
+  state.lasers = [];
   console.log('Game initialized');
 }
 
-export function updateState(deltaTime: number, input: THREE.Vector2 = new THREE.Vector2(0, 0)) {
+export function updateState(deltaTime: number, input: UserInput = { x: 0, y: 0, isFiring: false }) {
   if (state.isGameOver || !state.player) return;
 
   state.player.update(input, deltaTime);
@@ -65,6 +69,30 @@ export function updateState(deltaTime: number, input: THREE.Vector2 = new THREE.
   state.tieFighters.forEach(tf => {
     tf.update(deltaTime, state.player!.position, state.player!.mesh.quaternion);
   });
+}
+
+export function spawnLasers(camera: THREE.Camera, crosshairPos: { x: number, y: number }): Laser[] {
+  // Calculate target world position using crosshairPos (unprojected at targetDepth).
+  // crosshairPos is in [-1, 1] range.
+  const dir = new THREE.Vector3(crosshairPos.x, crosshairPos.y, 0.5).unproject(camera).sub(camera.position).normalize();
+  const targetWorldPos = camera.position.clone().add(dir.multiplyScalar(GameConfig.laser.targetDepth));
+
+  const newLasers: Laser[] = [];
+
+  GameConfig.laser.offsets.forEach(offset => {
+    // Get origin in world space relative to camera.
+    // Using -1 for z in unproject gives us a point on the near plane.
+    const origin = new THREE.Vector3(offset.x, offset.y, -1).unproject(camera);
+    
+    // Direction from origin to target
+    const direction = targetWorldPos.clone().sub(origin).normalize();
+    
+    const laser = new Laser(origin, direction);
+    state.lasers.push(laser);
+    newLasers.push(laser);
+  });
+
+  return newLasers;
 }
 
 export function addScore(points: number) {

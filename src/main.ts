@@ -1,5 +1,5 @@
 import './style.css'
-import { initGame, state, updateState } from './state'
+import { initGame, state, updateState, spawnLasers } from './state'
 import { initRenderer, render, attachCameraToPlayer } from './renderer'
 import { InputManager } from './input'
 import { StarField } from './entities/StarField'
@@ -32,6 +32,8 @@ state.tieFighters.forEach(tf => {
 });
 
 let lastTime = 0
+let fireCooldown = 0;
+
 function animate(time: number) {
   // Use a reasonable cap for deltaTime to avoid huge jumps
   const deltaTime = Math.min((time - lastTime) / 1000, GameConfig.core.deltaTimeCap);
@@ -43,6 +45,24 @@ function animate(time: number) {
   
   cursor.update(input)
   uiManager.update(state)
+
+  // Laser firing logic
+  fireCooldown -= deltaTime;
+  if (input.isFiring && fireCooldown <= 0) {
+    const newLasers = spawnLasers(camera, input);
+    newLasers.forEach(laser => scene.add(laser.mesh));
+    fireCooldown = GameConfig.laser.cooldown;
+  }
+
+  // Update and cleanup lasers
+  for (let i = state.lasers.length - 1; i >= 0; i--) {
+    const laser = state.lasers[i];
+    laser.update(deltaTime);
+    if (laser.isExpired()) {
+      scene.remove(laser.mesh);
+      state.lasers.splice(i, 1);
+    }
+  }
 
   if (state.player) {
     starField.update(state.player.position)

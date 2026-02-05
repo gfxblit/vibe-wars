@@ -29,7 +29,7 @@ describe('InputManager', () => {
   });
 
   it('initializes with zero input', () => {
-    expect(inputManager.getInput()).toEqual({ x: 0, y: 0 });
+    expect(inputManager.getInput()).toEqual({ x: 0, y: 0, isFiring: false });
   });
 
   it('responds to ArrowLeft keydown', () => {
@@ -328,5 +328,26 @@ describe('InputManager', () => {
     // Verify it has moved towards zero
     expect(pos.x).toBeLessThan(0.8);
     expect(pos.y).toBeLessThan(0.4);
+  });
+
+  it('reports isFiring when mouse is down', () => {
+    listeners['mousedown'](new MouseEvent('mousedown'));
+    expect(inputManager.getInput().isFiring).toBe(true);
+
+    listeners['mouseup'](new MouseEvent('mouseup'));
+    expect(inputManager.getInput().isFiring).toBe(false);
+  });
+
+  it('reports isFiring when touch is active', () => {
+    const touchStartEvent = {
+        touches: [{ clientX: 500, clientY: 500 }],
+        preventDefault: vi.fn()
+    };
+    listeners['touchstart'](touchStartEvent);
+    expect(inputManager.getInput().isFiring).toBe(true);
+
+    listeners['touchend'](new TouchEvent('touchend'));
+    expect(inputManager.getInput().isFiring).toBe(false);
+  });
   });
 });

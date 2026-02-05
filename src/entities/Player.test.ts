@@ -33,35 +33,35 @@ describe('Player', () => {
   test('update should move player forward even with no input', () => {
     const player = new Player();
     const initialZ = player.position.z;
-    player.update(new THREE.Vector2(0, 0), 0.1);
+    player.update({ x: 0, y: 0, isFiring: false }, 0.1);
     expect(player.position.z).toBeLessThan(initialZ);
   })
 
   test('update should move player horizontally based on input x', () => {
     const player = new Player();
-    player.update(new THREE.Vector2(1, 0), 0.1);
+    player.update({ x: 1, y: 0, isFiring: false }, 0.1);
     expect(player.position.x).toBeGreaterThan(0);
     
     const posX = player.position.x;
     // Continuing to turn right should continue to increase X (until we pass 90 deg)
-    player.update(new THREE.Vector2(1, 0), 0.1);
+    player.update({ x: 1, y: 0, isFiring: false }, 0.1);
     expect(player.position.x).toBeGreaterThan(posX);
   })
 
   test('update should move player vertically based on input y', () => {
     const player = new Player();
-    player.update(new THREE.Vector2(0, 1), 0.1);
+    player.update({ x: 0, y: 1, isFiring: false }, 0.1);
     expect(player.position.y).toBeGreaterThan(0);
     
     const posY = player.position.y;
     // Continuing to tilt up should continue to increase Y (until we pass 90 deg)
-    player.update(new THREE.Vector2(0, 1), 0.1);
+    player.update({ x: 0, y: 1, isFiring: false }, 0.1);
     expect(player.position.y).toBeGreaterThan(posY);
   })
 
   test('update should bank the visual mesh based on input x', () => {
     const player = new Player();
-    player.update(new THREE.Vector2(1, 0), 0.1);
+    player.update({ x: 1, y: 0, isFiring: false }, 0.1);
     // Banking is rotation around Z of the visual mesh.
     // We can access it via mesh.children[0] or we could expose it, 
     // but for tests let's just check children.
@@ -71,29 +71,29 @@ describe('Player', () => {
 
   test('update should rotate the player mesh based on input y', () => {
     const player = new Player();
-    player.update(new THREE.Vector2(0, 1), 0.1);
+    player.update({ x: 0, y: 1, isFiring: false }, 0.1);
     // Tilting is rotation around X of the main mesh.
     expect(player.mesh.rotation.x).not.toBe(0);
   })
 
   test('should rotate over time with horizontal input', () => {
     const player = new Player();
-    player.update(new THREE.Vector2(1, 0), 0.1);
+    player.update({ x: 1, y: 0, isFiring: false }, 0.1);
     const quat1 = player.mesh.quaternion.clone();
     expect(quat1.equals(new THREE.Quaternion())).toBe(false);
     
-    player.update(new THREE.Vector2(1, 0), 0.1);
+    player.update({ x: 1, y: 0, isFiring: false }, 0.1);
     const quat2 = player.mesh.quaternion.clone();
     expect(quat2.equals(quat1)).toBe(false);
   })
 
   test('should rotate over time with vertical input', () => {
     const player = new Player();
-    player.update(new THREE.Vector2(0, 1), 0.1);
+    player.update({ x: 0, y: 1, isFiring: false }, 0.1);
     const quat1 = player.mesh.quaternion.clone();
     expect(quat1.equals(new THREE.Quaternion())).toBe(false);
     
-    player.update(new THREE.Vector2(0, 1), 0.1);
+    player.update({ x: 0, y: 1, isFiring: false }, 0.1);
     const quat2 = player.mesh.quaternion.clone();
     expect(quat2.equals(quat1)).toBe(false);
   })
@@ -107,12 +107,12 @@ describe('Player', () => {
     
     // If we turn right, we should eventually move towards positive X.
     for (let i = 0; i < 100; i++) {
-        player.update(new THREE.Vector2(1, 0), 0.1);
+        player.update({ x: 1, y: 0, isFiring: false }, 0.1);
     }
     
     // After turning right, moving forward should increase X
     const initialX = player.position.x;
-    player.update(new THREE.Vector2(0, 0), 0.1);
+    player.update({ x: 0, y: 0, isFiring: false }, 0.1);
     expect(player.position.x).not.toBe(initialX);
   })
 })

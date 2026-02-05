@@ -1,8 +1,8 @@
 import { expect, test, beforeEach, describe } from 'vitest'
-import { state, initGame, addScore, takeDamage, nextPhase, checkCollision, updateState } from './state'
+import { state, initGame, addScore, takeDamage, nextPhase, checkCollision, updateState, spawnLasers } from './state'
 import * as THREE from 'three';
-import { Player } from './entities/Player';
 import { TieFighter } from './entities/TieFighter';
+import { Laser } from './entities/Laser';
 
 beforeEach(() => {
   initGame();
@@ -15,6 +15,21 @@ describe('Game State', () => {
     expect(state.phase).toBe('DOGFIGHT')
     expect(state.player).toBeInstanceOf(Player)
     expect(state.tieFighters[0]).toBeInstanceOf(TieFighter)
+    expect(state.lasers).toEqual([]);
+  })
+
+  test('spawnLasers creates 4 lasers with correct properties', () => {
+    const camera = new THREE.PerspectiveCamera();
+    camera.position.set(0, 0, 10);
+    camera.updateMatrixWorld();
+    
+    const crosshairPos = { x: 0, y: 0 };
+    spawnLasers(camera, crosshairPos);
+    
+    expect(state.lasers.length).toBe(4);
+    state.lasers.forEach(laser => {
+        expect(laser).toBeInstanceOf(Laser);
+    });
   })
 
   test('updateState moves player forward', () => {

@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { Entity } from './Entity';
 import { GameConfig } from '../config';
+import { UserInput } from '../input';
 
 export class Player extends Entity {
   public readonly mesh: THREE.Group;
@@ -27,7 +28,7 @@ export class Player extends Entity {
     this.position.set(0, 0, 0);
   }
 
-  public update(input: THREE.Vector2, deltaTime: number): void {
+  public update(input: UserInput, deltaTime: number): void {
     // Relative turning amounts
     const yawAmount = -input.x * GameConfig.player.turnSpeedYaw * deltaTime;
     const pitchAmount = input.y * GameConfig.player.turnSpeedPitch * deltaTime;
