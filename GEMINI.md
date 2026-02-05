@@ -16,3 +16,4 @@
 - [2026-02-02 21:32:28] Centralize all tunable game parameters, including camera properties, input sensitivity, and entity constants, within the `GameConfig` object in `src/config.ts` to maintain a single source of truth for game balance.
 - [2026-02-03 06:18:12] Unify input clamping after all coordinate transformations to ensure consistent normalized bounds across different control modes.
 - [2026-02-03 06:22:10] Apply `as const` to the `GameConfig` object in `src/config.ts` to enforce type-level immutability and prevent accidental modifications of game parameters.
+- [2026-02-03 07:29:37] Using inline SVG for custom cursors provides high-fidelity vector graphics while maintaining the ability to verify specific UI components like crosshairs and corner brackets through standard DOM queries.

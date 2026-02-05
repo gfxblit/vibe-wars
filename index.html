@@ -6,7 +6,21 @@
     <title>Vibe Wars</title>
   </head>
   <body>
-    <div id="cursor"></div>
+    <div id="cursor">
+      <svg width="50" height="50" viewBox="0 0 50 50" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <g transform="rotate(45 25 25)">
+          <!-- Cyan Target Arrowheads (Hollow, Thin, Elongated) -->
+          <!-- Top -->
+          <path d="M20 4 L25 20 L30 4 Z" stroke="cyan" stroke-width="1.2" fill="none" />
+          <!-- Bottom -->
+          <path d="M20 46 L25 30 L30 46 Z" stroke="cyan" stroke-width="1.2" fill="none" />
+          <!-- Left -->
+          <path d="M4 20 L20 25 L4 30 Z" stroke="cyan" stroke-width="1.2" fill="none" />
+          <!-- Right -->
+          <path d="M46 20 L30 25 L46 30 Z" stroke="cyan" stroke-width="1.2" fill="none" />
+        </g>
+      </svg>
+    </div>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
