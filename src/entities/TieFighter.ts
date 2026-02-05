@@ -26,6 +26,7 @@ export class TieFighter extends Entity {
         GameConfig.tieFighter.meshSize
       );
       TieFighter.geometry = new THREE.EdgesGeometry(box);
+      box.dispose();
     }
 
     if (!TieFighter.material) {

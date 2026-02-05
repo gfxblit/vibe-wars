@@ -5,6 +5,7 @@
 import * as THREE from 'three';
 import { Player } from './entities/Player';
 import { TieFighter } from './entities/TieFighter';
+import { GameConfig } from './config';
 
 export type GamePhase = 'DOGFIGHT' | 'SURFACE' | 'TRENCH';
 
@@ -31,7 +32,7 @@ const initialHeight = typeof window !== 'undefined' ? window.innerHeight : 768;
 
 export const state: GameState = {
   score: 0,
-  shields: 6,
+  shields: GameConfig.player.maxShields,
   wave: 1,
   phase: 'DOGFIGHT',
   isGameOver: false,
@@ -47,7 +48,7 @@ export const state: GameState = {
 
 export function initGame() {
   state.score = 0;
-  state.shields = 6;
+  state.shields = GameConfig.player.maxShields;
   state.wave = 1;
   state.phase = 'DOGFIGHT';
   state.isGameOver = false;
