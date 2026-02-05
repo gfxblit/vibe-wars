@@ -45,11 +45,22 @@ describe('InputManager', () => {
 
   afterEach(() => {
       vi.restoreAllMocks();
-      inputManager.teardown();
+      // We don't call teardown here anymore because it might interfere with the explicit test
   });
 
   it('initializes with zero input', () => {
     expect(inputManager.getInput()).toEqual({ x: 0, y: 0 });
+  });
+
+  it('cleans up all event listeners on teardown', () => {
+    inputManager.teardown();
+    
+    expect(document.body.removeEventListener).toHaveBeenCalledWith('click', expect.any(Function));
+    expect(window.removeEventListener).toHaveBeenCalledWith('mouseup', expect.any(Function));
+    expect(window.removeEventListener).toHaveBeenCalledWith('mousemove', expect.any(Function));
+    expect(window.removeEventListener).toHaveBeenCalledWith('touchstart', expect.any(Function), { passive: false });
+    expect(window.removeEventListener).toHaveBeenCalledWith('touchend', expect.any(Function));
+    expect(window.removeEventListener).toHaveBeenCalledWith('touchmove', expect.any(Function), { passive: false });
   });
 
   it('requests pointer lock on click', () => {
@@ -180,7 +191,7 @@ describe('InputManager', () => {
           preventDefault: vi.fn()
         };
         listeners['touchstart'](touchStartEvent);
-        listeners['touchmove']({ touches: [{ clientX: 600, clientY: 400 }], preventDefault: vi.fn() });
+        listeners['touchmove']({ touches: [{ clientX: 600, clientY: 400 }], preventDefault: vi.fn(), cancelable: true });
         
         inputManager.update(0);
         expect(inputManager.getInput().x).toBe(1);

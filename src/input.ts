@@ -89,9 +89,9 @@ export class InputManager {
     document.body.removeEventListener('click', this.handleClick);
     window.removeEventListener('mouseup', this.handleMouseUp);
     window.removeEventListener('mousemove', this.handleMouseMove);
-    window.removeEventListener('touchstart', this.handleTouchStart);
+    window.removeEventListener('touchstart', this.handleTouchStart, { passive: false } as any);
     window.removeEventListener('touchend', this.handleMouseUp);
-    window.removeEventListener('touchmove', this.handleTouchMove);
+    window.removeEventListener('touchmove', this.handleTouchMove, { passive: false } as any);
   }
 
   public update(_dt: number): void {
