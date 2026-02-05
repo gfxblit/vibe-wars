@@ -25,17 +25,24 @@ describe('Cursor Visuals', () => {
     expect(svg).not.toBeNull();
   });
 
-  it('should have a crosshair (+) geometry in the SVG', () => {
+  it('should have 4 arrowhead paths in the SVG', () => {
     const cursor = document.getElementById('cursor');
-    const lines = cursor?.querySelectorAll('svg line');
-    // We expect at least 2 lines for the central cross
-    expect(lines?.length).toBeGreaterThanOrEqual(2);
-  });
-
-  it('should have corner brackets in the SVG', () => {
-    const cursor = document.getElementById('cursor');
-    // The corner brackets are implemented using <path> elements.
     const paths = cursor?.querySelectorAll('svg path');
     expect(paths?.length).toBe(4);
+  });
+
+  it('should be hollow with cyan stroke', () => {
+    const cursor = document.getElementById('cursor');
+    const paths = cursor?.querySelectorAll('svg path');
+    paths?.forEach(path => {
+      expect(path.getAttribute('fill')).toBe('none');
+      expect(path.getAttribute('stroke')).toBe('cyan');
+    });
+  });
+
+  it('should be rotated by 45 degrees', () => {
+    const cursor = document.getElementById('cursor');
+    const group = cursor?.querySelector('svg g');
+    expect(group?.getAttribute('transform')).toContain('rotate(45');
   });
 });
