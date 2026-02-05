@@ -42,14 +42,14 @@ export function init() {
     const input = inputManager.getInput()
     updateState(deltaTime, input)
     
-    const isLocked = document.pointerLockElement === document.body;
+    const isActive = inputManager.isInteractionActive();
 
     // Update visual cursor
-    cursor.update(input, isLocked)
+    cursor.update(input, isActive)
 
     // Update overlay
     if (overlayElement) {
-      overlayElement.style.display = isLocked ? 'none' : 'flex';
+      overlayElement.style.display = isActive ? 'none' : 'flex';
     }
 
     uiManager.update(state)

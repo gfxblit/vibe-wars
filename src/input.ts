@@ -99,6 +99,10 @@ export class InputManager {
     this.input.copy(this.virtualCursor);
   }
 
+  public isInteractionActive(): boolean {
+    return document.pointerLockElement === document.body || this.isDragging;
+  }
+
   public getInput(): THREE.Vector2 {
     return this.input;
   }

@@ -218,8 +218,30 @@ describe('InputManager', () => {
       }
       
       // If useRelativeInput was NOT reset, virtualCursor would be (0,0) now.
-      inputManager.update(0);
-      expect(inputManager.getInput().x).toBeGreaterThan(0);
-    });
-  });
-});
+          inputManager.update(0);
+          expect(inputManager.getInput().x).toBeGreaterThan(0);
+        });
+      
+        describe('isInteractionActive', () => {
+          it('returns false when no interaction is occurring', () => {
+            expect(inputManager.isInteractionActive()).toBe(false);
+          });
+      
+          it('returns true when pointer is locked', () => {
+            Object.defineProperty(document, 'pointerLockElement', { value: document.body });
+            expect(inputManager.isInteractionActive()).toBe(true);
+          });
+      
+          it('returns true when touch drag is in progress', () => {
+            if (listeners['touchstart']) {
+              listeners['touchstart']({ touches: [{ clientX: 500, clientY: 500 }], preventDefault: vi.fn() });
+            }
+            expect(inputManager.isInteractionActive()).toBe(true);
+            
+            if (listeners['touchend']) {
+              listeners['touchend'](new Event('touchend'));
+            }
+            expect(inputManager.isInteractionActive()).toBe(false);
+          });
+        });
+      });});
