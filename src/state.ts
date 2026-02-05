@@ -72,10 +72,18 @@ export function updateState(deltaTime: number, input: UserInput = { x: 0, y: 0, 
 }
 
 export function spawnLasers(camera: THREE.Camera, crosshairPos: { x: number, y: number }): Laser[] {
+  // Use world position of the camera
+  const cameraWorldPos = new THREE.Vector3();
+  camera.getWorldPosition(cameraWorldPos);
+
   // Calculate target world position using crosshairPos (unprojected at targetDepth).
   // crosshairPos is in [-1, 1] range.
-  const dir = new THREE.Vector3(crosshairPos.x, crosshairPos.y, 0.5).unproject(camera).sub(camera.position).normalize();
-  const targetWorldPos = camera.position.clone().add(dir.multiplyScalar(GameConfig.laser.targetDepth));
+  const targetWorldPos = new THREE.Vector3(crosshairPos.x, crosshairPos.y, 0.5)
+    .unproject(camera)
+    .sub(cameraWorldPos)
+    .normalize()
+    .multiplyScalar(GameConfig.laser.targetDepth)
+    .add(cameraWorldPos);
 
   const newLasers: Laser[] = [];
 

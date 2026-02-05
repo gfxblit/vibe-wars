@@ -19,16 +19,26 @@ describe('Game State', () => {
   })
 
   test('spawnLasers creates 4 lasers with correct properties', () => {
+    const parent = new THREE.Group();
+    parent.position.set(100, 100, 100);
+    
     const camera = new THREE.PerspectiveCamera();
     camera.position.set(0, 0, 10);
+    parent.add(camera);
+    parent.updateMatrixWorld();
     camera.updateMatrixWorld();
     
     const crosshairPos = { x: 0, y: 0 };
-    spawnLasers(camera, crosshairPos);
+    const newLasers = spawnLasers(camera, crosshairPos);
     
     expect(state.lasers.length).toBe(4);
-    state.lasers.forEach(laser => {
+    newLasers.forEach(laser => {
         expect(laser).toBeInstanceOf(Laser);
+        // The laser should be spawned near the camera's world position, not the world origin or local origin.
+        // Camera world position is (100, 100, 110)
+        expect(laser.position.x).toBeCloseTo(100, -1);
+        expect(laser.position.y).toBeCloseTo(100, -1);
+        expect(laser.position.z).toBeLessThan(110);
     });
   })
 
