@@ -118,9 +118,14 @@ export class InputManager {
 
     // Pointer decay when not dragging
     if (!this.isDragging) {
-      const decayStep = GameConfig.input.centeringSpeed * dt;
-      this.pointerInput.x = this.moveTowards(this.pointerInput.x, 0, decayStep);
-      this.pointerInput.y = this.moveTowards(this.pointerInput.y, 0, decayStep);
+      const length = this.pointerInput.length();
+      if (length > 1e-6) {
+        const step = GameConfig.input.centeringSpeed * dt;
+        const newLength = Math.max(0, length - step);
+        this.pointerInput.multiplyScalar(newLength / length);
+      } else {
+        this.pointerInput.set(0, 0);
+      }
     }
 
     // Merge keyboard and pointer input
