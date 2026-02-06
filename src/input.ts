@@ -18,6 +18,7 @@ export class InputManager {
   private isFiring: boolean = false;
   private useRelativeInput: boolean = false;
   private pointerAnchor: THREE.Vector2 = new THREE.Vector2(0, 0);
+  private fireButton: HTMLElement | null = null;
   
   private handleKeyDown = (event: KeyboardEvent) => {
     this.keys.add(event.code);
@@ -29,7 +30,15 @@ export class InputManager {
     this.updateKeyboardTarget();
   };
 
-  private handleMouseDown = () => {
+  private handleMouseDown = (event: MouseEvent) => {
+    // Prevent firing when clicking the UI (if we add more buttons)
+    if (event.target !== document.body && event.target !== document.documentElement) {
+       if (event.target === this.fireButton) {
+         this.isFiring = true;
+         return;
+       }
+    }
+
     this.isDragging = true;
     this.isFiring = true;
     this.useRelativeInput = false;
@@ -46,19 +55,49 @@ export class InputManager {
   };
 
   private handleTouchStart = (event: TouchEvent) => {
+    // If we touch the fire button, don't start dragging/steering
+    if (event.target === this.fireButton) {
+      this.isFiring = true;
+      return;
+    }
+
     this.isDragging = true;
-    this.isFiring = true;
     this.useRelativeInput = true;
     if (event.touches.length > 0) {
+      // Find the touch that isn't on the fire button if possible, 
+      // but for now we'll just take the first one that triggered this.
       this.pointerAnchor.set(event.touches[0].clientX, event.touches[0].clientY);
+      this.pointerInput.set(0, 0);
+    }
+  };
+
+  private handleTouchEnd = (event: TouchEvent) => {
+    // If the touch that ended was on the fire button, stop firing
+    // Note: event.target for touchend is the element where touch started
+    if (event.target === this.fireButton) {
+      this.isFiring = false;
+    }
+
+    // Only stop dragging if no touches are left (or if the drag touch ended)
+    if (event.touches.length === 0) {
+      this.isDragging = false;
       this.pointerInput.set(0, 0);
     }
   };
 
   private handleTouchMove = (event: TouchEvent) => {
     if (!this.isDragging) return;
-    if (event.touches.length > 0) {
-      this.updatePointerInput(event.touches[0].clientX, event.touches[0].clientY);
+    
+    // Find the touch that is NOT the fire button touch if possible
+    // For now, just find the touch that matches our drag state
+    // Actually, updatePointerInput just needs a position.
+    // If multiple touches exist, we should probably track the one that started the drag.
+    for (let i = 0; i < event.touches.length; i++) {
+      const touch = event.touches[i];
+      if (touch.target !== this.fireButton) {
+        this.updatePointerInput(touch.clientX, touch.clientY);
+        break;
+      }
     }
     event.preventDefault(); // Prevent scrolling while playing
   };
@@ -99,14 +138,15 @@ export class InputManager {
   }
 
   public setup(): void {
+    this.fireButton = document.getElementById('fire-button');
     window.addEventListener('keydown', this.handleKeyDown);
     window.addEventListener('keyup', this.handleKeyUp);
     window.addEventListener('mousedown', this.handleMouseDown);
     window.addEventListener('mouseup', this.handleMouseUp);
     window.addEventListener('mousemove', this.handleMouseMove);
     window.addEventListener('touchstart', this.handleTouchStart, { passive: false });
-    window.addEventListener('touchend', this.handleMouseUp);
-    window.addEventListener('touchcancel', this.handleMouseUp);
+    window.addEventListener('touchend', this.handleTouchEnd, { passive: false });
+    window.addEventListener('touchcancel', this.handleTouchEnd, { passive: false });
     window.addEventListener('touchmove', this.handleTouchMove, { passive: false });
   }
 
@@ -117,8 +157,8 @@ export class InputManager {
     window.removeEventListener('mouseup', this.handleMouseUp);
     window.removeEventListener('mousemove', this.handleMouseMove);
     window.removeEventListener('touchstart', this.handleTouchStart);
-    window.removeEventListener('touchend', this.handleMouseUp);
-    window.removeEventListener('touchcancel', this.handleMouseUp);
+    window.removeEventListener('touchend', this.handleTouchEnd);
+    window.removeEventListener('touchcancel', this.handleTouchEnd);
     window.removeEventListener('touchmove', this.handleTouchMove);
   }
 
