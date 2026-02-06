@@ -135,9 +135,15 @@ describe('InputManager', () => {
     expect(inputManager.getInput().x).toBe(-1);
 
     listeners['mouseup'](new MouseEvent('mouseup'));
-    inputManager.update(0);
-    // Does it snap or decay? "Releasing touch/mouse: Centers the virtual input vector"
-    // Usually it snaps for touch/mouse release.
+    inputManager.update(0.1);
+    // Vector magnitude decay:
+    // Initial: (-1, 1), Length: sqrt(2)
+    // Step: 0.2 (2.0 speed * 0.1s)
+    // New Length: sqrt(2) - 0.2
+    // New X: -1 * (sqrt(2) - 0.2) / sqrt(2) = -0.8585...
+    expect(inputManager.getInput().x).toBeCloseTo(-0.858578);
+
+    inputManager.update(1.0); // Should definitely be zero now
     expect(inputManager.getInput().x).toBe(0);
   });
 
@@ -171,8 +177,44 @@ describe('InputManager', () => {
 
     // Touch end
     listeners['touchend'](new TouchEvent('touchend'));
-    inputManager.update(0);
+    inputManager.update(0.1);
+    // Vector magnitude decay:
+    // Initial: (1, 1), Length: sqrt(2)
+    // Step: 0.2 (2.0 speed * 0.1s)
+    // New Length: sqrt(2) - 0.2
+    // New X/Y: 1 * (sqrt(2) - 0.2) / sqrt(2) = 0.8585...
+    expect(inputManager.getInput().x).toBeCloseTo(0.858578);
+    expect(inputManager.getInput().y).toBeCloseTo(0.858578);
+
+    inputManager.update(1.0);
     expect(inputManager.getInput().x).toBe(0);
+    expect(inputManager.getInput().y).toBe(0);
+  });
+
+  it('resets dragging state on touchcancel', () => {
+    vi.stubGlobal('innerWidth', 1000);
+    vi.stubGlobal('innerHeight', 1000);
+
+    const touchStartEvent = {
+        touches: [{ clientX: 500, clientY: 500 }],
+        preventDefault: vi.fn()
+    };
+    listeners['touchstart'](touchStartEvent);
+    
+    const touchMoveEvent = {
+        touches: [{ clientX: 600, clientY: 400 }],
+        preventDefault: vi.fn()
+    };
+    listeners['touchmove'](touchMoveEvent);
+    inputManager.update(0);
+    expect(inputManager.getInput().x).toBe(1);
+
+    // Touch cancel
+    listeners['touchcancel'](new TouchEvent('touchcancel'));
+    
+    // Should decay now
+    inputManager.update(0.1);
+    expect(inputManager.getInput().x).toBeCloseTo(0.858578);
   });
 
   it('sets touch anchor on touchstart and produces zero input initially', () => {
@@ -264,5 +306,27 @@ describe('InputManager', () => {
 
      // Should still be -1
      expect(inputManager.getInput().x).toBe(-1);
+  });
+
+  it('returns to center in a straight line during decay', () => {
+    listeners['mousedown'](new MouseEvent('mousedown'));
+    // Set an off-axis position: x=0.8, y=0.4 (Ratio 2:1)
+    listeners['mousemove'](new MouseEvent('mousemove', { clientX: 900, clientY: 300 }));
+    inputManager.update(0);
+    expect(inputManager.getInput().x).toBeCloseTo(0.8);
+    expect(inputManager.getInput().y).toBeCloseTo(0.4);
+
+    listeners['mouseup'](new MouseEvent('mouseup'));
+    // Small decay step
+    inputManager.update(0.1);
+    const pos = inputManager.getInput();
+    
+    // Verify it's still moving in the same direction (ratio 2:1)
+    // (pos.x / pos.y) should be exactly 2.0 if it's a straight line
+    expect(pos.x / pos.y).toBeCloseTo(2.0);
+    
+    // Verify it has moved towards zero
+    expect(pos.x).toBeLessThan(0.8);
+    expect(pos.y).toBeLessThan(0.4);
   });
 });

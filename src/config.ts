@@ -28,6 +28,7 @@ export const GameConfig = {
   input: {
     sensitivity: 5.0,
     touchRadius: 100,
+    centeringSpeed: 2.0,
   },
   ui: {
     highScore: 10000,
