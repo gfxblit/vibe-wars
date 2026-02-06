@@ -76,6 +76,13 @@ export class InputManager {
      );
   }
 
+  private handlePointerLockChange = () => {
+    if (document.pointerLockElement !== document.body) {
+      this.virtualCursor.set(0, 0);
+      this.input.set(0, 0);
+    }
+  };
+
   public setup(): void {
     document.body.addEventListener('click', this.handleClick);
     window.addEventListener('mouseup', this.handleMouseUp); // For touch end mainly
@@ -83,6 +90,7 @@ export class InputManager {
     window.addEventListener('touchstart', this.handleTouchStart, { passive: false });
     window.addEventListener('touchend', this.handleMouseUp);
     window.addEventListener('touchmove', this.handleTouchMove, { passive: false });
+    document.addEventListener('pointerlockchange', this.handlePointerLockChange);
   }
 
   public teardown(): void {
@@ -92,6 +100,7 @@ export class InputManager {
     window.removeEventListener('touchstart', this.handleTouchStart, { passive: false } as any);
     window.removeEventListener('touchend', this.handleMouseUp);
     window.removeEventListener('touchmove', this.handleTouchMove, { passive: false } as any);
+    document.removeEventListener('pointerlockchange', this.handlePointerLockChange);
   }
 
   public update(_dt: number): void {
