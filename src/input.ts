@@ -96,6 +96,7 @@ export class InputManager {
     window.addEventListener('mousemove', this.handleMouseMove);
     window.addEventListener('touchstart', this.handleTouchStart, { passive: false });
     window.addEventListener('touchend', this.handleMouseUp);
+    window.addEventListener('touchcancel', this.handleMouseUp);
     window.addEventListener('touchmove', this.handleTouchMove, { passive: false });
   }
 
@@ -107,6 +108,7 @@ export class InputManager {
     window.removeEventListener('mousemove', this.handleMouseMove);
     window.removeEventListener('touchstart', this.handleTouchStart);
     window.removeEventListener('touchend', this.handleMouseUp);
+    window.removeEventListener('touchcancel', this.handleMouseUp);
     window.removeEventListener('touchmove', this.handleTouchMove);
   }
 

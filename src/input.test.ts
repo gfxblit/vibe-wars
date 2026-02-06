@@ -188,6 +188,33 @@ describe('InputManager', () => {
 
     inputManager.update(1.0);
     expect(inputManager.getInput().x).toBe(0);
+    expect(inputManager.getInput().y).toBe(0);
+  });
+
+  it('resets dragging state on touchcancel', () => {
+    vi.stubGlobal('innerWidth', 1000);
+    vi.stubGlobal('innerHeight', 1000);
+
+    const touchStartEvent = {
+        touches: [{ clientX: 500, clientY: 500 }],
+        preventDefault: vi.fn()
+    };
+    listeners['touchstart'](touchStartEvent);
+    
+    const touchMoveEvent = {
+        touches: [{ clientX: 600, clientY: 400 }],
+        preventDefault: vi.fn()
+    };
+    listeners['touchmove'](touchMoveEvent);
+    inputManager.update(0);
+    expect(inputManager.getInput().x).toBe(1);
+
+    // Touch cancel
+    listeners['touchcancel'](new TouchEvent('touchcancel'));
+    
+    // Should decay now
+    inputManager.update(0.1);
+    expect(inputManager.getInput().x).toBeCloseTo(0.858578);
   });
 
   it('sets touch anchor on touchstart and produces zero input initially', () => {
