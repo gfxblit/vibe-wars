@@ -4,7 +4,6 @@ import { initRenderer, render, attachCameraToPlayer } from './renderer'
 import { InputManager } from './input'
 import { StarField } from './entities/StarField'
 import { GameConfig } from './config'
-import { Cursor } from './Cursor'
 import { UIManager } from './UIManager'
 
 export function init() {
@@ -19,9 +18,6 @@ export function init() {
 
   const starField = new StarField()
   scene.add(starField.points)
-
-  const cursor = new Cursor()
-  const overlayElement = document.getElementById('overlay');
 
   if (state.player) {
     scene.add(state.player.mesh)
@@ -44,15 +40,7 @@ export function init() {
     
     const isActive = inputManager.isInteractionActive();
 
-    // Update visual cursor
-    cursor.update(input, isActive)
-
-    // Update overlay
-    if (overlayElement) {
-      overlayElement.style.display = isActive ? 'none' : 'flex';
-    }
-
-    uiManager.update(state)
+    uiManager.update(state, input, isActive)
 
     if (state.player) {
       starField.update(state.player.position)

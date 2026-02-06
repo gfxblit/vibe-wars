@@ -25,8 +25,11 @@ describe('UIManager', () => {
       },
     };
 
-    // Clean up body
-    document.body.innerHTML = '';
+    // Clean up body and add required elements
+    document.body.innerHTML = `
+      <div id="overlay">CLICK TO START</div>
+      <div id="cursor"></div>
+    `;
     uiManager = new UIManager();
   });
 
@@ -38,7 +41,7 @@ describe('UIManager', () => {
   });
 
   it('should display initial score, shields, and wave', () => {
-    uiManager.update(mockState);
+    uiManager.update(mockState, { x: 0, y: 0 }, false);
 
     const scoreElement = document.getElementById('score-value');
     const shieldElement = document.getElementById('shield-value');
@@ -50,31 +53,46 @@ describe('UIManager', () => {
   });
 
   it('should display high score from config', () => {
-    uiManager.update(mockState);
+    uiManager.update(mockState, { x: 0, y: 0 }, false);
     const highScoreElement = document.getElementById('high-score-value');
     expect(highScoreElement?.textContent).toBe(GameConfig.ui.highScore.toString());
   });
 
   it('should update shield bar width', () => {
-    uiManager.update(mockState);
+    uiManager.update(mockState, { x: 0, y: 0 }, false);
     const shieldBar = document.getElementById('shield-bar');
     const expectedWidth = (4 / GameConfig.player.maxShields) * 100;
     expect(shieldBar?.style.width).toBe(`${expectedWidth}%`);
 
     mockState.shields = 2;
-    uiManager.update(mockState);
+    uiManager.update(mockState, { x: 0, y: 0 }, false);
     const expectedWidth2 = (2 / GameConfig.player.maxShields) * 100;
     expect(shieldBar?.style.width).toBe(`${expectedWidth2}%`);
   });
 
   it('should show Game Over overlay when isGameOver is true', () => {
-    uiManager.update(mockState);
+    uiManager.update(mockState, { x: 0, y: 0 }, false);
     const gameOver = document.getElementById('game-over');
     expect(gameOver?.classList.contains('hidden')).toBe(true);
 
     mockState.isGameOver = true;
-    uiManager.update(mockState);
+    uiManager.update(mockState, { x: 0, y: 0 }, false);
     expect(gameOver?.classList.contains('hidden')).toBe(false);
+  });
+
+  it('should toggle overlay and cursor visibility based on active state', () => {
+    const overlay = document.getElementById('overlay');
+    const cursor = document.getElementById('cursor');
+
+    // Active (playing)
+    uiManager.update(mockState, { x: 0, y: 0 }, true);
+    expect(overlay?.style.display).toBe('none');
+    expect(cursor?.style.display).toBe('block');
+
+    // Inactive (paused/menu)
+    uiManager.update(mockState, { x: 0, y: 0 }, false);
+    expect(overlay?.style.display).toBe('flex');
+    expect(cursor?.style.display).toBe('none');
   });
 
   it('should remove HUD container on destroy', () => {

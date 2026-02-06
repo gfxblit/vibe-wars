@@ -1,5 +1,6 @@
 import { GameState } from './state';
 import { GameConfig } from './config';
+import { Cursor } from './Cursor';
 
 export class UIManager {
   private hud: HTMLElement;
@@ -8,6 +9,8 @@ export class UIManager {
   private shieldBar!: HTMLElement;
   private waveValue!: HTMLElement;
   private gameOver!: HTMLElement;
+  private cursor: Cursor;
+  private overlay: HTMLElement | null;
 
   constructor() {
     // Root HUD container
@@ -22,6 +25,9 @@ export class UIManager {
     this.createGameOverOverlay();
 
     document.body.appendChild(this.hud);
+
+    this.cursor = new Cursor();
+    this.overlay = document.getElementById('overlay');
   }
 
   private createEl(tag: string, className: string, parent?: HTMLElement): HTMLElement {
@@ -79,7 +85,15 @@ export class UIManager {
     this.hud.remove();
   }
 
-  update(state: GameState) {
+  update(state: GameState, input: { x: number, y: number }, isActive: boolean) {
+    // Update visual cursor
+    this.cursor.update(input, isActive);
+
+    // Update overlay
+    if (this.overlay) {
+      this.overlay.style.display = isActive ? 'none' : 'flex';
+    }
+
     if (this.scoreValue.textContent !== state.score.toString()) {
       this.scoreValue.textContent = state.score.toString();
     }
