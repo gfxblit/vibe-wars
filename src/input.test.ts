@@ -135,9 +135,12 @@ describe('InputManager', () => {
     expect(inputManager.getInput().x).toBe(-1);
 
     listeners['mouseup'](new MouseEvent('mouseup'));
-    inputManager.update(0);
-    // Does it snap or decay? "Releasing touch/mouse: Centers the virtual input vector"
-    // Usually it snaps for touch/mouse release.
+    inputManager.update(0.1);
+    // centeringSpeed is 2.0, so 0.1s decay should be 0.2
+    // -1.0 + 0.2 = -0.8
+    expect(inputManager.getInput().x).toBeCloseTo(-0.8);
+
+    inputManager.update(1.0); // Should definitely be zero now
     expect(inputManager.getInput().x).toBe(0);
   });
 
@@ -171,7 +174,13 @@ describe('InputManager', () => {
 
     // Touch end
     listeners['touchend'](new TouchEvent('touchend'));
-    inputManager.update(0);
+    inputManager.update(0.1);
+    // centeringSpeed is 2.0, so 0.1s decay should be 0.2
+    // 1.0 - 0.2 = 0.8
+    expect(inputManager.getInput().x).toBeCloseTo(0.8);
+    expect(inputManager.getInput().y).toBeCloseTo(0.8);
+
+    inputManager.update(1.0);
     expect(inputManager.getInput().x).toBe(0);
   });
 

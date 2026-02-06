@@ -29,7 +29,6 @@ export class InputManager {
 
   private handleMouseUp = () => {
     this.isDragging = false;
-    this.pointerInput.set(0, 0);
   };
 
   private handleMouseMove = (event: MouseEvent) => {
@@ -116,6 +115,13 @@ export class InputManager {
     const step = GameConfig.input.sensitivity * dt;
     this.keyboardInput.x = this.moveTowards(this.keyboardInput.x, this.keyboardTarget.x, step);
     this.keyboardInput.y = this.moveTowards(this.keyboardInput.y, this.keyboardTarget.y, step);
+
+    // Pointer decay when not dragging
+    if (!this.isDragging) {
+      const decayStep = GameConfig.input.centeringSpeed * dt;
+      this.pointerInput.x = this.moveTowards(this.pointerInput.x, 0, decayStep);
+      this.pointerInput.y = this.moveTowards(this.pointerInput.y, 0, decayStep);
+    }
 
     // Merge keyboard and pointer input
     this.input.set(
