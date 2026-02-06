@@ -32,4 +32,12 @@ export const GameConfig = {
   ui: {
     highScore: 10000,
   },
+  tieFighter: {
+    speed: 50,
+    oscillationFrequency: 1.0,
+    oscillationAmplitude: 15,
+    distance: 60,
+    meshColor: 0xff0000,
+    meshSize: 1,
+  },
 } as const;

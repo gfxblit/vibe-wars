@@ -16,6 +16,7 @@ describe('UIManager', () => {
       phase: 'DOGFIGHT',
       isGameOver: false,
       player: null,
+      tieFighters: [],
       viewport: {
         width: 1024,
         height: 768,

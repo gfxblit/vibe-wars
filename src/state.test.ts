@@ -2,6 +2,7 @@ import { expect, test, beforeEach, describe } from 'vitest'
 import { state, initGame, addScore, takeDamage, nextPhase, checkCollision, updateState } from './state'
 import * as THREE from 'three';
 import { Player } from './entities/Player';
+import { TieFighter } from './entities/TieFighter';
 
 beforeEach(() => {
   initGame();
@@ -13,6 +14,7 @@ describe('Game State', () => {
     expect(state.shields).toBe(6)
     expect(state.phase).toBe('DOGFIGHT')
     expect(state.player).toBeInstanceOf(Player)
+    expect(state.tieFighters[0]).toBeInstanceOf(TieFighter)
   })
 
   test('updateState moves player forward', () => {
@@ -21,6 +23,15 @@ describe('Game State', () => {
     // Forward motion is negative Z.
     // Let's assume some speed, e.g., 10 units/sec.
     expect(state.player!.position.z).toBeLessThan(initialZ);
+  })
+
+  test('updateState updates TIE fighters', () => {
+    const tieFighter = state.tieFighters[0];
+    const initialPos = tieFighter.position.clone();
+    
+    updateState(0.1);
+    
+    expect(tieFighter.position.equals(initialPos)).toBe(false);
   })
 
   test('updateState should not move player if game is over', () => {

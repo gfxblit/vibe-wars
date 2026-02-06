@@ -27,6 +27,10 @@ if (state.player) {
   attachCameraToPlayer(camera, state.player)
 }
 
+state.tieFighters.forEach(tf => {
+  scene.add(tf.mesh)
+});
+
 let lastTime = 0
 function animate(time: number) {
   // Use a reasonable cap for deltaTime to avoid huge jumps
