@@ -68,9 +68,9 @@ describe('CI/CD Workflow', () => {
       expect(content).toMatch(/git pull --rebase origin gh-pages/);
     });
 
-    it('should include timestamp and SHA in PR comment', () => {
+    it('should include timestamp (in Pacific Time) and SHA in PR comment', () => {
       expect(content).toMatch(
-        /const date = new Date\(\)\.toLocaleString\(\);\s+const sha = context\.sha\.substring\(0, 7\);\s+const body = `🚀 Preview available at: \$\{url\}\\n\\nLast updated: \$\{date\}\\nCommit: \$\{sha\}`;/
+        /const date = new Date\(\)\.toLocaleString\('en-US', \{\s+timeZone: 'America\/Los_Angeles',\s+timeZoneName: 'short'\s+\}\);\s+const sha = context\.sha\.substring\(0, 7\);\s+const body = `🚀 Preview available at: \$\{url\}\\n\\nLast updated: \$\{date\}\\nCommit: \$\{sha\}`;/
       );
     });
   });

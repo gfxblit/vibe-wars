@@ -94,7 +94,10 @@ jobs:
             const repo = context.repo.repo;
             const owner = context.repo.owner;
             const url = `https://${owner}.github.io/${repo}/pr-${prNumber}/`;
-            const date = new Date().toLocaleString();
+            const date = new Date().toLocaleString('en-US', {
+              timeZone: 'America/Los_Angeles',
+              timeZoneName: 'short'
+            });
             const sha = context.sha.substring(0, 7);
             const body = `🚀 Preview available at: ${url}\n\nLast updated: ${date}\nCommit: ${sha}`;
             
