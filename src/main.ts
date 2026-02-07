@@ -11,7 +11,7 @@ import { GameSystem } from './GameSystem'
 console.log('Vibe Wars starting...')
 
 const { scene, camera, hudScene, hudCamera, renderer: webglRenderer } = initRenderer()
-initGame()
+initGame(scene, hudScene)
 
 const uiManager = new UIManager()
 
@@ -19,7 +19,7 @@ const inputManager = new InputManager()
 inputManager.setup()
 
 const cursor = new Cursor()
-const gameSystem = new GameSystem(hudScene, camera)
+const gameSystem = new GameSystem(camera)
 
 const starField = new StarField()
 scene.add(starField.points)
@@ -28,10 +28,6 @@ if (state.player) {
   scene.add(state.player.mesh)
   attachCameraToPlayer(camera, state.player)
 }
-
-state.tieFighters.forEach(tf => {
-  scene.add(tf.mesh)
-});
 
 let lastTime = 0
 
@@ -42,7 +38,7 @@ function animate(time: number) {
   inputManager.update(deltaTime)
   const input = inputManager.getInput()
   
-  gameSystem.update(deltaTime, input, scene)
+  gameSystem.update(deltaTime, input)
   
   cursor.update(input)
   uiManager.update(state)

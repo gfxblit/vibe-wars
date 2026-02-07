@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { UIManager } from './UIManager';
-import { GameState } from './state';
+import { GameState, state } from './state';
 import { GameConfig } from './config';
 
 describe('UIManager', () => {
@@ -8,6 +8,10 @@ describe('UIManager', () => {
   let mockState: GameState;
 
   beforeEach(() => {
+    // Reset singleton state
+    state.debug = false;
+    state.isSmartAI = true;
+
     // Setup mock state
     mockState = {
       score: 1234,
@@ -16,16 +20,17 @@ describe('UIManager', () => {
       phase: 'DOGFIGHT',
       isGameOver: false,
       player: null,
-      tieFighters: [],
+      entityManager: null,
       viewport: {
         width: 1024,
         height: 768,
         centerX: 512,
         centerY: 384,
       },
-      lasers: [],
-      fireballs: [],
       gunColorToggles: [false, false, false, false],
+      debug: false,
+      isSmartAI: true,
+      isModeColoring: false,
     };
 
     // Clean up body
@@ -36,8 +41,14 @@ describe('UIManager', () => {
   it('should create HUD container on initialization', () => {
     const hud = document.getElementById('hud');
     expect(hud).not.toBeNull();
-    // In happy-dom, style properties might not be exactly as expected if not set via style attribute or class
-    // but we can check the element exists and has basic properties.
+  });
+
+  it('should create debug panel when state.debug is true', () => {
+    state.debug = true;
+    const debugUi = new UIManager();
+    expect(document.getElementById('debug-panel')).not.toBeNull();
+    debugUi.destroy();
+    document.getElementById('debug-panel')?.remove();
   });
 
   it('should display initial score, shields, and wave', () => {
@@ -84,5 +95,13 @@ describe('UIManager', () => {
     uiManager.destroy();
     const hud = document.getElementById('hud');
     expect(hud).toBeNull();
+  });
+
+  it('should remove debug panel on destroy', () => {
+    state.debug = true;
+    const ui = new UIManager();
+    expect(document.getElementById('debug-panel')).not.toBeNull();
+    ui.destroy();
+    expect(document.getElementById('debug-panel')).toBeNull();
   });
 });

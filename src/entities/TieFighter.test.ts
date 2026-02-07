@@ -1,7 +1,9 @@
-import { expect, test, describe, beforeEach } from 'vitest'
+import { expect, test, describe, beforeEach, vi } from 'vitest'
 import { TieFighter } from './TieFighter'
 import * as THREE from 'three'
 import { GameConfig } from '../config'
+import { DumbAIStrategy } from './DumbAIStrategy'
+import { SmartAIStrategy } from './SmartAIStrategy'
 
 describe('TieFighter', () => {
   let tieFighter: TieFighter;
@@ -9,7 +11,7 @@ describe('TieFighter', () => {
   let playerQuaternion: THREE.Quaternion;
 
   beforeEach(() => {
-    tieFighter = new TieFighter();
+    tieFighter = new TieFighter(new DumbAIStrategy());
     playerPosition = new THREE.Vector3(0, 0, 0);
     playerQuaternion = new THREE.Quaternion();
   })
@@ -100,20 +102,57 @@ describe('TieFighter', () => {
     expect(configVelocity).toBe(50);
   })
 
-  test('should reuse geometries and materials across instances', () => {
-    const tf1 = new TieFighter();
-    const tf2 = new TieFighter();
+  test('should reuse geometries across instances', () => {
+    const strategy = new DumbAIStrategy();
+    const tf1 = new TieFighter(strategy);
+    const tf2 = new TieFighter(strategy);
 
     const body1 = tf1.mesh.children.find(c => (c as THREE.Mesh).geometry instanceof THREE.SphereGeometry) as THREE.Mesh;
     const body2 = tf2.mesh.children.find(c => (c as THREE.Mesh).geometry instanceof THREE.SphereGeometry) as THREE.Mesh;
     
     expect(body1.geometry).toBe(body2.geometry);
-    expect(body1.material).toBe(body2.material);
+    // Materials are cloned for per-instance debug colors, so they won't be identical
+    expect((body1.material as THREE.MeshBasicMaterial).type).toBe((body2.material as THREE.MeshBasicMaterial).type);
+    expect((body1.material as THREE.MeshBasicMaterial).color.getHex()).toBe((body2.material as THREE.MeshBasicMaterial).color.getHex());
 
     const wing1 = tf1.mesh.children.find(c => (c as THREE.Mesh).geometry instanceof THREE.PlaneGeometry) as THREE.Mesh;
     const wing2 = tf2.mesh.children.find(c => (c as THREE.Mesh).geometry instanceof THREE.PlaneGeometry) as THREE.Mesh;
 
     expect(wing1.geometry).toBe(wing2.geometry);
-    expect(wing1.material).toBe(wing2.material);
+    expect((wing1.material as THREE.MeshBasicMaterial).type).toBe((wing2.material as THREE.MeshBasicMaterial).type);
   })
-})
+
+  test('smart AI should spawn behind the player and overtake', () => {
+    const playerPos = new THREE.Vector3(0, 0, 0);
+    const playerQuat = new THREE.Quaternion(); // looking towards -Z
+    
+    const smartTieFighter = new TieFighter(new SmartAIStrategy());
+    
+    smartTieFighter.update(0.01, playerPos, playerQuat); 
+    // It should be behind the player (Z > 0)
+    expect(smartTieFighter.position.z).toBeGreaterThan(0);
+    
+    const initialZ = smartTieFighter.position.z;
+    
+    // Update after 1 second, it should have moved forward (towards negative Z)
+        smartTieFighter.update(1, playerPos, playerQuat);
+        expect(smartTieFighter.position.z).toBeLessThan(initialZ);
+      })
+    
+      test('dispose should call dispose on all materials', () => {
+        const materials: THREE.Material[] = [];
+            tieFighter.mesh.traverse(child => {
+              if (child instanceof THREE.Mesh) {
+                materials.push(child.material);
+                child.material.dispose = vi.fn();
+              }
+            });
+                expect(materials.length).toBeGreaterThan(0);
+        tieFighter.dispose();
+    
+        materials.forEach(mat => {
+          expect(mat.dispose).toHaveBeenCalled();
+        });
+      })
+    })
+    
