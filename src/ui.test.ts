@@ -24,6 +24,7 @@ describe('UIManager', () => {
         centerY: 384,
       },
       lasers: [],
+      fireballs: [],
       gunColorToggles: [false, false, false, false],
     };
 

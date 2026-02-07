@@ -14,12 +14,14 @@ vi.mock('./state', async (importOriginal) => {
 
 describe('CombatSystem', () => {
   let hudScene: THREE.Scene;
+  let scene: THREE.Scene;
   let camera: THREE.Camera;
   let combatSystem: CombatSystem;
 
   beforeEach(() => {
     initGame();
     hudScene = new THREE.Scene();
+    scene = new THREE.Scene();
     camera = new THREE.PerspectiveCamera();
     combatSystem = new CombatSystem(hudScene, camera);
     vi.clearAllMocks();
@@ -27,7 +29,7 @@ describe('CombatSystem', () => {
 
   it('spawns lasers when firing and cooldown is 0', () => {
     const input = { x: 0, y: 0, isFiring: true };
-    combatSystem.update(0.01, input);
+    combatSystem.update(0.01, input, scene);
 
     expect(StateModule.spawnLasers).toHaveBeenCalled();
     expect(state.lasers.length).toBeGreaterThanOrEqual(2);
@@ -37,30 +39,30 @@ describe('CombatSystem', () => {
     const input = { x: 0, y: 0, isFiring: true };
     
     // First shot
-    combatSystem.update(0.01, input);
+    combatSystem.update(0.01, input, scene);
     expect(StateModule.spawnLasers).toHaveBeenCalledTimes(1);
     
     // Should not fire again immediately
-    combatSystem.update(0.01, input);
+    combatSystem.update(0.01, input, scene);
     expect(StateModule.spawnLasers).toHaveBeenCalledTimes(1);
     
     // Wait for cooldown (GameConfig.laser.cooldown is 0.15)
-    combatSystem.update(0.1, input); // total elapsed since first shot: 0.11. Cooldown remaining: 0.04
+    combatSystem.update(0.1, input, scene); // total elapsed since first shot: 0.11. Cooldown remaining: 0.04
     expect(StateModule.spawnLasers).toHaveBeenCalledTimes(1);
     
-    combatSystem.update(0.05, input); // total elapsed: 0.16. Should fire.
+    combatSystem.update(0.05, input, scene); // total elapsed: 0.16. Should fire.
     expect(StateModule.spawnLasers).toHaveBeenCalledTimes(2);
   });
 
   it('updates and removes expired lasers', () => {
     const input = { x: 0, y: 0, isFiring: true };
-    combatSystem.update(0.01, input);
+    combatSystem.update(0.01, input, scene);
     
     const initialCount = state.lasers.length;
     expect(initialCount).toBeGreaterThan(0);
 
     // Update with a large deltaTime to expire lasers
-    combatSystem.update(1.0, { x: 0, y: 0, isFiring: false });
+    combatSystem.update(1.0, { x: 0, y: 0, isFiring: false }, scene);
     
     expect(state.lasers.length).toBe(0);
     expect(hudScene.children.length).toBe(0);
@@ -74,7 +76,7 @@ describe('CombatSystem', () => {
     const input = { x: 0, y: 0, isFiring: true };
     
     const initialScore = state.score;
-    combatSystem.update(0.01, input);
+    combatSystem.update(0.01, input, scene);
     
     expect(state.tieFighters[0].isExploded).toBe(true);
     expect(state.score).toBeGreaterThan(initialScore);

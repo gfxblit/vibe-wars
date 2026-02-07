@@ -1,5 +1,5 @@
 import { expect, test, beforeEach, describe } from 'vitest'
-import { state, initGame, addScore, takeDamage, nextPhase, checkCollision, updateState, spawnLasers } from './state'
+import { state, initGame, addScore, takeDamage, nextPhase, checkCollision, updateState, spawnLasers, spawnFireball } from './state'
 import * as THREE from 'three';
 import { Player } from './entities/Player';
 import { TieFighter } from './entities/TieFighter';
@@ -29,6 +29,45 @@ describe('Game State', () => {
     // Check that some toggles have been flipped (from false to true)
     const someFlipped = state.gunColorToggles.some(t => t === true);
     expect(someFlipped).toBe(true);
+  })
+
+  test('spawnFireball adds a fireball to the state', () => {
+    const fireball = spawnFireball(new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, 10));
+    expect(state.fireballs).toContain(fireball);
+    expect(state.fireballs.length).toBe(1);
+  })
+
+  test('updateState updates fireballs', () => {
+    const fireball = spawnFireball(new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, 10));
+    updateState(1.0);
+    expect(fireball.position.z).toBe(10);
+  })
+
+  test('updateState handles player-fireball collision', () => {
+    // Move player to 0,0,0
+    state.player!.position.set(0, 0, 0);
+    // Spawn fireball right on top of player
+    spawnFireball(new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, 0));
+    
+    const initialShields = state.shields;
+    updateState(0.01);
+    
+    expect(state.shields).toBeLessThan(initialShields);
+    expect(state.fireballs.length).toBe(0);
+  })
+
+  test('updateState expires fireballs that are far behind', () => {
+    // Player at origin, facing forward (-Z)
+    state.player!.position.set(0, 0, 0);
+    state.player!.mesh.quaternion.set(0, 0, 0, 1);
+    
+    // Spawn fireball 11 units behind (+Z)
+    // forward is (0,0,-1). subVectors(fb, player) is (0,0,11). dot is -11.
+    spawnFireball(new THREE.Vector3(0, 0, 11), new THREE.Vector3(0, 0, 0));
+    
+    expect(state.fireballs.length).toBe(1);
+    updateState(0.01);
+    expect(state.fireballs.length).toBe(0);
   })
 
   test('updateState moves player forward (if speed > 0)', () => {

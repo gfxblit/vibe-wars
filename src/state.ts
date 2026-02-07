@@ -7,6 +7,7 @@ import { Player } from './entities/Player';
 import { TieFighter } from './entities/TieFighter';
 import { UserInput } from './input';
 import { Laser } from './entities/Laser';
+import { Fireball } from './entities/Fireball';
 import { GameConfig } from './config';
 
 export type GamePhase = 'DOGFIGHT' | 'SURFACE' | 'TRENCH';
@@ -26,6 +27,7 @@ export interface GameState {
   isGameOver: boolean;
   player: Player | null;
   tieFighters: TieFighter[];
+  fireballs: Fireball[];
   viewport: Viewport;
   lasers: Laser[];
   gunColorToggles: boolean[];
@@ -42,6 +44,7 @@ export const state: GameState = {
   isGameOver: false,
   player: null,
   tieFighters: [],
+  fireballs: [],
   viewport: {
     width: initialWidth,
     height: initialHeight,
@@ -60,19 +63,68 @@ export function initGame() {
   state.isGameOver = false;
   state.player = new Player();
   state.tieFighters = [new TieFighter()];
+  state.fireballs = [];
   state.lasers = [];
   state.gunColorToggles = GameConfig.laser.offsets.map(() => false);
   console.log('Game initialized');
 }
 
 export function updateState(deltaTime: number, input: UserInput = { x: 0, y: 0, isFiring: false }) {
-  if (state.isGameOver || !state.player) return;
+  if (state.isGameOver || !state.player) return { newFireballs: [], expiredFireballs: [] };
 
   state.player.update(input, deltaTime);
 
+  const newFireballs: Fireball[] = [];
+  const expiredFireballs: Fireball[] = [];
+
+  const playerForward = new THREE.Vector3(0, 0, -1).applyQuaternion(state.player.mesh.quaternion);
+
   state.tieFighters.forEach(tf => {
-    tf.update(deltaTime, state.player!.position, state.player!.mesh.quaternion);
+    const fireDirection = tf.update(deltaTime, state.player!.position, state.player!.mesh.quaternion);
+    if (fireDirection) {
+      // Inherit player's forward velocity so the fireball closure rate is exactly relativeSpeed
+      const playerVelocity = playerForward.clone().multiplyScalar(GameConfig.player.forwardSpeed);
+      
+      const relativeVelocity = fireDirection.multiplyScalar(GameConfig.fireball.relativeSpeed);
+      const totalVelocity = playerVelocity.add(relativeVelocity);
+      
+      const fireball = spawnFireball(tf.position.clone(), totalVelocity);
+      newFireballs.push(fireball);
+    }
   });
+
+  const toFireball = new THREE.Vector3();
+
+  // Update fireballs and check for player collision
+  for (let i = state.fireballs.length - 1; i >= 0; i--) {
+    const fb = state.fireballs[i];
+    fb.update(deltaTime);
+
+    // If fireball is far behind player, expire it
+    toFireball.subVectors(fb.position, state.player.position);
+    const dot = toFireball.dot(playerForward);
+    
+    // If it's more than configured units behind the player, it's missed
+    if (dot < -GameConfig.fireball.expirationDistance) {
+      expiredFireballs.push(fb);
+      state.fireballs.splice(i, 1);
+      continue;
+    }
+
+    if (checkCollision(fb.position, GameConfig.fireball.collisionRadiusWorld, state.player.position, GameConfig.player.meshSize)) {
+      takeDamage(GameConfig.fireball.damage);
+      expiredFireballs.push(fb);
+      state.fireballs.splice(i, 1);
+    }
+  }
+
+  return { newFireballs, expiredFireballs };
+}
+
+export function spawnFireball(position: THREE.Vector3, velocity: THREE.Vector3): Fireball {
+  const fireball = new Fireball(position, velocity);
+  state.fireballs.push(fireball);
+  return fireball;
 }
 
 export function spawnLasers(input: Pick<UserInput, 'x' | 'y'>): Laser[] {

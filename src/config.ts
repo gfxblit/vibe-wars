@@ -68,4 +68,15 @@ export const GameConfig = deepFreeze({
       { x: 1.2, y: -0.8 },
     ],
   },
+  fireball: {
+    meshSize: 1.5,
+    meshColor: 0xff4500, // Orange-red
+    relativeSpeed: 40,
+    fireRate: 2.0, // Seconds between shots
+    collisionRadiusWorld: 2.0,
+    collisionRadiusNDC: 0.05,
+    points: 100,
+    damage: 1,
+    expirationDistance: 10,
+  },
 } as const);
