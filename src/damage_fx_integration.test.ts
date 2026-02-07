@@ -1,15 +1,20 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import * as THREE from 'three';
 import { initGame, state, updateState } from './state';
 import { UIManager } from './UIManager';
 import { GameConfig } from './config';
 
 describe('Damage FX Integration', () => {
   let uiManager: UIManager;
+  let worldScene: THREE.Scene;
+  let hudScene: THREE.Scene;
 
   beforeEach(() => {
     document.body.innerHTML = '';
     uiManager = new UIManager();
-    initGame();
+    worldScene = new THREE.Scene();
+    hudScene = new THREE.Scene();
+    initGame(worldScene, hudScene);
   });
 
   afterEach(() => {
@@ -26,17 +31,16 @@ describe('Damage FX Integration', () => {
     expect(overlay?.classList.contains('animate-damage-flash')).toBe(false);
     expect(shieldBar?.classList.contains('animate-shield-impact')).toBe(false);
 
-    // Spawn a fireball
-    let fb = null;
-    for (let i = 0; i < 100 && !fb; i++) {
-      const { newFireballs } = updateState(0.1);
-      if (newFireballs.length > 0) fb = newFireballs[0];
-    }
+    // Force spawn a fireball since updateState might take many frames to spawn one randomly
+    const fireball = state.entityManager!.spawnFireball(
+      new THREE.Vector3(0, 0, -10),
+      new THREE.Vector3(0, 0, 10)
+    );
     
-    expect(fb).toBeDefined();
+    expect(fireball).not.toBeNull();
     
     // Teleport fireball to player to cause collision
-    fb!.position.copy(state.player!.position);
+    fireball!.position.copy(state.player!.position);
 
     // Update state to process collision
     updateState(0.01);
