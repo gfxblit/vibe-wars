@@ -38,7 +38,8 @@ export class InputManager {
     }
 
     // Clicks on other UI elements should be ignored for game input.
-    if (event.target !== document.body && event.target !== document.documentElement) {
+    const target = event.target as HTMLElement;
+    if (target.tagName !== 'CANVAS' && target !== document.body && target !== document.documentElement) {
       return;
     }
 
@@ -61,6 +62,12 @@ export class InputManager {
     // If we touch the fire button, don't start dragging/steering
     if (event.target === this.fireButton) {
       this.isFiring = true;
+      return;
+    }
+
+    // Clicks on other UI elements should be ignored for game input.
+    const target = event.target as HTMLElement;
+    if (target.tagName !== 'CANVAS' && target !== document.body && target !== document.documentElement) {
       return;
     }
 

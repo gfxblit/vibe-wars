@@ -188,6 +188,7 @@ describe('InputManager', () => {
 
     const touchStartEvent = {
         touches: [{ clientX: 500, clientY: 500 }],
+        target: document.body,
         preventDefault: vi.fn()
     };
     listeners['touchstart'](touchStartEvent);
@@ -318,5 +319,23 @@ describe('InputManager', () => {
     expect(inputManager.getInput().x).toBe(0);
 
     document.body.removeChild(pauseButton);
+  });
+
+  it('allows clicks on CANVAS element', () => {
+    const canvas = document.createElement('canvas');
+    document.body.appendChild(canvas);
+
+    const event = createMouseEvent('mousedown');
+    Object.defineProperty(event, 'target', { value: canvas });
+    listeners['mousedown'](event);
+
+    expect(inputManager.getInput().isFiring).toBe(true);
+
+    // Should also trigger dragging
+    listeners['mousemove'](new MouseEvent('mousemove', { clientX: 0, clientY: 0 }));
+    inputManager.update(0);
+    expect(inputManager.getInput().x).toBe(-1);
+
+    document.body.removeChild(canvas);
   });
 });

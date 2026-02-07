@@ -1,7 +1,6 @@
 function deepFreeze<T extends object>(obj: T): T {
   Object.keys(obj).forEach((prop) => {
-    // @ts-ignore
-    const value = obj[prop];
+    const value = (obj as any)[prop];
     if (value && typeof value === 'object') {
       deepFreeze(value);
     }
