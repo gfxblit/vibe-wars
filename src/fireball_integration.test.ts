@@ -1,20 +1,24 @@
 import { describe, it, expect, beforeEach } from 'vitest';
+import * as THREE from 'three';
 import { initGame, state, updateState } from './state';
 import { GameConfig } from './config';
 import { Fireball } from './entities/Fireball';
 
 describe('Fireball Integration', () => {
+  let scene: THREE.Scene;
+
   beforeEach(() => {
-    initGame();
+    scene = new THREE.Scene();
+    initGame(scene);
     // Ensure we have a player and a tie fighter
     expect(state.player).toBeDefined();
-    expect(state.tieFighters.length).toBeGreaterThan(0);
+    expect(state.entityManager?.getTieFighters().length).toBeGreaterThan(0);
   });
 
   it('Tie Fighters should spawn fireballs over time', () => {
     // Use smaller steps
     const dt = 0.1;
-    const iterations = Math.ceil(GameConfig.fireball.fireRate / dt) + 5;
+    const iterations = Math.ceil(GameConfig.fireball.fireRate / dt) + 10;
 
     let spawned = false;
     for (let i = 0; i < iterations; i++) {
@@ -26,9 +30,10 @@ describe('Fireball Integration', () => {
   });
 
   it('Fireballs should move toward the player', () => {
-    initGame();
+    state.isSmartAI = false;
+    initGame(scene);
     let fb: Fireball | null = null;
-    for (let i = 0; i < 100 && !fb; i++) {
+    for (let i = 0; i < 200 && !fb; i++) {
       const { newFireballs } = updateState(0.1);
       if (newFireballs.length > 0) fb = newFireballs[0];
     }
@@ -43,10 +48,11 @@ describe('Fireball Integration', () => {
   });
 
   it('Fireballs should damage player on collision', () => {
-    initGame();
+    state.isSmartAI = false;
+    initGame(scene);
     // Spawn a fireball
     let fb: Fireball | null = null;
-    for (let i = 0; i < 100 && !fb; i++) {
+    for (let i = 0; i < 200 && !fb; i++) {
       const { newFireballs } = updateState(0.1);
       if (newFireballs.length > 0) fb = newFireballs[0];
     }

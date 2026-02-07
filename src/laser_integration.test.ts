@@ -1,9 +1,10 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { initGame, state, spawnLasers } from './state';
+import * as THREE from 'three';
 
 describe('Laser Integration', () => {
   beforeEach(() => {
-    initGame();
+    initGame(new THREE.Scene());
   });
 
   it('adds lasers to state when spawned', () => {

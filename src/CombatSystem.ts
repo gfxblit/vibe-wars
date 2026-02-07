@@ -37,7 +37,8 @@ export class CombatSystem {
   }
 
   private checkHits(input: UserInput) {
-    state.tieFighters.forEach(tf => {
+    if (!state.entityManager) return;
+    state.entityManager.getTieFighters().forEach(tf => {
       if (!tf.isExploded && checkAim(tf.position, input, this.camera)) {
         tf.explode();
         addScore(100);

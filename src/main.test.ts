@@ -5,6 +5,7 @@ import { describe, it, vi, expect, beforeEach, MockInstance } from 'vitest';
 import * as renderer from './renderer';
 import * as state from './state';
 import * as inputModule from './input';
+import * as THREE from 'three';
 
 // Mock the console.log to prevent test output from cluttering the console
 const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
@@ -24,7 +25,7 @@ vi.mock('three', async () => {
 
 describe('main.ts initialization', () => {
   let initRendererSpy: MockInstance<[], ReturnType<typeof renderer.initRenderer>>;
-  let initGameSpy: MockInstance<[], ReturnType<typeof state.initGame>>;
+  let initGameSpy: MockInstance<[THREE.Scene], ReturnType<typeof state.initGame>>;
   let setupInputSpy: MockInstance;
 
   beforeEach(() => {

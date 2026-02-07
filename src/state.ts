@@ -4,11 +4,11 @@
  */
 import * as THREE from 'three';
 import { Player } from './entities/Player';
-import { TieFighter } from './entities/TieFighter';
 import { UserInput } from './input';
 import { Laser } from './entities/Laser';
 import { Fireball } from './entities/Fireball';
 import { GameConfig } from './config';
+import { EntityManager } from './entities/EntityManager';
 
 export type GamePhase = 'DOGFIGHT' | 'SURFACE' | 'TRENCH';
 
@@ -26,11 +26,14 @@ export interface GameState {
   phase: GamePhase;
   isGameOver: boolean;
   player: Player | null;
-  tieFighters: TieFighter[];
+  entityManager: EntityManager | null;
   fireballs: Fireball[];
   viewport: Viewport;
   lasers: Laser[];
   gunColorToggles: boolean[];
+  debug: boolean;
+  isSmartAI: boolean;
+  isModeColoring: boolean;
 }
 
 const initialWidth = typeof window !== 'undefined' ? window.innerWidth : 1024;
@@ -43,7 +46,7 @@ export const state: GameState = {
   phase: 'DOGFIGHT',
   isGameOver: false,
   player: null,
-  tieFighters: [],
+  entityManager: null,
   fireballs: [],
   viewport: {
     width: initialWidth,
@@ -53,46 +56,48 @@ export const state: GameState = {
   },
   lasers: [],
   gunColorToggles: GameConfig.laser.offsets.map(() => false),
+  debug: false,
+  isSmartAI: true,
+  isModeColoring: false,
 };
 
-export function initGame() {
+export function initGame(scene: THREE.Scene) {
+  const urlParams = new URLSearchParams(window.location.search);
+  state.debug = urlParams.get('debug') === 'true';
+
+  // Reset core game values
   state.score = 0;
   state.shields = GameConfig.player.maxShields;
   state.wave = 1;
   state.phase = 'DOGFIGHT';
   state.isGameOver = false;
-  state.player = new Player();
-  state.tieFighters = [new TieFighter()];
-  state.fireballs = [];
   state.lasers = [];
   state.gunColorToggles = GameConfig.laser.offsets.map(() => false);
-  console.log('Game initialized');
+  state.fireballs = [];
+
+  state.player = new Player();
+  
+  if (state.entityManager) {
+    state.entityManager.clear();
+  }
+  state.entityManager = new EntityManager(scene);
+  state.entityManager.spawnTieFighter(state.isSmartAI);
+  
+  console.log('Game initialized', { debug: state.debug });
 }
 
 export function updateState(deltaTime: number, input: UserInput = { x: 0, y: 0, isFiring: false }) {
-  if (state.isGameOver || !state.player) return { newFireballs: [], expiredFireballs: [] };
+  if (state.isGameOver || !state.player || !state.entityManager) {
+    return { newFireballs: [], expiredFireballs: [] };
+  }
 
   state.player.update(input, deltaTime);
 
-  const newFireballs: Fireball[] = [];
+  const { newFireballs } = state.entityManager.update(deltaTime, state.player.position, state.player.mesh.quaternion, state.isSmartAI);
+  state.fireballs.push(...newFireballs);
+
   const expiredFireballs: Fireball[] = [];
-
   const playerForward = new THREE.Vector3(0, 0, -1).applyQuaternion(state.player.mesh.quaternion);
-
-  state.tieFighters.forEach(tf => {
-    const fireDirection = tf.update(deltaTime, state.player!.position, state.player!.mesh.quaternion);
-    if (fireDirection) {
-      // Inherit player's forward velocity so the fireball closure rate is exactly relativeSpeed
-      const playerVelocity = playerForward.clone().multiplyScalar(GameConfig.player.forwardSpeed);
-      
-      const relativeVelocity = fireDirection.multiplyScalar(GameConfig.fireball.relativeSpeed);
-      const totalVelocity = playerVelocity.add(relativeVelocity);
-      
-      const fireball = spawnFireball(tf.position.clone(), totalVelocity);
-      newFireballs.push(fireball);
-    }
-  });
-
   const toFireball = new THREE.Vector3();
 
   // Update fireballs and check for player collision

@@ -19,9 +19,9 @@ describe('CombatSystem', () => {
   let combatSystem: CombatSystem;
 
   beforeEach(() => {
-    initGame();
-    hudScene = new THREE.Scene();
     scene = new THREE.Scene();
+    initGame(scene);
+    hudScene = new THREE.Scene();
     camera = new THREE.PerspectiveCamera();
     combatSystem = new CombatSystem(hudScene, camera);
     vi.clearAllMocks();
@@ -70,7 +70,8 @@ describe('CombatSystem', () => {
 
   it('detects hits and updates score', () => {
     // We need a TIE fighter in front of the camera
-    state.tieFighters[0].position.set(0, 0, -50);
+    const tf = state.entityManager!.getTieFighters()[0];
+    tf.position.set(0, 0, -50);
     
     // input pointing directly at it (0,0 in NDC)
     const input = { x: 0, y: 0, isFiring: true };
@@ -78,7 +79,7 @@ describe('CombatSystem', () => {
     const initialScore = state.score;
     combatSystem.update(0.01, input, scene);
     
-    expect(state.tieFighters[0].isExploded).toBe(true);
+    expect(tf.isExploded).toBe(true);
     expect(state.score).toBeGreaterThan(initialScore);
   });
 });

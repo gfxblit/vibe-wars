@@ -1,11 +1,12 @@
 import * as THREE from 'three';
 import { Entity } from './Entity';
 import { GameConfig } from '../config';
+import { AIStrategy } from './AIStrategy';
+import { state } from '../state';
 
 export class TieFighter extends Entity {
   public readonly mesh: THREE.Group;
-  private elapsedTime: number = 0;
-  private readonly offset = new THREE.Vector3();
+  private strategy: AIStrategy;
   
   public isExploded: boolean = false;
   private pieceVelocities: THREE.Vector3[] = [];
@@ -20,9 +21,10 @@ export class TieFighter extends Entity {
     return this.mesh.position;
   }
 
-  constructor() {
+  constructor(strategy: AIStrategy) {
     super();
     this.mesh = new THREE.Group();
+    this.strategy = strategy;
     
     const size = GameConfig.tieFighter.meshSize;
 
@@ -42,17 +44,18 @@ export class TieFighter extends Entity {
     }
 
     // Body (Sphere)
-    const body = new THREE.Mesh(TieFighter.bodyGeo, TieFighter.material);
+    const bodyMaterial = TieFighter.material.clone();
+    const body = new THREE.Mesh(TieFighter.bodyGeo, bodyMaterial);
     this.mesh.add(body);
 
     // Left Wing (Plane)
-    const leftWing = new THREE.Mesh(TieFighter.wingGeo, TieFighter.material);
+    const leftWing = new THREE.Mesh(TieFighter.wingGeo, bodyMaterial);
     leftWing.position.set(-size * 0.8, 0, 0);
     leftWing.rotation.y = Math.PI / 2;
     this.mesh.add(leftWing);
 
     // Right Wing (Plane)
-    const rightWing = new THREE.Mesh(TieFighter.wingGeo, TieFighter.material);
+    const rightWing = new THREE.Mesh(TieFighter.wingGeo, bodyMaterial);
     rightWing.position.set(size * 0.8, 0, 0);
     rightWing.rotation.y = Math.PI / 2;
     this.mesh.add(rightWing);
@@ -87,24 +90,18 @@ export class TieFighter extends Entity {
         return null; 
     }
 
-    this.elapsedTime += deltaTime;
     this.fireCooldown -= deltaTime;
+    this.strategy.update(deltaTime, this.mesh.position, this.mesh.quaternion, playerPosition, playerQuaternion);
 
-    // Calculate relative offset in front of player
-    this.offset.set(0, 0, -GameConfig.tieFighter.distance);
-
-    // Apply horizontal oscillation
-    const oscillation = Math.sin(this.elapsedTime * GameConfig.tieFighter.oscillationFrequency) * GameConfig.tieFighter.oscillationAmplitude;
-    this.offset.x += oscillation;
-
-    // Rotate the offset by the player's quaternion to keep it relative to player's heading
-    this.offset.applyQuaternion(playerQuaternion);
-
-    // Add player's position to get world position
-    this.position.copy(playerPosition).add(this.offset);
-
-    // Maintain orientation matching player for now
-    this.mesh.quaternion.copy(playerQuaternion);
+    // Debug: Update color if strategy provides one and mode coloring is enabled
+    if (this.strategy.getColor) {
+      const color = this.strategy.getColor(state.isModeColoring);
+      this.mesh.children.forEach(child => {
+        if (child instanceof THREE.Mesh && child.material instanceof THREE.MeshBasicMaterial) {
+          child.material.color.setHex(color);
+        }
+      });
+    }
 
     if (this.fireCooldown <= 0) {
       this.fireCooldown = GameConfig.fireball.fireRate;
@@ -113,5 +110,19 @@ export class TieFighter extends Entity {
     }
 
     return null;
+  }
+
+  public setStrategy(strategy: AIStrategy): void {
+    this.strategy = strategy;
+  }
+
+  public dispose(): void {
+    this.mesh.traverse(child => {
+      if (child instanceof THREE.Mesh) {
+        if (child.material instanceof THREE.Material) {
+          child.material.dispose();
+        }
+      }
+    });
   }
 }

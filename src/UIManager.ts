@@ -1,4 +1,4 @@
-import { GameState } from './state';
+import { GameState, state } from './state';
 import { GameConfig } from './config';
 
 export class UIManager {
@@ -8,6 +8,7 @@ export class UIManager {
   private shieldBar!: HTMLElement;
   private waveValue!: HTMLElement;
   private gameOver!: HTMLElement;
+  private debugPanel?: HTMLElement;
 
   constructor() {
     // Root HUD container
@@ -21,7 +22,44 @@ export class UIManager {
     this.createWaveSection(topBar);
     this.createGameOverOverlay();
 
+    if (state.debug) {
+      this.createDebugPanel();
+    }
+
     document.body.appendChild(this.hud);
+  }
+
+  private createDebugPanel() {
+    this.debugPanel = this.createEl('div', 'fixed bottom-4 left-4 pointer-events-auto bg-black bg-opacity-70 border border-vector-green p-4 flex flex-col space-y-2 text-vector-green font-retro text-xs z-20', document.body);
+    this.debugPanel.id = 'debug-panel';
+    
+    const title = this.createEl('div', 'mb-2 border-b border-vector-green pb-1', this.debugPanel);
+    title.textContent = 'DEBUG CONSOLE';
+
+    this.createToggleButton(
+      'ai-mode-toggle',
+      () => `AI: ${state.isSmartAI ? 'SMART' : 'DUMB'}`,
+      () => { state.isSmartAI = !state.isSmartAI; },
+      this.debugPanel
+    );
+
+    this.createToggleButton(
+      'mode-coloring-toggle',
+      () => `COLORS: ${state.isModeColoring ? 'ON' : 'OFF'}`,
+      () => { state.isModeColoring = !state.isModeColoring; },
+      this.debugPanel
+    );
+  }
+
+  private createToggleButton(id: string, getText: () => string, onClick: () => void, parent: HTMLElement) {
+    const btn = this.createEl('button', 'px-2 py-1 border border-vector-green hover:bg-vector-green hover:text-black transition-colors', parent);
+    btn.id = id;
+    btn.textContent = getText();
+    btn.onclick = () => {
+      onClick();
+      btn.textContent = getText();
+    };
+    return btn;
   }
 
   private createEl(tag: string, className: string, parent?: HTMLElement): HTMLElement {
@@ -77,6 +115,7 @@ export class UIManager {
 
   destroy() {
     this.hud.remove();
+    this.debugPanel?.remove();
   }
 
   update(state: GameState) {

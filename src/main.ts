@@ -11,7 +11,7 @@ import { GameSystem } from './GameSystem'
 console.log('Vibe Wars starting...')
 
 const { scene, camera, hudScene, hudCamera, renderer: webglRenderer } = initRenderer()
-initGame()
+initGame(scene)
 
 const uiManager = new UIManager()
 
@@ -28,10 +28,6 @@ if (state.player) {
   scene.add(state.player.mesh)
   attachCameraToPlayer(camera, state.player)
 }
-
-state.tieFighters.forEach(tf => {
-  scene.add(tf.mesh)
-});
 
 let lastTime = 0
 

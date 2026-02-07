@@ -64,6 +64,34 @@ describe('GameConfig', () => {
     expect(GameConfig.fireball.expirationDistance).toBe(10);
   });
 
+  test('should have tieFighter settings', () => {
+    expect(GameConfig.tieFighter.speed).toBe(50);
+    expect(GameConfig.tieFighter.oscillationFrequency).toBe(1.0);
+    expect(GameConfig.tieFighter.oscillationAmplitude).toBe(15);
+    expect(GameConfig.tieFighter.distance).toBe(60);
+    expect(GameConfig.tieFighter.meshColor).toBe(0xff0000);
+    expect(GameConfig.tieFighter.meshSize).toBe(1);
+    expect(GameConfig.tieFighter.spawnInterval).toBe(3.0);
+    expect(GameConfig.tieFighter.cleanupDistance).toBe(600);
+    expect(GameConfig.tieFighter.smartSpeed).toBe(180);
+    expect(GameConfig.tieFighter.smartSpawnRandomZ).toBe(50);
+    expect(GameConfig.tieFighter.smartSpawnRandomX).toBe(40);
+    expect(GameConfig.tieFighter.smartSpawnRandomY).toBe(30);
+    expect(GameConfig.tieFighter.smartBrakingZone).toBe(60);
+    expect(GameConfig.tieFighter.smartIntensityMax).toBe(0.8);
+    expect(GameConfig.tieFighter.smartPhaseThreshold).toBe(0.1);
+    expect(GameConfig.tieFighter.smartEscapeAccelerationDuration).toBe(6.0);
+    expect(GameConfig.tieFighter.smartEscapeFadeDuration).toBe(3.0);
+    expect(GameConfig.tieFighter.smartArcFalloff).toBe(60);
+    expect(GameConfig.tieFighter.smartRotationSpeed).toBe(10.0);
+    expect(GameConfig.tieFighter.smartEscapeFarRandomX).toBe(0.4);
+    expect(GameConfig.tieFighter.smartEscapeFarRandomY).toBe(0.4);
+    expect(GameConfig.tieFighter.smartEscapeFarZ).toBe(-1.0);
+    expect(GameConfig.tieFighter.smartEscapeQuickRandomX).toBe(2.5);
+    expect(GameConfig.tieFighter.smartEscapeQuickRandomY).toBe(2.0);
+    expect(GameConfig.tieFighter.smartEscapeQuickZ).toBe(-0.5);
+  });
+
   test('should be immutable at the type level', () => {
     // This test passes if the TypeScript compiler shows an error on the line below.
     // It's a way to enforce readonly properties in the test suite.
