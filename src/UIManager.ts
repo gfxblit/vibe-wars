@@ -9,13 +9,25 @@ export class UIManager {
   private waveValue!: HTMLElement;
   private gameOver!: HTMLElement;
   private debugPanel?: HTMLElement;
+  private damageOverlay!: HTMLElement;
+  private lastShields: number;
+
+  private firstUpdate = true;
 
   constructor() {
+    this.lastShields = GameConfig.player.maxShields;
+    
+    // Set CSS variables from config (convert ms to s)
+    document.documentElement.style.setProperty('--ui-damage-flash-duration', `${GameConfig.ui.damageFlashDuration / 1000}s`);
+
     // Root HUD container
     this.hud = this.createEl('div', 'fixed inset-0 pointer-events-none z-10 font-retro flex flex-col justify-between p-4');
     this.hud.id = 'hud';
 
-    const topBar = this.createEl('div', 'flex justify-between items-start w-full', this.hud);
+    this.damageOverlay = this.createEl('div', 'fixed inset-0 bg-vector-red opacity-0 pointer-events-none z-0', this.hud);
+    this.damageOverlay.id = 'damage-overlay';
+
+    const topBar = this.createEl('div', 'flex justify-between items-start w-full relative z-10', this.hud);
 
     this.createScoreSection(topBar);
     this.createShieldSection(topBar);
@@ -107,7 +119,7 @@ export class UIManager {
   }
 
   private createGameOverOverlay() {
-    this.gameOver = this.createEl('div', 'fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden', this.hud);
+    this.gameOver = this.createEl('div', 'fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden z-50', this.hud);
     this.gameOver.id = 'game-over';
     const text = this.createEl('div', 'text-vector-red text-6xl font-retro animate-pulse', this.gameOver);
     text.textContent = 'GAME OVER';
@@ -124,6 +136,12 @@ export class UIManager {
     }
     
     if (this.shieldValue.textContent !== state.shields.toString()) {
+      // Trigger damage FX only if shields decreased AND it's not the first update
+      if (!this.firstUpdate && state.shields < this.lastShields) {
+        this.triggerDamageFX();
+      }
+      this.lastShields = state.shields;
+
       this.shieldValue.textContent = state.shields.toString();
       const shieldPercent = (state.shields / GameConfig.player.maxShields) * 100;
       this.shieldBar.style.width = `${Math.max(0, shieldPercent)}%`;
@@ -138,5 +156,25 @@ export class UIManager {
     } else {
       this.gameOver.classList.add('hidden');
     }
+
+    this.firstUpdate = false;
+  }
+
+  private retriggerAnimation(element: HTMLElement, className: string) {
+    element.classList.remove(className);
+    // Force a reflow to allow the animation to be re-triggered if it was already running
+    void element.offsetWidth; 
+    element.classList.add(className);
+
+    // Robust cleanup: ensure classes are removed even if the animation is throttled
+    // or the browser environment doesn't trigger animationend consistently.
+    setTimeout(() => {
+      element.classList.remove(className);
+    }, GameConfig.ui.damageFlashDuration + 100);
+  }
+
+  private triggerDamageFX() {
+    this.retriggerAnimation(this.damageOverlay, 'animate-damage-flash');
+    this.retriggerAnimation(this.shieldBar, 'animate-shield-impact');
   }
 }

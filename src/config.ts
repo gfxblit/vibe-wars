@@ -43,6 +43,7 @@ export const GameConfig = deepFreeze({
   },
   ui: {
     highScore: 10000,
+    damageFlashDuration: 150,
   },
   tieFighter: {
     speed: 50,
