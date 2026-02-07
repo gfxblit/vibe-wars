@@ -1,5 +1,5 @@
 import { expect, test, beforeEach, describe } from 'vitest'
-import { state, initGame, addScore, takeDamage, nextPhase, checkCollision, updateState } from './state'
+import { state, initGame, addScore, takeDamage, nextPhase, checkCollision, updateState, spawnLasers } from './state'
 import * as THREE from 'three';
 import { Player } from './entities/Player';
 import { TieFighter } from './entities/TieFighter';
@@ -15,13 +15,26 @@ describe('Game State', () => {
     expect(state.phase).toBe('DOGFIGHT')
     expect(state.player).toBeInstanceOf(Player)
     expect(state.tieFighters[0]).toBeInstanceOf(TieFighter)
+    expect(state.lasers).toEqual([]);
+    expect(state.gunColorToggles.length).toBe(4);
   })
 
-  test('updateState moves player forward', () => {
+  test('spawnLasers creates at least 2 lasers and alternates colors', () => {
+    const crosshairPos = { x: 0, y: 0 };
+    
+    // First volley
+    const volley1 = spawnLasers(crosshairPos);
+    expect(volley1.length).toBeGreaterThanOrEqual(2);
+    
+    // Check that some toggles have been flipped (from false to true)
+    const someFlipped = state.gunColorToggles.some(t => t === true);
+    expect(someFlipped).toBe(true);
+  })
+
+  test('updateState moves player forward (if speed > 0)', () => {
     const initialZ = state.player!.position.z;
     updateState(1); // 1 second
     // Forward motion is negative Z.
-    // Let's assume some speed, e.g., 10 units/sec.
     expect(state.player!.position.z).toBeLessThan(initialZ);
   })
 

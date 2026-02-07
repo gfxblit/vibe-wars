@@ -1,4 +1,14 @@
-export const GameConfig = {
+function deepFreeze<T extends object>(obj: T): T {
+  Object.keys(obj).forEach((prop) => {
+    const value = (obj as any)[prop];
+    if (value && typeof value === 'object') {
+      deepFreeze(value);
+    }
+  });
+  return Object.freeze(obj);
+}
+
+export const GameConfig = deepFreeze({
   core: {
     deltaTimeCap: 0.1,
   },
@@ -41,4 +51,19 @@ export const GameConfig = {
     meshColor: 0xff0000,
     meshSize: 1,
   },
-} as const;
+  laser: {
+    speed: 2000,
+    cooldown: 0.15,
+    targetDepth: 200,
+    boltLength: 30,
+    thickness: 10,
+    color: 0x00ffff,
+    alternateColor: 0x0000ff,
+    offsets: [
+      { x: -1.2, y: 0.8 },
+      { x: 1.2, y: 0.8 },
+      { x: -1.2, y: -0.8 },
+      { x: 1.2, y: -0.8 },
+    ],
+  },
+} as const);

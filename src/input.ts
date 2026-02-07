@@ -2,6 +2,12 @@ import * as THREE from 'three';
 import { state } from './state';
 import { GameConfig } from './config';
 
+export interface UserInput {
+  x: number;
+  y: number;
+  isFiring: boolean;
+}
+
 export class InputManager {
   private input: THREE.Vector2 = new THREE.Vector2(0, 0);
   private keyboardInput: THREE.Vector2 = new THREE.Vector2(0, 0);
@@ -9,8 +15,10 @@ export class InputManager {
   private pointerInput: THREE.Vector2 = new THREE.Vector2(0, 0);
   private keys: Set<string> = new Set();
   private isDragging: boolean = false;
+  private isFiring: boolean = false;
   private useRelativeInput: boolean = false;
   private pointerAnchor: THREE.Vector2 = new THREE.Vector2(0, 0);
+  private fireButton: HTMLElement | null = null;
   
   private handleKeyDown = (event: KeyboardEvent) => {
     this.keys.add(event.code);
@@ -22,13 +30,27 @@ export class InputManager {
     this.updateKeyboardTarget();
   };
 
-  private handleMouseDown = () => {
+  private handleMouseDown = (event: MouseEvent) => {
+    // Clicks on the fire button should only set firing state.
+    if (event.target === this.fireButton) {
+      this.isFiring = true;
+      return;
+    }
+
+    // Clicks on other UI elements should be ignored for game input.
+    const target = event.target as HTMLElement;
+    if (target.tagName !== 'CANVAS' && target !== document.body && target !== document.documentElement) {
+      return;
+    }
+
     this.isDragging = true;
+    this.isFiring = true;
     this.useRelativeInput = false;
   };
 
-  private handleMouseUp = () => {
+  private handlePointerUp = () => {
     this.isDragging = false;
+    this.isFiring = false;
   };
 
   private handleMouseMove = (event: MouseEvent) => {
@@ -37,18 +59,54 @@ export class InputManager {
   };
 
   private handleTouchStart = (event: TouchEvent) => {
+    // If we touch the fire button, don't start dragging/steering
+    if (event.target === this.fireButton) {
+      this.isFiring = true;
+      return;
+    }
+
+    // Clicks on other UI elements should be ignored for game input.
+    const target = event.target as HTMLElement;
+    if (target.tagName !== 'CANVAS' && target !== document.body && target !== document.documentElement) {
+      return;
+    }
+
     this.isDragging = true;
     this.useRelativeInput = true;
     if (event.touches.length > 0) {
+      // Find the touch that isn't on the fire button if possible, 
+      // but for now we'll just take the first one that triggered this.
       this.pointerAnchor.set(event.touches[0].clientX, event.touches[0].clientY);
       this.pointerInput.set(0, 0);
     }
   };
 
+  private handleTouchEnd = (event: TouchEvent) => {
+    // If the touch that ended was on the fire button, stop firing
+    // Note: event.target for touchend is the element where touch started
+    if (event.target === this.fireButton) {
+      this.isFiring = false;
+    }
+
+    // Only stop dragging if no touches are left (or if the drag touch ended)
+    if (event.touches.length === 0) {
+      this.isDragging = false;
+    }
+  };
+
   private handleTouchMove = (event: TouchEvent) => {
     if (!this.isDragging) return;
-    if (event.touches.length > 0) {
-      this.updatePointerInput(event.touches[0].clientX, event.touches[0].clientY);
+    
+    // Find the touch that is NOT the fire button touch if possible
+    // For now, just find the touch that matches our drag state
+    // Actually, updatePointerInput just needs a position.
+    // If multiple touches exist, we should probably track the one that started the drag.
+    for (let i = 0; i < event.touches.length; i++) {
+      const touch = event.touches[i];
+      if (touch.target !== this.fireButton) {
+        this.updatePointerInput(touch.clientX, touch.clientY);
+        break;
+      }
     }
     event.preventDefault(); // Prevent scrolling while playing
   };
@@ -89,14 +147,15 @@ export class InputManager {
   }
 
   public setup(): void {
+    this.fireButton = document.getElementById('fire-button');
     window.addEventListener('keydown', this.handleKeyDown);
     window.addEventListener('keyup', this.handleKeyUp);
     window.addEventListener('mousedown', this.handleMouseDown);
-    window.addEventListener('mouseup', this.handleMouseUp);
+    window.addEventListener('mouseup', this.handlePointerUp);
     window.addEventListener('mousemove', this.handleMouseMove);
     window.addEventListener('touchstart', this.handleTouchStart, { passive: false });
-    window.addEventListener('touchend', this.handleMouseUp);
-    window.addEventListener('touchcancel', this.handleMouseUp);
+    window.addEventListener('touchend', this.handleTouchEnd, { passive: false });
+    window.addEventListener('touchcancel', this.handleTouchEnd, { passive: false });
     window.addEventListener('touchmove', this.handleTouchMove, { passive: false });
   }
 
@@ -104,11 +163,11 @@ export class InputManager {
     window.removeEventListener('keydown', this.handleKeyDown);
     window.removeEventListener('keyup', this.handleKeyUp);
     window.removeEventListener('mousedown', this.handleMouseDown);
-    window.removeEventListener('mouseup', this.handleMouseUp);
+    window.removeEventListener('mouseup', this.handlePointerUp);
     window.removeEventListener('mousemove', this.handleMouseMove);
     window.removeEventListener('touchstart', this.handleTouchStart);
-    window.removeEventListener('touchend', this.handleMouseUp);
-    window.removeEventListener('touchcancel', this.handleMouseUp);
+    window.removeEventListener('touchend', this.handleTouchEnd);
+    window.removeEventListener('touchcancel', this.handleTouchEnd);
     window.removeEventListener('touchmove', this.handleTouchMove);
   }
 
@@ -142,7 +201,11 @@ export class InputManager {
     return current + Math.sign(target - current) * maxDelta;
   }
 
-  public getInput(): THREE.Vector2 {
-    return this.input;
+  public getInput(): UserInput {
+    return {
+      x: this.input.x,
+      y: this.input.y,
+      isFiring: this.isFiring
+    };
   }
 }

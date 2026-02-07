@@ -5,6 +5,8 @@
 import * as THREE from 'three';
 import { Player } from './entities/Player';
 import { TieFighter } from './entities/TieFighter';
+import { UserInput } from './input';
+import { Laser } from './entities/Laser';
 import { GameConfig } from './config';
 
 export type GamePhase = 'DOGFIGHT' | 'SURFACE' | 'TRENCH';
@@ -25,6 +27,8 @@ export interface GameState {
   player: Player | null;
   tieFighters: TieFighter[];
   viewport: Viewport;
+  lasers: Laser[];
+  gunColorToggles: boolean[];
 }
 
 const initialWidth = typeof window !== 'undefined' ? window.innerWidth : 1024;
@@ -44,6 +48,8 @@ export const state: GameState = {
     centerX: initialWidth / 2,
     centerY: initialHeight / 2,
   },
+  lasers: [],
+  gunColorToggles: GameConfig.laser.offsets.map(() => false),
 };
 
 export function initGame() {
@@ -54,10 +60,12 @@ export function initGame() {
   state.isGameOver = false;
   state.player = new Player();
   state.tieFighters = [new TieFighter()];
+  state.lasers = [];
+  state.gunColorToggles = GameConfig.laser.offsets.map(() => false);
   console.log('Game initialized');
 }
 
-export function updateState(deltaTime: number, input: THREE.Vector2 = new THREE.Vector2(0, 0)) {
+export function updateState(deltaTime: number, input: UserInput = { x: 0, y: 0, isFiring: false }) {
   if (state.isGameOver || !state.player) return;
 
   state.player.update(input, deltaTime);
@@ -65,6 +73,38 @@ export function updateState(deltaTime: number, input: THREE.Vector2 = new THREE.
   state.tieFighters.forEach(tf => {
     tf.update(deltaTime, state.player!.position, state.player!.mesh.quaternion);
   });
+}
+
+export function spawnLasers(input: Pick<UserInput, 'x' | 'y'>): Laser[] {
+  const newLasers: Laser[] = [];
+
+  // Randomize which guns fire (at least 2)
+  const allIndices = GameConfig.laser.offsets.map((_, i) => i);
+  for (let i = allIndices.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [allIndices[i], allIndices[j]] = [allIndices[j], allIndices[i]];
+  }
+  
+  const minGuns = Math.min(2, allIndices.length);
+  const numGuns = Math.floor(Math.random() * (allIndices.length - minGuns + 1)) + minGuns;
+  const selectedIndices = allIndices.slice(0, numGuns);
+
+  selectedIndices.forEach(index => {
+    // Strictly alternate color per direction (gun index)
+    const useAltColor = state.gunColorToggles[index];
+    const color = useAltColor ? GameConfig.laser.alternateColor : GameConfig.laser.color;
+    state.gunColorToggles[index] = !useAltColor; // Flip for next shot from this gun
+
+    const offset = GameConfig.laser.offsets[index];
+    const origin2D = new THREE.Vector2(offset.x, offset.y);
+    const target2D = new THREE.Vector2(input.x, input.y);
+    
+    const laser = new Laser(origin2D, target2D, color);
+    state.lasers.push(laser);
+    newLasers.push(laser);
+  });
+
+  return newLasers;
 }
 
 export function addScore(points: number) {
