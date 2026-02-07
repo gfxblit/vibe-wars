@@ -57,7 +57,10 @@ export class Laser extends Entity {
     // Scale
     // thickness: 10 pixels on a 1000px screen is 0.01.
     // We use a fixed scale factor for 'vibe'.
-    const thicknessScale = GameConfig.laser.thickness * 0.001; 
+    // Assuming a reference height of 2000px for consistent thickness scaling.
+    // NDC height is 2, so 1px = 2 / 2000 = 0.001 NDC units.
+    const NDC_PER_PIXEL = 0.001;
+    const thicknessScale = GameConfig.laser.thickness * NDC_PER_PIXEL; 
     this.mesh.scale.set(thicknessScale, length, 1);
   }
 

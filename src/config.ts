@@ -1,4 +1,15 @@
-export const GameConfig = {
+function deepFreeze<T extends object>(obj: T): T {
+  Object.keys(obj).forEach((prop) => {
+    // @ts-ignore
+    const value = obj[prop];
+    if (value && typeof value === 'object') {
+      deepFreeze(value);
+    }
+  });
+  return Object.freeze(obj);
+}
+
+export const GameConfig = deepFreeze({
   core: {
     deltaTimeCap: 0.1,
   },
@@ -56,4 +67,4 @@ export const GameConfig = {
       { x: 1.2, y: -0.8 },
     ],
   },
-} as const;
+} as const);

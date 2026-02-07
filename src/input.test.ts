@@ -2,6 +2,12 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { InputManager } from './input';
 import { state } from './state';
 
+function createMouseEvent(type: string, init: MouseEventInit = {}, target: EventTarget = document.body) {
+    const event = new MouseEvent(type, init);
+    Object.defineProperty(event, 'target', { value: target, configurable: true });
+    return event;
+}
+
 describe('InputManager', () => {
   let inputManager: InputManager;
   let listeners: Record<string, any> = {};
@@ -103,7 +109,7 @@ describe('InputManager', () => {
 
   it('responds to mouse movement when dragging', () => {
     // Mouse down on document body (not UI)
-    listeners['mousedown'](new MouseEvent('mousedown'));
+    listeners['mousedown'](createMouseEvent('mousedown'));
     
     listeners['mousemove'](new MouseEvent('mousemove', { clientX: 0, clientY: 0 }));
     inputManager.update(0);
@@ -119,7 +125,7 @@ describe('InputManager', () => {
   });
 
   it('resets to zero when mouse is released', () => {
-    listeners['mousedown'](new MouseEvent('mousedown'));
+    listeners['mousedown'](createMouseEvent('mousedown'));
     listeners['mousemove'](new MouseEvent('mousemove', { clientX: 0, clientY: 0 }));
     inputManager.update(0);
     expect(inputManager.getInput().x).toBe(-1);
@@ -208,7 +214,7 @@ describe('InputManager', () => {
     state.viewport.centerX = 1000;
     state.viewport.centerY = 1000;
     
-    listeners['mousedown'](new MouseEvent('mousedown'));
+    listeners['mousedown'](createMouseEvent('mousedown'));
     listeners['mousemove'](new MouseEvent('mousemove', { clientX: 500, clientY: 500 }));
     inputManager.update(0);
     
@@ -220,7 +226,7 @@ describe('InputManager', () => {
     listeners['keydown'](new KeyboardEvent('keydown', { code: 'ArrowLeft' }));
     inputManager.update(1.0);
     
-    listeners['mousedown'](new MouseEvent('mousedown'));
+    listeners['mousedown'](createMouseEvent('mousedown'));
     listeners['mousemove'](new MouseEvent('mousemove', { clientX: 750, clientY: 500 }));
     inputManager.update(0.01);
 
@@ -234,7 +240,7 @@ describe('InputManager', () => {
      inputManager.update(1.0);
      
      // Mouse click at center (0, 0)
-     listeners['mousedown'](new MouseEvent('mousedown'));
+     listeners['mousedown'](createMouseEvent('mousedown'));
      listeners['mousemove'](new MouseEvent('mousemove', { clientX: 500, clientY: 500 }));
      
      inputManager.update(0.01);
@@ -244,7 +250,7 @@ describe('InputManager', () => {
   });
 
   it('returns to center in a straight line during decay', () => {
-    listeners['mousedown'](new MouseEvent('mousedown'));
+    listeners['mousedown'](createMouseEvent('mousedown'));
     // Set an off-axis position: x=0.8, y=0.4 (Ratio 2:1)
     listeners['mousemove'](new MouseEvent('mousemove', { clientX: 900, clientY: 300 }));
     inputManager.update(0);
@@ -265,7 +271,7 @@ describe('InputManager', () => {
     expect(pos.y).toBeLessThan(0.4);
   });
   it('reports isFiring when mouse is down', () => {
-    listeners['mousedown'](new MouseEvent('mousedown'));
+    listeners['mousedown'](createMouseEvent('mousedown'));
     expect(inputManager.getInput().isFiring).toBe(true);
 
     listeners['mouseup'](new MouseEvent('mouseup'));
@@ -293,5 +299,24 @@ describe('InputManager', () => {
 
     listeners['touchend']({ touches: [], target: fireButton });
     expect(inputManager.getInput().isFiring).toBe(false);
+  });
+
+  it('ignores clicks on other UI elements', () => {
+    const pauseButton = document.createElement('button');
+    document.body.appendChild(pauseButton);
+
+    const event = createMouseEvent('mousedown');
+    Object.defineProperty(event, 'target', { value: pauseButton });
+    listeners['mousedown'](event);
+
+    expect(inputManager.getInput().isFiring).toBe(false);
+    
+    // Check dragging state indirectly (update would change input if dragging)
+    // If not dragging, update shouldn't move input if mouse moves
+    listeners['mousemove'](new MouseEvent('mousemove', { clientX: 0, clientY: 0 }));
+    inputManager.update(0);
+    expect(inputManager.getInput().x).toBe(0);
+
+    document.body.removeChild(pauseButton);
   });
 });

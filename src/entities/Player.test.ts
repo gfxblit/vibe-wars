@@ -26,8 +26,11 @@ describe('Player', () => {
     expect(player.mesh.position.z).toBe(player.position.z);
   })
 
-  it('position should be the same object as mesh position', () => {
+  it('position should be the same object as mesh position and be readonly', () => {
     expect(player.position).toBe(player.mesh.position);
+
+    // @ts-expect-error - position should be readonly and throw on assignment in strict mode.
+    expect(() => { player.position = new THREE.Vector3(1, 2, 3); }).toThrow();
   })
 
   it('update should move player forward if speed > 0', () => {

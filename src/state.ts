@@ -75,7 +75,7 @@ export function updateState(deltaTime: number, input: UserInput = { x: 0, y: 0, 
   });
 }
 
-export function spawnLasers(crosshairPos: { x: number, y: number }): Laser[] {
+export function spawnLasers(input: Pick<UserInput, 'x' | 'y'>): Laser[] {
   const newLasers: Laser[] = [];
 
   // Randomize which guns fire (at least 2)
@@ -97,7 +97,7 @@ export function spawnLasers(crosshairPos: { x: number, y: number }): Laser[] {
 
     const offset = GameConfig.laser.offsets[index];
     const origin2D = new THREE.Vector2(offset.x, offset.y);
-    const target2D = new THREE.Vector2(crosshairPos.x, crosshairPos.y);
+    const target2D = new THREE.Vector2(input.x, input.y);
     
     const laser = new Laser(origin2D, target2D, color);
     state.lasers.push(laser);

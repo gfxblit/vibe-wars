@@ -55,7 +55,10 @@ describe('GameConfig', () => {
     );
   });
 
-  test('should have immutability at type level', () => {
-    expect(Object.isFrozen(GameConfig)).toBe(false); 
+  test('should be immutable at the type level', () => {
+    // This test passes if the TypeScript compiler shows an error on the line below.
+    // It's a way to enforce readonly properties in the test suite.
+    // @ts-expect-error - GameConfig should be immutable
+    expect(() => { GameConfig.core.deltaTimeCap = 0.2; }).toThrow();
   });
 });

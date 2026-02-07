@@ -3,13 +3,14 @@ import * as THREE from 'three';
 import { Laser } from './Laser';
 
 describe('Laser (HUD-based)', () => {
-  it('updates progress linearly for constant screen speed', () => {
+  it('updates progress and moves the mesh', () => {
     const origin = new THREE.Vector2(-1, 1);
     const target = new THREE.Vector2(0, 0);
     const laser = new Laser(origin, target, 0xffffff);
     
-    laser.update(0.1);
-    expect(laser.mesh).toBeDefined();
+    const initialPosition = laser.mesh.position.clone();
+    laser.update(0.05);
+    expect(laser.mesh.position.equals(initialPosition)).toBe(false);
   });
 
   it('expires when progress reaches 1.0', () => {

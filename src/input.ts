@@ -31,12 +31,15 @@ export class InputManager {
   };
 
   private handleMouseDown = (event: MouseEvent) => {
-    // Prevent firing when clicking the UI (if we add more buttons)
+    // Clicks on the fire button should only set firing state.
+    if (event.target === this.fireButton) {
+      this.isFiring = true;
+      return;
+    }
+
+    // Clicks on other UI elements should be ignored for game input.
     if (event.target !== document.body && event.target !== document.documentElement) {
-       if (event.target === this.fireButton) {
-         this.isFiring = true;
-         return;
-       }
+      return;
     }
 
     this.isDragging = true;
@@ -44,7 +47,7 @@ export class InputManager {
     this.useRelativeInput = false;
   };
 
-  private handleMouseUp = () => {
+  private handlePointerUp = () => {
     this.isDragging = false;
     this.isFiring = false;
   };
@@ -141,7 +144,7 @@ export class InputManager {
     window.addEventListener('keydown', this.handleKeyDown);
     window.addEventListener('keyup', this.handleKeyUp);
     window.addEventListener('mousedown', this.handleMouseDown);
-    window.addEventListener('mouseup', this.handleMouseUp);
+    window.addEventListener('mouseup', this.handlePointerUp);
     window.addEventListener('mousemove', this.handleMouseMove);
     window.addEventListener('touchstart', this.handleTouchStart, { passive: false });
     window.addEventListener('touchend', this.handleTouchEnd, { passive: false });
@@ -153,7 +156,7 @@ export class InputManager {
     window.removeEventListener('keydown', this.handleKeyDown);
     window.removeEventListener('keyup', this.handleKeyUp);
     window.removeEventListener('mousedown', this.handleMouseDown);
-    window.removeEventListener('mouseup', this.handleMouseUp);
+    window.removeEventListener('mouseup', this.handlePointerUp);
     window.removeEventListener('mousemove', this.handleMouseMove);
     window.removeEventListener('touchstart', this.handleTouchStart);
     window.removeEventListener('touchend', this.handleTouchEnd);
