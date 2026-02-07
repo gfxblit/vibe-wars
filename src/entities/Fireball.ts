@@ -6,6 +6,7 @@ export class Fireball extends Entity {
   mesh: THREE.Group;
   velocity: THREE.Vector3;
   isExploded: boolean = false;
+  explosionTimer: number = 0;
   private sparkleVelocities: THREE.Vector3[] = [];
   private sparkleRotationSpeeds: number[] = [];
 
@@ -34,14 +35,14 @@ export class Fireball extends Entity {
 
       const sparkle = new THREE.Sprite(material);
       sparkle.scale.set(size, size, 1);
-      
+
       // Initial small random offset in 3D space
       sparkle.position.set(
         (Math.random() - 0.5) * 0.5,
         (Math.random() - 0.5) * 0.5,
         (Math.random() - 0.5) * 0.5
       );
-      
+
       this.mesh.add(sparkle);
       this.sparkleVelocities.push(new THREE.Vector3());
       // Random rotation speed: -4 to 4 radians per second
@@ -58,9 +59,9 @@ export class Fireball extends Entity {
     if (ctx) {
       ctx.strokeStyle = '#ffffff';
       ctx.lineWidth = 3;
-      
+
       ctx.translate(32, 32);
-      
+
       // Draw an 8-pointed vector star
       for (let i = 0; i < 4; i++) {
         ctx.beginPath();
@@ -94,7 +95,7 @@ export class Fireball extends Entity {
         Math.random() - 0.5
       ).normalize();
       this.sparkleVelocities[i].copy(direction).multiplyScalar(GameConfig.fireball.explosionVelocity);
-      
+
       // Speed up rotation on explosion for extra "energy"
       this.sparkleRotationSpeeds[i] *= 2.5;
     });
@@ -102,6 +103,11 @@ export class Fireball extends Entity {
 
   update(deltaTime: number): void {
     this.mesh.position.addScaledVector(this.velocity, deltaTime);
+
+    // Track explosion timer
+    if (this.isExploded) {
+      this.explosionTimer += deltaTime;
+    }
 
     this.mesh.children.forEach((child, i) => {
       if (child instanceof THREE.Sprite) {
@@ -116,8 +122,19 @@ export class Fireball extends Entity {
     });
   }
 
+
+  isExpired(): boolean {
+    return this.isExploded && this.explosionTimer >= GameConfig.fireball.explosionDuration;
+  }
+
   projectToNDC(camera: THREE.Camera, target: THREE.Vector3): void {
     target.copy(this.position).project(camera);
+  }
+
+  getNDCDelta(camera: THREE.Camera): THREE.Vector3 {
+    const pos = this.position.clone();
+    pos.project(camera);
+    return pos;
   }
 
   dispose(): void {
