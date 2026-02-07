@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest'
+import * as THREE from 'three'
 import { Player } from './Player'
 import { GameConfig } from '../config'
 
