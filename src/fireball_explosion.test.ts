@@ -31,7 +31,18 @@ describe('Fireball Explosion Integration', () => {
 
     const initialScore = state.score;
 
+    // 1. Initial update to spawn lasers
     combatSystem.update(0.01, input);
+
+    // 2. Get the spawned laser and move it to (0,0) to ensure a hit
+    // Lasers spawn at gun offsets, so they might not hit in the first frame naturally
+    const lasers = state.entityManager!.getLasers();
+    expect(lasers.length).toBeGreaterThan(0);
+    const laser = lasers[0];
+    laser.mesh.position.set(0, 0, 0);
+
+    // 3. Update again to check for collisions (turn off firing to avoid spawning more)
+    combatSystem.update(0.01, { ...input, isFiring: false });
 
     expect(fireball.isExploded).toBe(true);
     expect(state.score).toBeGreaterThan(initialScore);
