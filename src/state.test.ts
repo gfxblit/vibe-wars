@@ -6,9 +6,10 @@ import { TieFighter } from './entities/TieFighter';
 import { GameConfig } from './config';
 
 const scene = new THREE.Scene();
+const hudScene = new THREE.Scene();
 
 beforeEach(() => {
-  initGame(scene);
+  initGame(scene, hudScene);
 });
 
 describe('Game State', () => {
@@ -18,7 +19,7 @@ describe('Game State', () => {
     expect(state.phase).toBe('DOGFIGHT')
     expect(state.player).toBeInstanceOf(Player)
     expect(state.entityManager!.getTieFighters()[0]).toBeInstanceOf(TieFighter)
-    expect(state.lasers).toEqual([]);
+    expect(state.entityManager!.getLasers()).toEqual([]);
     expect(state.gunColorToggles.length).toBe(4);
     expect(state.debug).toBe(false);
     expect(state.isSmartAI).toBe(true);
@@ -39,14 +40,14 @@ describe('Game State', () => {
 
   test('spawnFireball adds a fireball to the state', () => {
     const fireball = spawnFireball(new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, 10));
-    expect(state.fireballs).toContain(fireball);
-    expect(state.fireballs.length).toBe(1);
+    expect(state.entityManager!.getFireballs()).toContain(fireball);
+    expect(state.entityManager!.getFireballs().length).toBe(1);
   })
 
   test('updateState updates fireballs', () => {
     const fireball = spawnFireball(new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, 10));
     updateState(1.0);
-    expect(fireball.position.z).toBe(10);
+    expect(fireball!.position.z).toBe(10);
   })
 
   test('updateState handles player-fireball collision', () => {
@@ -59,7 +60,7 @@ describe('Game State', () => {
     updateState(0.01);
     
     expect(state.shields).toBeLessThan(initialShields);
-    expect(state.fireballs.length).toBe(0);
+    expect(state.entityManager!.getFireballs().length).toBe(0);
   })
 
   test('updateState expires fireballs that are far behind', () => {
@@ -71,9 +72,9 @@ describe('Game State', () => {
     // forward is (0,0,-1). subVectors(fb, player) is (0,0,11). dot is -11.
     spawnFireball(new THREE.Vector3(0, 0, 11), new THREE.Vector3(0, 0, 0));
     
-    expect(state.fireballs.length).toBe(1);
+    expect(state.entityManager!.getFireballs().length).toBe(1);
     updateState(0.01);
-    expect(state.fireballs.length).toBe(0);
+    expect(state.entityManager!.getFireballs().length).toBe(0);
   })
 
   test('updateState moves player forward (if speed > 0)', () => {

@@ -4,31 +4,24 @@ import * as THREE from 'three';
 
 describe('Laser Integration', () => {
   beforeEach(() => {
-    initGame(new THREE.Scene());
+    initGame(new THREE.Scene(), new THREE.Scene());
   });
 
   it('adds lasers to state when spawned', () => {
     const input = { x: 0, y: 0, isFiring: true };
     const newLasers = spawnLasers(input);
     expect(newLasers.length).toBeGreaterThanOrEqual(2);
-    expect(state.lasers.length).toBeGreaterThanOrEqual(2);
+    expect(state.entityManager!.getLasers().length).toBeGreaterThanOrEqual(2);
   });
 
   it('removes lasers when they expire', () => {
     const input = { x: 0, y: 0, isFiring: true };
     spawnLasers(input);
-    expect(state.lasers.length).toBeGreaterThanOrEqual(2);
+    expect(state.entityManager!.getLasers().length).toBeGreaterThanOrEqual(2);
     
-    // Simulate update loop logic from main.ts
-    const deltaTime = 2.1; // More than enough to reach target
-    for (let i = state.lasers.length - 1; i >= 0; i--) {
-        const laser = state.lasers[i];
-        laser.update(deltaTime);
-        if (laser.isExpired()) {
-            state.lasers.splice(i, 1);
-        }
-    }
+    // Use EntityManager to update and expire lasers
+    state.entityManager!.update(2.1, new THREE.Vector3(), new THREE.Quaternion(), true);
     
-    expect(state.lasers.length).toBe(0);
+    expect(state.entityManager!.getLasers().length).toBe(0);
   });
 });

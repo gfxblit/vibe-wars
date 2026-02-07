@@ -5,13 +5,15 @@ import { GameConfig } from '../config'
 
 describe('EntityManager', () => {
   let scene: THREE.Scene;
+  let hudScene: THREE.Scene;
   let entityManager: EntityManager;
   let playerPosition: THREE.Vector3;
   let playerQuaternion: THREE.Quaternion;
 
   beforeEach(() => {
     scene = new THREE.Scene();
-    entityManager = new EntityManager(scene);
+    hudScene = new THREE.Scene();
+    entityManager = new EntityManager(scene, hudScene);
     playerPosition = new THREE.Vector3(0, 0, 0);
     playerQuaternion = new THREE.Quaternion();
   })

@@ -6,10 +6,12 @@ import { Fireball } from './entities/Fireball';
 
 describe('Fireball Integration', () => {
   let scene: THREE.Scene;
+  let hudScene: THREE.Scene;
 
   beforeEach(() => {
     scene = new THREE.Scene();
-    initGame(scene);
+    hudScene = new THREE.Scene();
+    initGame(scene, hudScene);
     // Ensure we have a player and a tie fighter
     expect(state.player).toBeDefined();
     expect(state.entityManager?.getTieFighters().length).toBeGreaterThan(0);
@@ -22,8 +24,10 @@ describe('Fireball Integration', () => {
 
     let spawned = false;
     for (let i = 0; i < iterations; i++) {
-      const { newFireballs } = updateState(dt);
-      if (newFireballs.length > 0) spawned = true;
+      const beforeCount = state.entityManager!.getFireballs().length;
+      updateState(dt);
+      const afterCount = state.entityManager!.getFireballs().length;
+      if (afterCount > beforeCount) spawned = true;
     }
 
     expect(spawned).toBe(true);
@@ -31,11 +35,13 @@ describe('Fireball Integration', () => {
 
   it('Fireballs should move toward the player', () => {
     state.isSmartAI = false;
-    initGame(scene);
+    initGame(scene, hudScene);
     let fb: Fireball | null = null;
     for (let i = 0; i < 200 && !fb; i++) {
-      const { newFireballs } = updateState(0.1);
-      if (newFireballs.length > 0) fb = newFireballs[0];
+      const beforeCount = state.entityManager!.getFireballs().length;
+      updateState(0.1);
+      const fireballs = state.entityManager!.getFireballs();
+      if (fireballs.length > beforeCount) fb = fireballs[fireballs.length - 1];
     }
 
     expect(fb).toBeDefined();
@@ -49,12 +55,14 @@ describe('Fireball Integration', () => {
 
   it('Fireballs should damage player on collision', () => {
     state.isSmartAI = false;
-    initGame(scene);
+    initGame(scene, hudScene);
     // Spawn a fireball
     let fb: Fireball | null = null;
     for (let i = 0; i < 200 && !fb; i++) {
-      const { newFireballs } = updateState(0.1);
-      if (newFireballs.length > 0) fb = newFireballs[0];
+      const beforeCount = state.entityManager!.getFireballs().length;
+      updateState(0.1);
+      const fireballs = state.entityManager!.getFireballs();
+      if (fireballs.length > beforeCount) fb = fireballs[fireballs.length - 1];
     }
     
     expect(fb).toBeDefined();

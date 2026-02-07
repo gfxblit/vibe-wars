@@ -27,8 +27,6 @@ describe('UIManager', () => {
         centerX: 512,
         centerY: 384,
       },
-      lasers: [],
-      fireballs: [],
       gunColorToggles: [false, false, false, false],
       debug: false,
       isSmartAI: true,

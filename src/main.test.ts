@@ -25,7 +25,7 @@ vi.mock('three', async () => {
 
 describe('main.ts initialization', () => {
   let initRendererSpy: MockInstance<[], ReturnType<typeof renderer.initRenderer>>;
-  let initGameSpy: MockInstance<[THREE.Scene], ReturnType<typeof state.initGame>>;
+  let initGameSpy: MockInstance<[THREE.Scene, THREE.Scene], ReturnType<typeof state.initGame>>;
   let setupInputSpy: MockInstance;
 
   beforeEach(() => {
