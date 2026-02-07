@@ -15,7 +15,7 @@ describe('UIManager', () => {
     // Setup mock state
     mockState = {
       score: 1234,
-      shields: 4,
+      shields: GameConfig.player.maxShields,
       wave: 2,
       phase: 'DOGFIGHT',
       isGameOver: false,
@@ -59,7 +59,7 @@ describe('UIManager', () => {
     const waveElement = document.getElementById('wave-value');
 
     expect(scoreElement?.textContent).toBe('1234');
-    expect(shieldElement?.textContent).toBe('4');
+    expect(shieldElement?.textContent).toBe(GameConfig.player.maxShields.toString());
     expect(waveElement?.textContent).toBe('2');
   });
 
@@ -72,7 +72,7 @@ describe('UIManager', () => {
   it('should update shield bar width', () => {
     uiManager.update(mockState);
     const shieldBar = document.getElementById('shield-bar');
-    const expectedWidth = (4 / GameConfig.player.maxShields) * 100;
+    const expectedWidth = (GameConfig.player.maxShields / GameConfig.player.maxShields) * 100;
     expect(shieldBar?.style.width).toBe(`${expectedWidth}%`);
 
     mockState.shields = 2;
@@ -103,5 +103,48 @@ describe('UIManager', () => {
     expect(document.getElementById('debug-panel')).not.toBeNull();
     ui.destroy();
     expect(document.getElementById('debug-panel')).toBeNull();
+  });
+
+  it('should create damage-overlay on initialization', () => {
+    const overlay = document.getElementById('damage-overlay');
+    expect(overlay).not.toBeNull();
+    expect(overlay?.classList.contains('bg-vector-red')).toBe(true);
+    expect(overlay?.classList.contains('opacity-0')).toBe(true);
+  });
+
+  it('should trigger damage flash when shields decrease', () => {
+    uiManager.update(mockState); // Initial state (shields: max)
+    const overlay = document.getElementById('damage-overlay');
+    expect(overlay?.classList.contains('animate-damage-flash')).toBe(false);
+
+    mockState.shields = GameConfig.player.maxShields - 1;
+    uiManager.update(mockState);
+    expect(overlay?.classList.contains('animate-damage-flash')).toBe(true);
+  });
+
+  it('should trigger shield impact animation when shields decrease', () => {
+    uiManager.update(mockState); // Initial state
+    const shieldBar = document.getElementById('shield-bar');
+    expect(shieldBar?.classList.contains('animate-shield-impact')).toBe(false);
+
+    mockState.shields = GameConfig.player.maxShields - 1;
+    uiManager.update(mockState);
+    expect(shieldBar?.classList.contains('animate-shield-impact')).toBe(true);
+  });
+
+  it('should not trigger damage FX when shields stay the same or increase', () => {
+    uiManager.update(mockState);
+    const overlay = document.getElementById('damage-overlay');
+    
+    // Reset classes if they were there
+    overlay?.classList.remove('animate-damage-flash');
+
+    mockState.shields = GameConfig.player.maxShields;
+    uiManager.update(mockState);
+    expect(overlay?.classList.contains('animate-damage-flash')).toBe(false);
+
+    mockState.shields = GameConfig.player.maxShields + 1;
+    uiManager.update(mockState);
+    expect(overlay?.classList.contains('animate-damage-flash')).toBe(false);
   });
 });

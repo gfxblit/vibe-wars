@@ -46,3 +46,23 @@ body { margin: 0; overflow: hidden; background-color: black; }
     display: flex;
   }
 }
+
+@keyframes damage-flash {
+  0% { opacity: 0; }
+  20% { opacity: 0.4; }
+  100% { opacity: 0; }
+}
+
+@keyframes shield-impact {
+  0% { transform: scale(1); filter: brightness(1); }
+  50% { transform: scale(1.05); filter: brightness(10); }
+  100% { transform: scale(1); filter: brightness(1); }
+}
+
+.animate-damage-flash {
+  animation: damage-flash var(--ui-damage-flash-duration, 0.15s) ease-out;
+}
+
+.animate-shield-impact {
+  animation: shield-impact var(--ui-damage-flash-duration, 0.15s) ease-out;
+}

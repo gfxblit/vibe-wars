@@ -9,13 +9,23 @@ export class UIManager {
   private waveValue!: HTMLElement;
   private gameOver!: HTMLElement;
   private debugPanel?: HTMLElement;
+  private damageOverlay!: HTMLElement;
+  private lastShields: number;
 
   constructor() {
+    this.lastShields = GameConfig.player.maxShields;
+    
+    // Set CSS variables from config
+    document.documentElement.style.setProperty('--ui-damage-flash-duration', `${GameConfig.ui.damageFlashDuration}ms`);
+
     // Root HUD container
     this.hud = this.createEl('div', 'fixed inset-0 pointer-events-none z-10 font-retro flex flex-col justify-between p-4');
     this.hud.id = 'hud';
 
-    const topBar = this.createEl('div', 'flex justify-between items-start w-full', this.hud);
+    this.damageOverlay = this.createEl('div', 'fixed inset-0 bg-vector-red opacity-0 pointer-events-none z-0', this.hud);
+    this.damageOverlay.id = 'damage-overlay';
+
+    const topBar = this.createEl('div', 'flex justify-between items-start w-full relative z-10', this.hud);
 
     this.createScoreSection(topBar);
     this.createShieldSection(topBar);
@@ -124,6 +134,11 @@ export class UIManager {
     }
     
     if (this.shieldValue.textContent !== state.shields.toString()) {
+      if (state.shields < this.lastShields) {
+        this.triggerDamageFX();
+      }
+      this.lastShields = state.shields;
+
       this.shieldValue.textContent = state.shields.toString();
       const shieldPercent = (state.shields / GameConfig.player.maxShields) * 100;
       this.shieldBar.style.width = `${Math.max(0, shieldPercent)}%`;
@@ -138,5 +153,18 @@ export class UIManager {
     } else {
       this.gameOver.classList.add('hidden');
     }
+  }
+
+  private triggerDamageFX() {
+    // Reset and trigger damage flash
+    this.damageOverlay.classList.remove('animate-damage-flash');
+    // Force a reflow to allow the animation to be re-triggered if it was already running
+    void this.damageOverlay.offsetWidth; 
+    this.damageOverlay.classList.add('animate-damage-flash');
+
+    // Reset and trigger shield impact
+    this.shieldBar.classList.remove('animate-shield-impact');
+    void this.shieldBar.offsetWidth; 
+    this.shieldBar.classList.add('animate-shield-impact');
   }
 }
