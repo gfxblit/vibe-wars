@@ -63,8 +63,8 @@ describe('GameConfig', () => {
     expect(GameConfig.fireball.damage).toBe(1);
     expect(GameConfig.fireball.expirationDistance).toBe(10);
     expect(GameConfig.fireball.sparkleCount).toBe(8);
-    expect(GameConfig.fireball.sparkleSize).toBe(0.5);
-    expect(GameConfig.fireball.explosionVelocity).toBe(25);
+    expect(GameConfig.fireball.sparkleSize).toBe(2.0);
+    expect(GameConfig.fireball.explosionVelocity).toBe(30);
   });
 
   test('should have tieFighter settings', () => {
