@@ -60,9 +60,9 @@ body { margin: 0; overflow: hidden; background-color: black; }
 }
 
 .animate-damage-flash {
-  animation: damage-flash var(--ui-damage-flash-duration, 0.15s) ease-out;
+  animation: damage-flash var(--ui-damage-flash-duration, 0.15s) ease-out forwards;
 }
 
 .animate-shield-impact {
-  animation: shield-impact var(--ui-damage-flash-duration, 0.15s) ease-out;
+  animation: shield-impact var(--ui-damage-flash-duration, 0.15s) ease-out forwards;
 }

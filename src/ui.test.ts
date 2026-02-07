@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { UIManager } from './UIManager';
 import { GameState, state } from './state';
 import { GameConfig } from './config';
@@ -8,6 +8,7 @@ describe('UIManager', () => {
   let mockState: GameState;
 
   beforeEach(() => {
+    vi.useFakeTimers();
     // Reset singleton state
     state.debug = false;
     state.isSmartAI = true;
@@ -36,6 +37,11 @@ describe('UIManager', () => {
     // Clean up body
     document.body.innerHTML = '';
     uiManager = new UIManager();
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+    vi.useRealTimers();
   });
 
   it('should create HUD container on initialization', () => {
@@ -113,30 +119,47 @@ describe('UIManager', () => {
   });
 
   it('should trigger damage flash when shields decrease', () => {
-    uiManager.update(mockState); // Initial state (shields: max)
-    const overlay = document.getElementById('damage-overlay');
-    expect(overlay?.classList.contains('animate-damage-flash')).toBe(false);
-
+    uiManager.update(mockState); // First update (sets lastShields)
+    
     mockState.shields = GameConfig.player.maxShields - 1;
     uiManager.update(mockState);
+    
+    const overlay = document.getElementById('damage-overlay');
     expect(overlay?.classList.contains('animate-damage-flash')).toBe(true);
+
+    // Verify cleanup
+    vi.advanceTimersByTime(GameConfig.ui.damageFlashDuration + 150);
+    expect(overlay?.classList.contains('animate-damage-flash')).toBe(false);
   });
 
   it('should trigger shield impact animation when shields decrease', () => {
-    uiManager.update(mockState); // Initial state
-    const shieldBar = document.getElementById('shield-bar');
-    expect(shieldBar?.classList.contains('animate-shield-impact')).toBe(false);
-
+    uiManager.update(mockState); // First update
+    
     mockState.shields = GameConfig.player.maxShields - 1;
     uiManager.update(mockState);
+    
+    const shieldBar = document.getElementById('shield-bar');
     expect(shieldBar?.classList.contains('animate-shield-impact')).toBe(true);
+
+    // Verify cleanup
+    vi.advanceTimersByTime(GameConfig.ui.damageFlashDuration + 150);
+    expect(shieldBar?.classList.contains('animate-shield-impact')).toBe(false);
+  });
+
+  it('should not trigger damage FX on the very first update', () => {
+    // Start with low shields
+    mockState.shields = 2;
+    uiManager.update(mockState);
+    
+    const overlay = document.getElementById('damage-overlay');
+    expect(overlay?.classList.contains('animate-damage-flash')).toBe(false);
   });
 
   it('should not trigger damage FX when shields stay the same or increase', () => {
-    uiManager.update(mockState);
+    uiManager.update(mockState); // First update
     const overlay = document.getElementById('damage-overlay');
     
-    // Reset classes if they were there
+    // Reset if it somehow got there
     overlay?.classList.remove('animate-damage-flash');
 
     mockState.shields = GameConfig.player.maxShields;

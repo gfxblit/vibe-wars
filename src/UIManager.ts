@@ -12,11 +12,13 @@ export class UIManager {
   private damageOverlay!: HTMLElement;
   private lastShields: number;
 
+  private firstUpdate = true;
+
   constructor() {
     this.lastShields = GameConfig.player.maxShields;
     
-    // Set CSS variables from config
-    document.documentElement.style.setProperty('--ui-damage-flash-duration', `${GameConfig.ui.damageFlashDuration}ms`);
+    // Set CSS variables from config (convert ms to s)
+    document.documentElement.style.setProperty('--ui-damage-flash-duration', `${GameConfig.ui.damageFlashDuration / 1000}s`);
 
     // Root HUD container
     this.hud = this.createEl('div', 'fixed inset-0 pointer-events-none z-10 font-retro flex flex-col justify-between p-4');
@@ -117,7 +119,7 @@ export class UIManager {
   }
 
   private createGameOverOverlay() {
-    this.gameOver = this.createEl('div', 'fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden', this.hud);
+    this.gameOver = this.createEl('div', 'fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden z-50', this.hud);
     this.gameOver.id = 'game-over';
     const text = this.createEl('div', 'text-vector-red text-6xl font-retro animate-pulse', this.gameOver);
     text.textContent = 'GAME OVER';
@@ -134,7 +136,8 @@ export class UIManager {
     }
     
     if (this.shieldValue.textContent !== state.shields.toString()) {
-      if (state.shields < this.lastShields) {
+      // Trigger damage FX only if shields decreased AND it's not the first update
+      if (!this.firstUpdate && state.shields < this.lastShields) {
         this.triggerDamageFX();
       }
       this.lastShields = state.shields;
@@ -153,18 +156,29 @@ export class UIManager {
     } else {
       this.gameOver.classList.add('hidden');
     }
+
+    this.firstUpdate = false;
   }
 
   private triggerDamageFX() {
+    const flashClass = 'animate-damage-flash';
+    const impactClass = 'animate-shield-impact';
+
     // Reset and trigger damage flash
-    this.damageOverlay.classList.remove('animate-damage-flash');
-    // Force a reflow to allow the animation to be re-triggered if it was already running
+    this.damageOverlay.classList.remove(flashClass);
     void this.damageOverlay.offsetWidth; 
-    this.damageOverlay.classList.add('animate-damage-flash');
+    this.damageOverlay.classList.add(flashClass);
 
     // Reset and trigger shield impact
-    this.shieldBar.classList.remove('animate-shield-impact');
+    this.shieldBar.classList.remove(impactClass);
     void this.shieldBar.offsetWidth; 
-    this.shieldBar.classList.add('animate-shield-impact');
+    this.shieldBar.classList.add(impactClass);
+
+    // Robust cleanup: ensure classes are removed even if the animation is throttled
+    // or the browser environment doesn't trigger animationend consistently.
+    setTimeout(() => {
+      this.damageOverlay.classList.remove(flashClass);
+      this.shieldBar.classList.remove(impactClass);
+    }, GameConfig.ui.damageFlashDuration + 100);
   }
 }
