@@ -7,6 +7,7 @@ import { Player } from './entities/Player';
 import { TieFighter } from './entities/TieFighter';
 import { UserInput } from './input';
 import { Laser } from './entities/Laser';
+import { Fireball } from './entities/Fireball';
 import { GameConfig } from './config';
 
 export type GamePhase = 'DOGFIGHT' | 'SURFACE' | 'TRENCH';
@@ -26,6 +27,7 @@ export interface GameState {
   isGameOver: boolean;
   player: Player | null;
   tieFighters: TieFighter[];
+  fireballs: Fireball[];
   viewport: Viewport;
   lasers: Laser[];
   gunColorToggles: boolean[];
@@ -42,6 +44,7 @@ export const state: GameState = {
   isGameOver: false,
   player: null,
   tieFighters: [],
+  fireballs: [],
   viewport: {
     width: initialWidth,
     height: initialHeight,
@@ -60,6 +63,7 @@ export function initGame() {
   state.isGameOver = false;
   state.player = new Player();
   state.tieFighters = [new TieFighter()];
+  state.fireballs = [];
   state.lasers = [];
   state.gunColorToggles = GameConfig.laser.offsets.map(() => false);
   console.log('Game initialized');
@@ -73,6 +77,23 @@ export function updateState(deltaTime: number, input: UserInput = { x: 0, y: 0, 
   state.tieFighters.forEach(tf => {
     tf.update(deltaTime, state.player!.position, state.player!.mesh.quaternion);
   });
+
+  // Update fireballs and check for player collision
+  for (let i = state.fireballs.length - 1; i >= 0; i--) {
+    const fb = state.fireballs[i];
+    fb.update(deltaTime);
+
+    if (checkCollision(fb.position, GameConfig.fireball.collisionRadiusWorld, state.player.position, GameConfig.player.meshSize)) {
+      takeDamage(1);
+      state.fireballs.splice(i, 1);
+    }
+  }
+}
+
+export function spawnFireball(position: THREE.Vector3, velocity: THREE.Vector3): Fireball {
+  const fireball = new Fireball(position, velocity);
+  state.fireballs.push(fireball);
+  return fireball;
 }
 
 export function spawnLasers(input: Pick<UserInput, 'x' | 'y'>): Laser[] {
