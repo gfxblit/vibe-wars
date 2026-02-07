@@ -70,7 +70,7 @@ describe('CI/CD Workflow', () => {
 
     it('should include timestamp (in Pacific Time) and SHA in PR comment', () => {
       expect(content).toMatch(
-        /const date = new Date\(\)\.toLocaleString\('en-US',\s*\{\s*timeZone: 'America\/Los_Angeles',\s*timeZoneName: 'short'\s*\}\);\s+const sha = context\.sha\.substring\(0, 7\);\s+const body = `🚀 Preview available at: \$\{url\}\n\nLast updated: \$\{date\}\nCommit: \$\{sha\}`;/
+        /const date = new Date\(\)\.toLocaleString\('en-US',\s*\{\s*timeZone: 'America\/Los_Angeles',\s*timeZoneName: 'short'\s*\}\);\s+const sha = context\.sha\.substring\(0, 7\);\s+const body = `🚀 Preview available at: \$\{url\}\\n\\nLast updated: \$\{date\}\\nCommit: \$\{sha\}`;/
       );
     });
   });
