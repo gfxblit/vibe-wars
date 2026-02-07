@@ -3,13 +3,12 @@ import { Entity } from './Entity';
 import { GameConfig } from '../config';
 
 export class TieFighter extends Entity {
-  private static geometry: THREE.EdgesGeometry | null = null;
-  private static material: THREE.LineBasicMaterial | null = null;
-
   public readonly mesh: THREE.Group;
-  private readonly visualMesh: THREE.LineSegments;
   private elapsedTime: number = 0;
   private readonly offset = new THREE.Vector3();
+  
+  public isExploded: boolean = false;
+  private pieceVelocities: THREE.Vector3[] = [];
 
   public get position(): THREE.Vector3 {
     return this.mesh.position;
@@ -18,27 +17,58 @@ export class TieFighter extends Entity {
   constructor() {
     super();
     this.mesh = new THREE.Group();
+    
+    const size = GameConfig.tieFighter.meshSize;
+    const color = GameConfig.tieFighter.meshColor;
+    const material = new THREE.MeshBasicMaterial({ color: color, wireframe: true });
 
-    if (!TieFighter.geometry) {
-      const box = new THREE.BoxGeometry(
-        GameConfig.tieFighter.meshSize,
-        GameConfig.tieFighter.meshSize,
-        GameConfig.tieFighter.meshSize
-      );
-      TieFighter.geometry = new THREE.EdgesGeometry(box);
-      box.dispose();
-    }
+    // Body (Sphere)
+    const bodyGeo = new THREE.SphereGeometry(size / 3, 8, 8);
+    const body = new THREE.Mesh(bodyGeo, material);
+    this.mesh.add(body);
 
-    if (!TieFighter.material) {
-      TieFighter.material = new THREE.LineBasicMaterial({ color: GameConfig.tieFighter.meshColor });
-    }
+    // Left Wing (Plane)
+    const wingGeo = new THREE.PlaneGeometry(size, size);
+    const leftWing = new THREE.Mesh(wingGeo, material);
+    leftWing.position.set(-size * 0.8, 0, 0);
+    leftWing.rotation.y = Math.PI / 2;
+    this.mesh.add(leftWing);
 
-    this.visualMesh = new THREE.LineSegments(TieFighter.geometry, TieFighter.material);
+    // Right Wing (Plane)
+    const rightWing = new THREE.Mesh(wingGeo, material);
+    rightWing.position.set(size * 0.8, 0, 0);
+    rightWing.rotation.y = Math.PI / 2;
+    this.mesh.add(rightWing);
+  }
 
-    this.mesh.add(this.visualMesh);
+  public explode(): void {
+    if (this.isExploded) return;
+    this.isExploded = true;
+
+    // Generate random velocities for each piece
+    this.mesh.children.forEach(() => {
+        const velocity = new THREE.Vector3(
+            (Math.random() - 0.5) * 50,
+            (Math.random() - 0.5) * 50,
+            (Math.random() - 0.5) * 50
+        );
+        this.pieceVelocities.push(velocity);
+    });
   }
 
   public update(deltaTime: number, playerPosition: THREE.Vector3, playerQuaternion: THREE.Quaternion): void {
+    if (this.isExploded) {
+        // Move pieces
+        this.mesh.children.forEach((child, index) => {
+            if (this.pieceVelocities[index]) {
+                child.position.addScaledVector(this.pieceVelocities[index], deltaTime);
+                child.rotation.x += deltaTime * 2;
+                child.rotation.y += deltaTime * 2;
+            }
+        });
+        return; 
+    }
+
     this.elapsedTime += deltaTime;
 
     // Calculate relative offset in front of player

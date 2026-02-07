@@ -1,11 +1,12 @@
 import './style.css'
-import { initGame, state, updateState, spawnLasers } from './state'
+import { initGame, state, updateState, spawnLasers, addScore } from './state'
 import { initRenderer, render, attachCameraToPlayer } from './renderer'
 import { InputManager } from './input'
 import { StarField } from './entities/StarField'
 import { GameConfig } from './config'
 import { Cursor } from './Cursor'
 import { UIManager } from './UIManager'
+import { checkAim } from './collision'
 
 console.log('Vibe Wars starting...')
 
@@ -52,6 +53,15 @@ function animate(time: number) {
     newLasers.forEach(laser => {
       hudScene.add(laser.mesh);
     });
+
+    // Check for hits
+    state.tieFighters.forEach(tf => {
+        if (!tf.isExploded && checkAim(tf.position, input, camera)) {
+            tf.explode();
+            addScore(100);
+        }
+    });
+
     fireCooldown = GameConfig.laser.cooldown;
   }
 
