@@ -145,8 +145,10 @@ describe('InputManager', () => {
 
   it('responds to touch movement', () => {
     // Touch start at (500, 500)
+    const touch0 = { identifier: 0, clientX: 500, clientY: 500, target: document.body };
     const touchStartEvent = {
-        touches: [{ clientX: 500, clientY: 500 }],
+        touches: [touch0],
+        changedTouches: [touch0],
         target: document.body,
         preventDefault: vi.fn()
     };
@@ -156,8 +158,10 @@ describe('InputManager', () => {
     expect(inputManager.getInput().y).toBe(0);
 
     // Touch move to (600, 400)
+    const touch0Moved = { identifier: 0, clientX: 600, clientY: 400, target: document.body };
     const touchMoveEvent = {
-        touches: [{ clientX: 600, clientY: 400 }],
+        touches: [touch0Moved],
+        changedTouches: [touch0Moved],
         preventDefault: vi.fn()
     };
     listeners['touchmove'](touchMoveEvent);
@@ -167,7 +171,11 @@ describe('InputManager', () => {
     expect(touchMoveEvent.preventDefault).toHaveBeenCalled();
 
     // Touch end
-    listeners['touchend']({ touches: [], target: document.body });
+    listeners['touchend']({
+        touches: [],
+        changedTouches: [touch0Moved],
+        target: document.body
+    });
     inputManager.update(0.1);
     // Vector magnitude decay:
     // Initial: (1, 1), Length: sqrt(2)
@@ -186,15 +194,19 @@ describe('InputManager', () => {
     vi.stubGlobal('innerWidth', 1000);
     vi.stubGlobal('innerHeight', 1000);
 
+    const touch0 = { identifier: 0, clientX: 500, clientY: 500, target: document.body };
     const touchStartEvent = {
-        touches: [{ clientX: 500, clientY: 500 }],
+        touches: [touch0],
+        changedTouches: [touch0],
         target: document.body,
         preventDefault: vi.fn()
     };
     listeners['touchstart'](touchStartEvent);
     
+    const touch0Moved = { identifier: 0, clientX: 600, clientY: 400, target: document.body };
     const touchMoveEvent = {
-        touches: [{ clientX: 600, clientY: 400 }],
+        touches: [touch0Moved],
+        changedTouches: [touch0Moved],
         preventDefault: vi.fn()
     };
     listeners['touchmove'](touchMoveEvent);
@@ -202,7 +214,12 @@ describe('InputManager', () => {
     expect(inputManager.getInput().x).toBe(1);
 
     // Touch cancel
-    listeners['touchcancel'](new TouchEvent('touchcancel'));
+    const cancelEvent = {
+        touches: [],
+        changedTouches: [touch0Moved],
+        target: document.body
+    };
+    listeners['touchcancel'](cancelEvent);
     
     // Should decay now
     inputManager.update(0.1);
@@ -281,8 +298,10 @@ describe('InputManager', () => {
 
   it('reports isFiring only when touch is on fire button', () => {
     // Touch on body should NOT fire
+    const touch0 = { identifier: 0, clientX: 500, clientY: 500, target: document.body };
     const bodyTouch = {
-        touches: [{ clientX: 500, clientY: 500 }],
+        touches: [touch0],
+        changedTouches: [touch0],
         target: document.body,
         preventDefault: vi.fn()
     };
@@ -290,8 +309,10 @@ describe('InputManager', () => {
     expect(inputManager.getInput().isFiring).toBe(false);
 
     // Touch on fire button SHOULD fire
+    const touch1 = { identifier: 1, clientX: 900, clientY: 900, target: fireButton };
     const buttonTouch = {
-        touches: [{ clientX: 900, clientY: 900 }],
+        touches: [touch0, touch1],
+        changedTouches: [touch1],
         target: fireButton,
         preventDefault: vi.fn()
     };
@@ -299,7 +320,11 @@ describe('InputManager', () => {
     expect(inputManager.getInput().isFiring).toBe(true);
     expect(buttonTouch.preventDefault).toHaveBeenCalled();
 
-    listeners['touchend']({ touches: [], target: fireButton });
+    listeners['touchend']({
+        touches: [touch0],
+        changedTouches: [touch1],
+        target: fireButton
+    });
     expect(inputManager.getInput().isFiring).toBe(false);
   });
 

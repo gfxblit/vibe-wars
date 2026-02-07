@@ -15,6 +15,7 @@ export class InputManager {
   private pointerInput: THREE.Vector2 = new THREE.Vector2(0, 0);
   private keys: Set<string> = new Set();
   private isDragging: boolean = false;
+  private dragTouchId: number | null = null;
   private isFiring: boolean = false;
   private useRelativeInput: boolean = false;
   private pointerAnchor: THREE.Vector2 = new THREE.Vector2(0, 0);
@@ -59,57 +60,58 @@ export class InputManager {
   };
 
   private handleTouchStart = (event: TouchEvent) => {
-    // If we touch the fire button, don't start dragging/steering
-    if (event.target === this.fireButton) {
-      this.isFiring = true;
-      event.preventDefault();
-      return;
-    }
+    for (let i = 0; i < event.changedTouches.length; i++) {
+      const touch = event.changedTouches[i];
+      
+      if (touch.target === this.fireButton) {
+        this.isFiring = true;
+        event.preventDefault();
+        continue;
+      }
 
-    // Clicks on other UI elements should be ignored for game input.
-    const target = event.target as HTMLElement;
-    if (target.tagName !== 'CANVAS' && target !== document.body && target !== document.documentElement) {
-      return;
-    }
+      // Check if it's a valid drag target
+      const target = touch.target as HTMLElement;
+      if (target.tagName !== 'CANVAS' && target !== document.body && target !== document.documentElement) {
+        continue;
+      }
 
-    this.isDragging = true;
-    this.useRelativeInput = true;
-    if (event.touches.length > 0) {
-      // Find the touch that isn't on the fire button if possible, 
-      // but for now we'll just take the first one that triggered this.
-      this.pointerAnchor.set(event.touches[0].clientX, event.touches[0].clientY);
-      this.pointerInput.set(0, 0);
+      // If we're not already dragging, start a new drag with this touch
+      if (!this.isDragging) {
+        this.isDragging = true;
+        this.dragTouchId = touch.identifier;
+        this.useRelativeInput = true;
+        this.pointerAnchor.set(touch.clientX, touch.clientY);
+        this.pointerInput.set(0, 0);
+      }
     }
   };
 
   private handleTouchEnd = (event: TouchEvent) => {
-    // If the touch that ended was on the fire button, stop firing
-    // Note: event.target for touchend is the element where touch started
-    if (event.target === this.fireButton) {
-      this.isFiring = false;
-    }
+    for (let i = 0; i < event.changedTouches.length; i++) {
+      const touch = event.changedTouches[i];
+      
+      if (touch.target === this.fireButton) {
+        this.isFiring = false;
+      }
 
-    // Only stop dragging if no touches are left (or if the drag touch ended)
-    if (event.touches.length === 0) {
-      this.isDragging = false;
+      if (this.dragTouchId === touch.identifier) {
+        this.isDragging = false;
+        this.dragTouchId = null;
+      }
     }
   };
 
   private handleTouchMove = (event: TouchEvent) => {
-    if (!this.isDragging) return;
+    if (!this.isDragging || this.dragTouchId === null) return;
     
-    // Find the touch that is NOT the fire button touch if possible
-    // For now, just find the touch that matches our drag state
-    // Actually, updatePointerInput just needs a position.
-    // If multiple touches exist, we should probably track the one that started the drag.
     for (let i = 0; i < event.touches.length; i++) {
       const touch = event.touches[i];
-      if (touch.target !== this.fireButton) {
+      if (touch.identifier === this.dragTouchId) {
         this.updatePointerInput(touch.clientX, touch.clientY);
+        event.preventDefault(); // Prevent scrolling while playing
         break;
       }
     }
-    event.preventDefault(); // Prevent scrolling while playing
   };
 
   private updatePointerInput(clientX: number, clientY: number) {
