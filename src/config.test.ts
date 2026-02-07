@@ -55,6 +55,15 @@ describe('GameConfig', () => {
     );
   });
 
+  test('should have fireball settings', () => {
+    expect(GameConfig.fireball.meshSize).toBe(1.5);
+    expect(GameConfig.fireball.meshColor).toBe(0xff4500);
+    expect(GameConfig.fireball.relativeSpeed).toBe(40);
+    expect(GameConfig.fireball.fireRate).toBe(2.0);
+    expect(GameConfig.fireball.damage).toBe(1);
+    expect(GameConfig.fireball.expirationDistance).toBe(10);
+  });
+
   test('should be immutable at the type level', () => {
     // This test passes if the TypeScript compiler shows an error on the line below.
     // It's a way to enforce readonly properties in the test suite.

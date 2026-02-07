@@ -14,7 +14,7 @@ export class Fireball extends Entity {
     
     this.mesh = new THREE.LineSegments(edges, material);
     this.mesh.position.copy(position);
-    this.velocity = velocity;
+    this.velocity = velocity.clone();
   }
 
   get position(): THREE.Vector3 {
@@ -22,7 +22,7 @@ export class Fireball extends Entity {
   }
 
   update(deltaTime: number): void {
-    this.mesh.position.add(this.velocity.clone().multiplyScalar(deltaTime));
+    this.mesh.position.addScaledVector(this.velocity, deltaTime);
   }
 
   getNDCDelta(camera: THREE.Camera): THREE.Vector3 {

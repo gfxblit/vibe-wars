@@ -77,12 +77,13 @@ export function updateState(deltaTime: number, input: UserInput = { x: 0, y: 0, 
   const newFireballs: Fireball[] = [];
   const expiredFireballs: Fireball[] = [];
 
+  const playerForward = new THREE.Vector3(0, 0, -1).applyQuaternion(state.player.mesh.quaternion);
+
   state.tieFighters.forEach(tf => {
     const fireDirection = tf.update(deltaTime, state.player!.position, state.player!.mesh.quaternion);
     if (fireDirection) {
       // Inherit player's forward velocity so the fireball closure rate is exactly relativeSpeed
-      const playerForward = new THREE.Vector3(0, 0, -1).applyQuaternion(state.player!.mesh.quaternion);
-      const playerVelocity = playerForward.multiplyScalar(GameConfig.player.forwardSpeed);
+      const playerVelocity = playerForward.clone().multiplyScalar(GameConfig.player.forwardSpeed);
       
       const relativeVelocity = fireDirection.multiplyScalar(GameConfig.fireball.relativeSpeed);
       const totalVelocity = playerVelocity.add(relativeVelocity);
@@ -92,25 +93,26 @@ export function updateState(deltaTime: number, input: UserInput = { x: 0, y: 0, 
     }
   });
 
+  const toFireball = new THREE.Vector3();
+
   // Update fireballs and check for player collision
   for (let i = state.fireballs.length - 1; i >= 0; i--) {
     const fb = state.fireballs[i];
     fb.update(deltaTime);
 
     // If fireball is far behind player, expire it
-    const toFireball = new THREE.Vector3().subVectors(fb.position, state.player.position);
-    const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(state.player.mesh.quaternion);
-    const dot = toFireball.dot(forward);
+    toFireball.subVectors(fb.position, state.player.position);
+    const dot = toFireball.dot(playerForward);
     
-    // If it's more than 10 units behind the player, it's missed
-    if (dot < -10) {
+    // If it's more than configured units behind the player, it's missed
+    if (dot < -GameConfig.fireball.expirationDistance) {
       expiredFireballs.push(fb);
       state.fireballs.splice(i, 1);
       continue;
     }
 
     if (checkCollision(fb.position, GameConfig.fireball.collisionRadiusWorld, state.player.position, GameConfig.player.meshSize)) {
-      takeDamage(1);
+      takeDamage(GameConfig.fireball.damage);
       expiredFireballs.push(fb);
       state.fireballs.splice(i, 1);
     }

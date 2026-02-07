@@ -27,6 +27,15 @@ describe('Fireball', () => {
     expect(fireball.position.z).toBe(expectedPosition.z);
   });
 
+  it('should clone the velocity vector in the constructor', () => {
+    const v = new THREE.Vector3(1, 2, 3);
+    const fb = new Fireball(new THREE.Vector3(), v);
+    v.set(0, 0, 0); // Modify original vector
+    expect(fb.velocity.x).toBe(1);
+    expect(fb.velocity.y).toBe(2);
+    expect(fb.velocity.z).toBe(3);
+  });
+
   it('should have a mesh of type LineSegments', () => {
     expect(fireball.mesh).toBeInstanceOf(THREE.LineSegments);
   });

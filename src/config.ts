@@ -76,5 +76,7 @@ export const GameConfig = deepFreeze({
     collisionRadiusWorld: 2.0,
     collisionRadiusNDC: 0.05,
     points: 100,
+    damage: 1,
+    expirationDistance: 10,
   },
 } as const);

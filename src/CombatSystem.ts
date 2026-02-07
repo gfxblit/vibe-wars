@@ -46,18 +46,24 @@ export class CombatSystem {
   }
 
   private updateLasers(deltaTime: number, scene: THREE.Scene) {
+    const laserPos2D = new THREE.Vector2();
+    const fbPos2D = new THREE.Vector2();
+    const collisionRadiusSq = GameConfig.fireball.collisionRadiusNDC * GameConfig.fireball.collisionRadiusNDC;
+
     for (let i = state.lasers.length - 1; i >= 0; i--) {
       const laser = state.lasers[i];
       laser.update(deltaTime);
+
+      laserPos2D.set(laser.mesh.position.x, laser.mesh.position.y);
 
       // Check for collision with fireballs
       for (let j = state.fireballs.length - 1; j >= 0; j--) {
         const fb = state.fireballs[j];
         const fbNDC = fb.getNDCDelta(this.camera);
-        const laserPos = laser.mesh.position;
+        fbPos2D.set(fbNDC.x, fbNDC.y);
 
-        const dist = new THREE.Vector2(laserPos.x, laserPos.y).distanceTo(new THREE.Vector2(fbNDC.x, fbNDC.y));
-        if (dist < GameConfig.fireball.collisionRadiusNDC) {
+        const distSq = laserPos2D.distanceToSquared(fbPos2D);
+        if (distSq < collisionRadiusSq) {
           addScore(GameConfig.fireball.points);
           scene.remove(fb.mesh);
           fb.dispose();

@@ -56,6 +56,20 @@ describe('Game State', () => {
     expect(state.fireballs.length).toBe(0);
   })
 
+  test('updateState expires fireballs that are far behind', () => {
+    // Player at origin, facing forward (-Z)
+    state.player!.position.set(0, 0, 0);
+    state.player!.mesh.quaternion.set(0, 0, 0, 1);
+    
+    // Spawn fireball 11 units behind (+Z)
+    // forward is (0,0,-1). subVectors(fb, player) is (0,0,11). dot is -11.
+    spawnFireball(new THREE.Vector3(0, 0, 11), new THREE.Vector3(0, 0, 0));
+    
+    expect(state.fireballs.length).toBe(1);
+    updateState(0.01);
+    expect(state.fireballs.length).toBe(0);
+  })
+
   test('updateState moves player forward (if speed > 0)', () => {
     const initialZ = state.player!.position.z;
     updateState(1); // 1 second

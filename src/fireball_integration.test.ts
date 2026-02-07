@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { initGame, state, updateState } from './state';
 import { GameConfig } from './config';
+import { Fireball } from './entities/Fireball';
 
 describe('Fireball Integration', () => {
   beforeEach(() => {
@@ -26,17 +27,17 @@ describe('Fireball Integration', () => {
 
   it('Fireballs should move toward the player', () => {
     initGame();
-    let fb: any = null;
+    let fb: Fireball | null = null;
     for (let i = 0; i < 100 && !fb; i++) {
       const { newFireballs } = updateState(0.1);
       if (newFireballs.length > 0) fb = newFireballs[0];
     }
 
     expect(fb).toBeDefined();
-    const initialDist = fb.position.distanceTo(state.player!.position);
+    const initialDist = fb!.position.distanceTo(state.player!.position);
 
     updateState(0.01); 
-    const newDist = fb.position.distanceTo(state.player!.position);
+    const newDist = fb!.position.distanceTo(state.player!.position);
 
     expect(newDist).toBeLessThan(initialDist);
   });
@@ -44,7 +45,7 @@ describe('Fireball Integration', () => {
   it('Fireballs should damage player on collision', () => {
     initGame();
     // Spawn a fireball
-    let fb: any = null;
+    let fb: Fireball | null = null;
     for (let i = 0; i < 100 && !fb; i++) {
       const { newFireballs } = updateState(0.1);
       if (newFireballs.length > 0) fb = newFireballs[0];
@@ -54,7 +55,7 @@ describe('Fireball Integration', () => {
     const initialShields = state.shields;
     
     // Teleport fireball to player
-    fb.position.copy(state.player!.position);
+    fb!.position.copy(state.player!.position);
 
     updateState(0.01);
 
