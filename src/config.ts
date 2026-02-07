@@ -11,6 +11,7 @@ function deepFreeze<T extends object>(obj: T): T {
 export const GameConfig = deepFreeze({
   core: {
     deltaTimeCap: 0.1,
+    aimTolerance: 0.15,
   },
   camera: {
     fov: 75,
@@ -50,6 +51,7 @@ export const GameConfig = deepFreeze({
     distance: 60,
     meshColor: 0xff0000,
     meshSize: 1,
+    explosionVelocity: 50,
   },
   laser: {
     speed: 2000,
