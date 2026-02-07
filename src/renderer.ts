@@ -24,8 +24,14 @@ export function initRenderer() {
     GameConfig.camera.near,
     GameConfig.camera.far
   );
+
+  // 2D HUD Setup (Accelerated via GPU)
+  const hudScene = new THREE.Scene();
+  const hudCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+
   const renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setSize(state.viewport.width, state.viewport.height);
+  renderer.autoClear = false; // Allow manual clearing for compositing
   document.body.appendChild(renderer.domElement);
 
   // Handle window resize
@@ -50,13 +56,19 @@ export function initRenderer() {
   };
 
   console.log('Renderer initialized');
-  return { scene, camera, renderer, cleanup };
+  return { scene, camera, hudScene, hudCamera, renderer, cleanup };
 }
 
 export function render(
   renderer: THREE.WebGLRenderer,
   scene: THREE.Scene,
-  camera: THREE.PerspectiveCamera
+  camera: THREE.Camera,
+  hudScene?: THREE.Scene,
+  hudCamera?: THREE.Camera
 ) {
+  renderer.clear(); // Manual clear
   renderer.render(scene, camera);
+  if (hudScene && hudCamera) {
+    renderer.render(hudScene, hudCamera);
+  }
 }

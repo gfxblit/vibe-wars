@@ -16,6 +16,7 @@ vi.mock('three', async () => {
     WebGLRenderer: vi.fn().mockImplementation(() => ({
       setSize: vi.fn(),
       render: vi.fn(),
+      clear: vi.fn(),
       domElement: document.createElement('canvas'),
     })),
   };

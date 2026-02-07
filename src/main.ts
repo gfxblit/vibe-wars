@@ -9,7 +9,7 @@ import { UIManager } from './UIManager'
 
 console.log('Vibe Wars starting...')
 
-const { scene, camera, renderer: webglRenderer } = initRenderer()
+const { scene, camera, hudScene, hudCamera, renderer: webglRenderer } = initRenderer()
 initGame()
 
 const uiManager = new UIManager()
@@ -35,7 +35,6 @@ let lastTime = 0
 let fireCooldown = 0;
 
 function animate(time: number) {
-  // Use a reasonable cap for deltaTime to avoid huge jumps
   const deltaTime = Math.min((time - lastTime) / 1000, GameConfig.core.deltaTimeCap);
   lastTime = time
 
@@ -49,25 +48,28 @@ function animate(time: number) {
   // Laser firing logic
   fireCooldown -= deltaTime;
   if (input.isFiring && fireCooldown <= 0) {
-    const newLasers = spawnLasers(camera, input);
-    newLasers.forEach(laser => scene.add(laser.mesh));
+    const newLasers = spawnLasers(input);
+    newLasers.forEach(laser => {
+      hudScene.add(laser.mesh);
+    });
     fireCooldown = GameConfig.laser.cooldown;
   }
 
-  // Update and cleanup lasers
+  // Update lasers
   for (let i = state.lasers.length - 1; i >= 0; i--) {
     const laser = state.lasers[i];
     laser.update(deltaTime);
     if (laser.isExpired()) {
-      scene.remove(laser.mesh);
+      hudScene.remove(laser.mesh);
       laser.dispose();
       state.lasers.splice(i, 1);
     }
   }
 
+  // Render
   if (state.player) {
     starField.update(state.player.position)
-    render(webglRenderer, scene, camera)
+    render(webglRenderer, scene, camera, hudScene, hudCamera)
   }
 
   requestAnimationFrame(animate)

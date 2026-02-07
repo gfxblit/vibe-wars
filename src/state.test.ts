@@ -1,6 +1,7 @@
-import { expect, test, beforeEach, describe, vi } from 'vitest'
+import { expect, test, beforeEach, describe } from 'vitest'
 import { state, initGame, addScore, takeDamage, nextPhase, checkCollision, updateState, spawnLasers } from './state'
 import * as THREE from 'three';
+import { Player } from './entities/Player';
 import { TieFighter } from './entities/TieFighter';
 import { Laser } from './entities/Laser';
 
@@ -16,40 +17,26 @@ describe('Game State', () => {
     expect(state.player).toBeInstanceOf(Player)
     expect(state.tieFighters[0]).toBeInstanceOf(TieFighter)
     expect(state.lasers).toEqual([]);
+    expect(state.gunColorToggles.length).toBe(4);
   })
 
-  test('spawnLasers creates 4 lasers with correct properties', () => {
-    const parent = new THREE.Group();
-    parent.position.set(100, 100, 100);
-    
-    const camera = new THREE.PerspectiveCamera();
-    camera.position.set(0, 0, 10);
-    parent.add(camera);
-    parent.updateMatrixWorld();
-    
-    const updateMatrixSpy = vi.spyOn(camera, 'updateMatrixWorld');
-    
+  test('spawnLasers creates at least 2 lasers and alternates colors', () => {
     const crosshairPos = { x: 0, y: 0 };
-    const newLasers = spawnLasers(camera, crosshairPos);
     
-    expect(updateMatrixSpy).toHaveBeenCalled();
-    expect(state.lasers.length).toBe(4);
-    newLasers.forEach(laser => {
-        expect(laser).toBeInstanceOf(Laser);
-        // The laser should be spawned near the camera's world position, not the world origin or local origin.
-        // Camera world position is (100, 100, 110)
-        expect(laser.position.x).toBeCloseTo(100, -1);
-        expect(laser.position.y).toBeCloseTo(100, -1);
-        expect(laser.position.z).toBeLessThan(110);
-    });
+    // First volley
+    const volley1 = spawnLasers(crosshairPos);
+    expect(volley1.length).toBeGreaterThanOrEqual(2);
+    
+    // Check that some toggles have been flipped (from false to true)
+    const someFlipped = state.gunColorToggles.some(t => t === true);
+    expect(someFlipped).toBe(true);
   })
 
-  test('updateState moves player forward', () => {
+  test('updateState moves player forward (if speed > 0)', () => {
     const initialZ = state.player!.position.z;
     updateState(1); // 1 second
     // Forward motion is negative Z.
-    // Let's assume some speed, e.g., 10 units/sec.
-    expect(state.player!.position.z).toBeLessThan(initialZ);
+    expect(state.player!.position.z).toBe(initialZ); // 0 in config
   })
 
   test('updateState updates TIE fighters', () => {

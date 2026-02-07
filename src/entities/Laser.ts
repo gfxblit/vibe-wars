@@ -3,41 +3,75 @@ import { Entity } from './Entity';
 import { GameConfig } from '../config';
 
 export class Laser extends Entity {
-  public readonly mesh: THREE.Line;
-  private direction: THREE.Vector3;
-  private lifeTimeRemaining: number;
+  public readonly mesh: THREE.Mesh;
+  private progress: number = 0; // 0 to 1
+  
+  private readonly origin2D: THREE.Vector2;
+  private readonly target2D: THREE.Vector2;
+  private readonly color: number;
 
-  public get position(): THREE.Vector3 {
-    return this.mesh.position;
+  constructor(origin2D: THREE.Vector2, target2D: THREE.Vector2, color: number) {
+    super();
+    this.origin2D = origin2D.clone();
+    this.target2D = target2D.clone();
+    this.color = color;
+
+    // A simple quad centered at origin, pointing up (+Y)
+    const geometry = new THREE.PlaneGeometry(1, 1);
+    const material = new THREE.MeshBasicMaterial({ 
+      color: this.color,
+      transparent: true,
+      opacity: 1.0,
+      depthTest: false
+    });
+    
+    this.mesh = new THREE.Mesh(geometry, material);
+    
+    this.updateMeshTransform();
   }
 
-  private static readonly tempVector = new THREE.Vector3();
+  private updateMeshTransform(): void {
+    // Interpolate in 2D NDC space
+    // boltLength is normalized based on depth (e.g. 30 / 200 = 0.15 of screen travel)
+    const normBoltLength = GameConfig.laser.boltLength / GameConfig.laser.targetDepth;
+    
+    const startP = this.progress;
+    const endP = Math.min(1.0, this.progress + normBoltLength);
 
-  constructor(origin: THREE.Vector3, direction: THREE.Vector3) {
-    super();
-    this.direction = direction.clone().normalize();
-    this.lifeTimeRemaining = GameConfig.laser.lifetime;
+    const start = new THREE.Vector2().lerpVectors(this.origin2D, this.target2D, startP);
+    const end = new THREE.Vector2().lerpVectors(this.origin2D, this.target2D, endP);
 
-    const geometry = new THREE.BufferGeometry().setFromPoints([
-      new THREE.Vector3(0, 0, 0),
-      new THREE.Vector3(0, 0, -2) // 2 units long
-    ]);
-    const material = new THREE.LineBasicMaterial({ color: GameConfig.laser.color });
-    this.mesh = new THREE.Line(geometry, material);
+    const delta = new THREE.Vector2().subVectors(end, start);
+    const length = delta.length();
+    const angle = Math.atan2(delta.y, delta.x);
 
-    this.mesh.position.copy(origin);
-    // Align mesh with direction
-    this.mesh.lookAt(origin.clone().add(this.direction));
+    // Position at the center of the bolt segment
+    const center = new THREE.Vector2().lerpVectors(start, end, 0.5);
+    this.mesh.position.set(center.x, center.y, 0);
+    
+    // Rotate to align with trajectory
+    // Standard PlaneGeometry(1,1) faces +Z, with its 'up' along +Y.
+    // We rotate it around Z. Subtract Math.PI/2 because we want it to point along X initially.
+    this.mesh.rotation.z = angle - Math.PI / 2;
+
+    // Scale
+    // thickness: 10 pixels on a 1000px screen is 0.01.
+    // We use a fixed scale factor for 'vibe'.
+    const thicknessScale = GameConfig.laser.thickness * 0.001; 
+    this.mesh.scale.set(thicknessScale, length, 1);
   }
 
   public update(dt: number): void {
-    Laser.tempVector.copy(this.direction).multiplyScalar(GameConfig.laser.speed * dt);
-    this.position.add(Laser.tempVector);
-    this.lifeTimeRemaining -= dt;
+    // Constant speed in 2D space
+    // distance / time = speed. 
+    // targetDepth / speed = total duration.
+    const duration = GameConfig.laser.targetDepth / GameConfig.laser.speed;
+    this.progress += (1.0 / duration) * dt;
+    this.updateMeshTransform();
   }
 
   public isExpired(): boolean {
-    return this.lifeTimeRemaining <= 0;
+    return this.progress >= 1.0;
   }
 
   public dispose(): void {

@@ -27,6 +27,7 @@ export interface GameState {
   tieFighters: TieFighter[];
   viewport: Viewport;
   lasers: Laser[];
+  gunColorToggles: boolean[];
 }
 
 const initialWidth = typeof window !== 'undefined' ? window.innerWidth : 1024;
@@ -47,6 +48,7 @@ export const state: GameState = {
     centerY: initialHeight / 2,
   },
   lasers: [],
+  gunColorToggles: GameConfig.laser.offsets.map(() => false),
 };
 
 export function initGame() {
@@ -58,6 +60,7 @@ export function initGame() {
   state.player = new Player();
   state.tieFighters = [new TieFighter()];
   state.lasers = [];
+  state.gunColorToggles = GameConfig.laser.offsets.map(() => false);
   console.log('Game initialized');
 }
 
@@ -71,32 +74,31 @@ export function updateState(deltaTime: number, input: UserInput = { x: 0, y: 0, 
   });
 }
 
-export function spawnLasers(camera: THREE.Camera, crosshairPos: { x: number, y: number }): Laser[] {
-  camera.updateMatrixWorld();
-  // Use world position of the camera
-  const cameraWorldPos = new THREE.Vector3();
-  camera.getWorldPosition(cameraWorldPos);
-
-  // Calculate target world position using crosshairPos (unprojected at targetDepth).
-  // crosshairPos is in [-1, 1] range.
-  const targetWorldPos = new THREE.Vector3(crosshairPos.x, crosshairPos.y, 0.5)
-    .unproject(camera)
-    .sub(cameraWorldPos)
-    .normalize()
-    .multiplyScalar(GameConfig.laser.targetDepth)
-    .add(cameraWorldPos);
-
+export function spawnLasers(crosshairPos: { x: number, y: number }): Laser[] {
   const newLasers: Laser[] = [];
 
-  GameConfig.laser.offsets.forEach(offset => {
-    // Get origin in world space relative to camera.
-    // Using -1 for z in unproject gives us a point on the near plane.
-    const origin = new THREE.Vector3(offset.x, offset.y, -1).unproject(camera);
+  // Randomize which guns fire (at least 2)
+  const allIndices = GameConfig.laser.offsets.map((_, i) => i);
+  for (let i = allIndices.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [allIndices[i], allIndices[j]] = [allIndices[j], allIndices[i]];
+  }
+  
+  const minGuns = Math.min(2, allIndices.length);
+  const numGuns = Math.floor(Math.random() * (allIndices.length - minGuns + 1)) + minGuns;
+  const selectedIndices = allIndices.slice(0, numGuns);
+
+  selectedIndices.forEach(index => {
+    // Strictly alternate color per direction (gun index)
+    const useAltColor = state.gunColorToggles[index];
+    const color = useAltColor ? GameConfig.laser.alternateColor : GameConfig.laser.color;
+    state.gunColorToggles[index] = !useAltColor; // Flip for next shot from this gun
+
+    const offset = GameConfig.laser.offsets[index];
+    const origin2D = new THREE.Vector2(offset.x, offset.y);
+    const target2D = new THREE.Vector2(crosshairPos.x, crosshairPos.y);
     
-    // Direction from origin to target
-    const direction = targetWorldPos.clone().sub(origin).normalize();
-    
-    const laser = new Laser(origin, direction);
+    const laser = new Laser(origin2D, target2D, color);
     state.lasers.push(laser);
     newLasers.push(laser);
   });
