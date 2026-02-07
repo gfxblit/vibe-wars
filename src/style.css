@@ -31,8 +31,10 @@ body { margin: 0; overflow: hidden; background-color: black; }
   display: none;
   align-items: center;
   justify-content: center;
-  user-select: none;
   -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
   -webkit-touch-callout: none;
   -webkit-tap-highlight-color: transparent;
   cursor: pointer;
