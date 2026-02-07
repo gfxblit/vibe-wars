@@ -14,6 +14,8 @@ export class TieFighter extends Entity {
   private static bodyGeo: THREE.SphereGeometry;
   private static wingGeo: THREE.PlaneGeometry;
 
+  private fireCooldown: number = Math.random() * GameConfig.fireball.fireRate;
+
   public get position(): THREE.Vector3 {
     return this.mesh.position;
   }
@@ -72,7 +74,7 @@ export class TieFighter extends Entity {
     });
   }
 
-  public update(deltaTime: number, playerPosition: THREE.Vector3, playerQuaternion: THREE.Quaternion): void {
+  public update(deltaTime: number, playerPosition: THREE.Vector3, playerQuaternion: THREE.Quaternion): THREE.Vector3 | null {
     if (this.isExploded) {
         // Move pieces
         this.mesh.children.forEach((child, index) => {
@@ -82,10 +84,11 @@ export class TieFighter extends Entity {
                 child.rotation.y += deltaTime * 2;
             }
         });
-        return; 
+        return null; 
     }
 
     this.elapsedTime += deltaTime;
+    this.fireCooldown -= deltaTime;
 
     // Calculate relative offset in front of player
     this.offset.set(0, 0, -GameConfig.tieFighter.distance);
@@ -102,5 +105,13 @@ export class TieFighter extends Entity {
 
     // Maintain orientation matching player for now
     this.mesh.quaternion.copy(playerQuaternion);
+
+    if (this.fireCooldown <= 0) {
+      this.fireCooldown = GameConfig.fireball.fireRate;
+      // Return direction towards player
+      return new THREE.Vector3().subVectors(playerPosition, this.position).normalize();
+    }
+
+    return null;
   }
 }

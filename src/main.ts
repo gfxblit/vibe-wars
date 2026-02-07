@@ -42,7 +42,7 @@ function animate(time: number) {
   inputManager.update(deltaTime)
   const input = inputManager.getInput()
   
-  gameSystem.update(deltaTime, input)
+  gameSystem.update(deltaTime, input, scene)
   
   cursor.update(input)
   uiManager.update(state)

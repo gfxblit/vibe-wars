@@ -14,7 +14,7 @@ export class CombatSystem {
     this.camera = camera;
   }
 
-  public update(deltaTime: number, input: UserInput) {
+  public update(deltaTime: number, input: UserInput, scene: THREE.Scene) {
     this.fireCooldown -= deltaTime;
 
     // 1. Handle Firing
@@ -23,8 +23,8 @@ export class CombatSystem {
       this.fireCooldown = GameConfig.laser.cooldown;
     }
 
-    // 2. Update existing lasers
-    this.updateLasers(deltaTime);
+    // 2. Update existing lasers and check collisions
+    this.updateLasers(deltaTime, scene);
   }
 
   private fire(input: UserInput) {
@@ -33,10 +33,6 @@ export class CombatSystem {
       this.hudScene.add(laser.mesh);
     });
 
-    // Check hits immediately upon firing? 
-    // Or should it be when the laser reaches the target?
-    // In arcade games like this, often hitscan logic is used for "firing" even if there's a projectile visual.
-    // The previous implementation did it immediately.
     this.checkHits(input);
   }
 
@@ -49,10 +45,27 @@ export class CombatSystem {
     });
   }
 
-  private updateLasers(deltaTime: number) {
+  private updateLasers(deltaTime: number, scene: THREE.Scene) {
     for (let i = state.lasers.length - 1; i >= 0; i--) {
       const laser = state.lasers[i];
       laser.update(deltaTime);
+
+      // Check for collision with fireballs
+      for (let j = state.fireballs.length - 1; j >= 0; j--) {
+        const fb = state.fireballs[j];
+        const fbNDC = fb.getNDCDelta(this.camera);
+        const laserPos = laser.mesh.position;
+
+        const dist = new THREE.Vector2(laserPos.x, laserPos.y).distanceTo(new THREE.Vector2(fbNDC.x, fbNDC.y));
+        if (dist < GameConfig.fireball.collisionRadiusNDC) {
+          addScore(GameConfig.fireball.points);
+          scene.remove(fb.mesh);
+          fb.dispose();
+          state.fireballs.splice(j, 1);
+          // Laser continues for visual effect
+        }
+      }
+
       if (laser.isExpired()) {
         this.hudScene.remove(laser.mesh);
         laser.dispose();
