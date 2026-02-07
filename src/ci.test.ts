@@ -57,5 +57,21 @@ describe('CI/CD Workflow', () => {
         }
       }
     });
+
+    it('should have concurrency control configured', () => {
+      expect(content).toMatch(/concurrency:/);
+      expect(content).toMatch(/group: \$\{\{ github\.workflow \}\}-\$\{\{ github\.ref \}\}/);
+      expect(content).toMatch(/cancel-in-progress: true/);
+    });
+
+    it('should use git pull --rebase before pushing to gh-pages', () => {
+      expect(content).toMatch(/git pull --rebase origin gh-pages/);
+    });
+
+    it('should include timestamp and SHA in PR comment', () => {
+      expect(content).toMatch(/const date = new Date\(\)\.toLocaleString\(\);/);
+      expect(content).toMatch(/const sha = context\.sha\.substring\(0, 7\);/);
+      expect(content).toMatch(/const body = `🚀 Preview available at: \$\{url\}\\n\\nLast updated: \$\{date\}\\nCommit: \$\{sha\}`;/);
+    });
   });
 });

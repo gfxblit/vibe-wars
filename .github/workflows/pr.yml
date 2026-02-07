@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [main]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: write
   pull-requests: write
@@ -77,6 +81,7 @@ jobs:
             echo "No changes to commit"
           else
             git commit -m "Deploy ${{ github.sha }} to gh-pages"
+            git pull --rebase origin gh-pages
             git push origin gh-pages
           fi
 
@@ -89,7 +94,9 @@ jobs:
             const repo = context.repo.repo;
             const owner = context.repo.owner;
             const url = `https://${owner}.github.io/${repo}/pr-${prNumber}/`;
-            const body = `🚀 Preview available at: ${url}`;
+            const date = new Date().toLocaleString();
+            const sha = context.sha.substring(0, 7);
+            const body = `🚀 Preview available at: ${url}\n\nLast updated: ${date}\nCommit: ${sha}`;
             
             const { data: comments } = await github.rest.issues.listComments({
               owner,
