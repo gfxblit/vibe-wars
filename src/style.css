@@ -32,6 +32,8 @@ body { margin: 0; overflow: hidden; background-color: black; }
   align-items: center;
   justify-content: center;
   user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
   -webkit-tap-highlight-color: transparent;
   cursor: pointer;
   z-index: 100;

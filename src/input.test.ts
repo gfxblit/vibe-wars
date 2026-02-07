@@ -297,6 +297,7 @@ describe('InputManager', () => {
     };
     listeners['touchstart'](buttonTouch);
     expect(inputManager.getInput().isFiring).toBe(true);
+    expect(buttonTouch.preventDefault).toHaveBeenCalled();
 
     listeners['touchend']({ touches: [], target: fireButton });
     expect(inputManager.getInput().isFiring).toBe(false);
