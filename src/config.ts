@@ -51,6 +51,7 @@ export const GameConfig = deepFreeze({
     distance: 60,
     meshColor: 0xff0000,
     meshSize: 1,
+    explosionVelocity: 50,
   },
   laser: {
     speed: 2000,

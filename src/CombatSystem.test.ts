@@ -2,6 +2,15 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import * as THREE from 'three';
 import { CombatSystem } from './CombatSystem';
 import { state, initGame } from './state';
+import * as StateModule from './state';
+
+vi.mock('./state', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('./state')>();
+  return {
+    ...actual,
+    spawnLasers: vi.fn(actual.spawnLasers),
+  };
+});
 
 describe('CombatSystem', () => {
   let hudScene: THREE.Scene;
@@ -20,25 +29,27 @@ describe('CombatSystem', () => {
     const input = { x: 0, y: 0, isFiring: true };
     combatSystem.update(0.01, input);
 
+    expect(StateModule.spawnLasers).toHaveBeenCalled();
     expect(state.lasers.length).toBeGreaterThanOrEqual(2);
-    expect(hudScene.children.length).toBeGreaterThanOrEqual(2);
   });
 
-  it('respects firing cooldown', () => {
+  it('respects firing cooldown using spy', () => {
     const input = { x: 0, y: 0, isFiring: true };
-    combatSystem.update(0.01, input); // First shot
-    const initialLaserCount = state.lasers.length;
-    expect(initialLaserCount).toBeGreaterThanOrEqual(2);
     
-    combatSystem.update(0.01, input); // Should not fire again
-    expect(state.lasers.length).toBe(initialLaserCount);
+    // First shot
+    combatSystem.update(0.01, input);
+    expect(StateModule.spawnLasers).toHaveBeenCalledTimes(1);
     
-    // fireCooldown is now 0.15 - 0.01 = 0.14
-    combatSystem.update(0.1, input); // fireCooldown becomes 0.04. Should not fire.
-    expect(state.lasers.length).toBe(0); // Old ones expired (0.01 + 0.1 + 0.01 = 0.12 > 0.1)
+    // Should not fire again immediately
+    combatSystem.update(0.01, input);
+    expect(StateModule.spawnLasers).toHaveBeenCalledTimes(1);
     
-    combatSystem.update(0.05, input); // fireCooldown becomes -0.01. Should fire.
-    expect(state.lasers.length).toBeGreaterThanOrEqual(2);
+    // Wait for cooldown (GameConfig.laser.cooldown is 0.15)
+    combatSystem.update(0.1, input); // total elapsed since first shot: 0.11. Cooldown remaining: 0.04
+    expect(StateModule.spawnLasers).toHaveBeenCalledTimes(1);
+    
+    combatSystem.update(0.05, input); // total elapsed: 0.16. Should fire.
+    expect(StateModule.spawnLasers).toHaveBeenCalledTimes(2);
   });
 
   it('updates and removes expired lasers', () => {

@@ -10,6 +10,10 @@ export class TieFighter extends Entity {
   public isExploded: boolean = false;
   private pieceVelocities: THREE.Vector3[] = [];
 
+  private static material: THREE.MeshBasicMaterial;
+  private static bodyGeo: THREE.SphereGeometry;
+  private static wingGeo: THREE.PlaneGeometry;
+
   public get position(): THREE.Vector3 {
     return this.mesh.position;
   }
@@ -19,23 +23,34 @@ export class TieFighter extends Entity {
     this.mesh = new THREE.Group();
     
     const size = GameConfig.tieFighter.meshSize;
-    const color = GameConfig.tieFighter.meshColor;
-    const material = new THREE.MeshBasicMaterial({ color: color, wireframe: true });
+
+    if (!TieFighter.material) {
+        TieFighter.material = new THREE.MeshBasicMaterial({ 
+            color: GameConfig.tieFighter.meshColor, 
+            wireframe: true 
+        });
+    }
+
+    if (!TieFighter.bodyGeo) {
+        TieFighter.bodyGeo = new THREE.SphereGeometry(size / 3, 8, 8);
+    }
+
+    if (!TieFighter.wingGeo) {
+        TieFighter.wingGeo = new THREE.PlaneGeometry(size, size);
+    }
 
     // Body (Sphere)
-    const bodyGeo = new THREE.SphereGeometry(size / 3, 8, 8);
-    const body = new THREE.Mesh(bodyGeo, material);
+    const body = new THREE.Mesh(TieFighter.bodyGeo, TieFighter.material);
     this.mesh.add(body);
 
     // Left Wing (Plane)
-    const wingGeo = new THREE.PlaneGeometry(size, size);
-    const leftWing = new THREE.Mesh(wingGeo, material);
+    const leftWing = new THREE.Mesh(TieFighter.wingGeo, TieFighter.material);
     leftWing.position.set(-size * 0.8, 0, 0);
     leftWing.rotation.y = Math.PI / 2;
     this.mesh.add(leftWing);
 
     // Right Wing (Plane)
-    const rightWing = new THREE.Mesh(wingGeo, material);
+    const rightWing = new THREE.Mesh(TieFighter.wingGeo, TieFighter.material);
     rightWing.position.set(size * 0.8, 0, 0);
     rightWing.rotation.y = Math.PI / 2;
     this.mesh.add(rightWing);
@@ -47,10 +62,11 @@ export class TieFighter extends Entity {
 
     // Generate random velocities for each piece
     this.mesh.children.forEach(() => {
+        const vel = GameConfig.tieFighter.explosionVelocity;
         const velocity = new THREE.Vector3(
-            (Math.random() - 0.5) * 50,
-            (Math.random() - 0.5) * 50,
-            (Math.random() - 0.5) * 50
+            (Math.random() - 0.5) * vel,
+            (Math.random() - 0.5) * vel,
+            (Math.random() - 0.5) * vel
         );
         this.pieceVelocities.push(velocity);
     });

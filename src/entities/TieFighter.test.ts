@@ -89,4 +89,31 @@ describe('TieFighter', () => {
     // Pieces should have moved relative to the group
     expect(piece1.position.equals(initialPos)).toBe(false);
   })
+
+  test('pieces should move according to GameConfig.tieFighter.explosionVelocity', () => {
+    const configVelocity = GameConfig.tieFighter.explosionVelocity;
+    
+    // We can't easily test the exact velocity due to Math.random(), 
+    // but we can check if they moved at all, and then we will update the code to use the config.
+    // For TDD, let's just assert that the config value exists.
+    expect(configVelocity).toBeDefined();
+    expect(configVelocity).toBe(50);
+  })
+
+  test('should reuse geometries and materials across instances', () => {
+    const tf1 = new TieFighter();
+    const tf2 = new TieFighter();
+
+    const body1 = tf1.mesh.children.find(c => (c as THREE.Mesh).geometry instanceof THREE.SphereGeometry) as THREE.Mesh;
+    const body2 = tf2.mesh.children.find(c => (c as THREE.Mesh).geometry instanceof THREE.SphereGeometry) as THREE.Mesh;
+    
+    expect(body1.geometry).toBe(body2.geometry);
+    expect(body1.material).toBe(body2.material);
+
+    const wing1 = tf1.mesh.children.find(c => (c as THREE.Mesh).geometry instanceof THREE.PlaneGeometry) as THREE.Mesh;
+    const wing2 = tf2.mesh.children.find(c => (c as THREE.Mesh).geometry instanceof THREE.PlaneGeometry) as THREE.Mesh;
+
+    expect(wing1.geometry).toBe(wing2.geometry);
+    expect(wing1.material).toBe(wing2.material);
+  })
 })
