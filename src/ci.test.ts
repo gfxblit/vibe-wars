@@ -59,9 +59,9 @@ describe('CI/CD Workflow', () => {
     });
 
     it('should have concurrency control configured', () => {
-      expect(content).toMatch(/concurrency:/);
-      expect(content).toMatch(/group: \$\{\{ github\.workflow \}\}-\$\{\{ github\.ref \}\}/);
-      expect(content).toMatch(/cancel-in-progress: true/);
+      expect(content).toMatch(
+        /concurrency:\s+group: \$\{\{ github\.workflow \}\}-\$\{\{ github\.ref \}\}\s+cancel-in-progress: true/
+      );
     });
 
     it('should use git pull --rebase before pushing to gh-pages', () => {
@@ -69,9 +69,9 @@ describe('CI/CD Workflow', () => {
     });
 
     it('should include timestamp and SHA in PR comment', () => {
-      expect(content).toMatch(/const date = new Date\(\)\.toLocaleString\(\);/);
-      expect(content).toMatch(/const sha = context\.sha\.substring\(0, 7\);/);
-      expect(content).toMatch(/const body = `🚀 Preview available at: \$\{url\}\\n\\nLast updated: \$\{date\}\\nCommit: \$\{sha\}`;/);
+      expect(content).toMatch(
+        /const date = new Date\(\)\.toLocaleString\(\);\s+const sha = context\.sha\.substring\(0, 7\);\s+const body = `🚀 Preview available at: \$\{url\}\\n\\nLast updated: \$\{date\}\\nCommit: \$\{sha\}`;/
+      );
     });
   });
 });
