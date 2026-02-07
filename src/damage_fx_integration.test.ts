@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import * as THREE from 'three';
-import { initGame, state, updateState } from './state';
+import { initGame, state, updateState, spawnFireball } from './state';
 import { UIManager } from './UIManager';
 import { GameConfig } from './config';
 
@@ -31,8 +31,8 @@ describe('Damage FX Integration', () => {
     expect(overlay?.classList.contains('animate-damage-flash')).toBe(false);
     expect(shieldBar?.classList.contains('animate-shield-impact')).toBe(false);
 
-    // Force spawn a fireball since updateState might take many frames to spawn one randomly
-    const fireball = state.entityManager!.spawnFireball(
+    // Force spawn a fireball using public API
+    const fireball = spawnFireball(
       new THREE.Vector3(0, 0, -10),
       new THREE.Vector3(0, 0, 10)
     );

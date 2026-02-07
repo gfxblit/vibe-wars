@@ -160,25 +160,21 @@ export class UIManager {
     this.firstUpdate = false;
   }
 
-  private triggerDamageFX() {
-    const flashClass = 'animate-damage-flash';
-    const impactClass = 'animate-shield-impact';
-
-    // Reset and trigger damage flash
-    this.damageOverlay.classList.remove(flashClass);
-    void this.damageOverlay.offsetWidth; 
-    this.damageOverlay.classList.add(flashClass);
-
-    // Reset and trigger shield impact
-    this.shieldBar.classList.remove(impactClass);
-    void this.shieldBar.offsetWidth; 
-    this.shieldBar.classList.add(impactClass);
+  private retriggerAnimation(element: HTMLElement, className: string) {
+    element.classList.remove(className);
+    // Force a reflow to allow the animation to be re-triggered if it was already running
+    void element.offsetWidth; 
+    element.classList.add(className);
 
     // Robust cleanup: ensure classes are removed even if the animation is throttled
     // or the browser environment doesn't trigger animationend consistently.
     setTimeout(() => {
-      this.damageOverlay.classList.remove(flashClass);
-      this.shieldBar.classList.remove(impactClass);
+      element.classList.remove(className);
     }, GameConfig.ui.damageFlashDuration + 100);
+  }
+
+  private triggerDamageFX() {
+    this.retriggerAnimation(this.damageOverlay, 'animate-damage-flash');
+    this.retriggerAnimation(this.shieldBar, 'animate-shield-impact');
   }
 }
