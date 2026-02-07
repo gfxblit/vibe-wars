@@ -41,7 +41,7 @@ export class EntityManager {
         this.scratchPlayerVelocity.copy(this.scratchPlayerForward).multiplyScalar(GameConfig.player.forwardSpeed);
         this.scratchRelativeVelocity.copy(fireDirection).multiplyScalar(GameConfig.fireball.relativeSpeed);
         this.scratchTotalVelocity.copy(this.scratchPlayerVelocity).add(this.scratchRelativeVelocity);
-        
+
         this.scratchFireballPos.copy(tf.position);
         this.spawnFireball(this.scratchFireballPos, this.scratchTotalVelocity);
       }
@@ -58,23 +58,31 @@ export class EntityManager {
       const fb = this.fireballs[i];
       fb.update(deltaTime);
 
+      // Remove if expired (after explosion animation completes)
+      if (fb.isExpired()) {
+        this.removeFireball(i);
+        continue;
+      }
+
       // If fireball is far behind player, expire it
       this.scratchToFireball.subVectors(fb.position, playerPosition);
       const dot = this.scratchToFireball.dot(this.scratchPlayerForward);
-      
+
       // If it's more than configured units behind the player, it's missed
       if (dot < -GameConfig.fireball.expirationDistance) {
         this.removeFireball(i);
         continue;
       }
 
-      // Basic collision check with player
-      const distance = fb.position.distanceTo(playerPosition);
-      if (distance < (GameConfig.fireball.collisionRadiusWorld + GameConfig.player.meshSize)) {
-        if (onPlayerHit) {
-          onPlayerHit(GameConfig.fireball.damage);
+      // Basic collision check with player (only if not already exploded)
+      if (!fb.isExploded) {
+        const distance = fb.position.distanceTo(playerPosition);
+        if (distance < (GameConfig.fireball.collisionRadiusWorld + GameConfig.player.meshSize)) {
+          if (onPlayerHit) {
+            onPlayerHit(GameConfig.fireball.damage);
+          }
+          fb.explode();
         }
-        this.removeFireball(i);
       }
     }
 
@@ -158,20 +166,20 @@ export class EntityManager {
 
   public clear(): void {
     this.tieFighters.forEach(tf => {
-        this.worldScene.remove(tf.mesh);
-        tf.dispose();
+      this.worldScene.remove(tf.mesh);
+      tf.dispose();
     });
     this.tieFighters = [];
 
     this.fireballs.forEach(fb => {
-        this.worldScene.remove(fb.mesh);
-        fb.dispose();
+      this.worldScene.remove(fb.mesh);
+      fb.dispose();
     });
     this.fireballs = [];
 
     this.lasers.forEach(laser => {
-        this.hudScene.remove(laser.mesh);
-        laser.dispose();
+      this.hudScene.remove(laser.mesh);
+      laser.dispose();
     });
     this.lasers = [];
 
