@@ -35,7 +35,7 @@ describe('Game State', () => {
     const initialZ = state.player!.position.z;
     updateState(1); // 1 second
     // Forward motion is negative Z.
-    expect(state.player!.position.z).toBe(initialZ); // 0 in config
+    expect(state.player!.position.z).toBeLessThan(initialZ);
   })
 
   test('updateState updates TIE fighters', () => {

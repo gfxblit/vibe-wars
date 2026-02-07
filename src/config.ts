@@ -11,7 +11,7 @@ export const GameConfig = {
     backgroundColor: 0x000000,
   },
   player: {
-    forwardSpeed: 0,
+    forwardSpeed: 100,
     turnSpeedYaw: Math.PI / 1.5,
     turnSpeedPitch: Math.PI / 1.5,
     maxBank: Math.PI / 4,

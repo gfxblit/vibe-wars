@@ -13,8 +13,7 @@ describe('GameConfig', () => {
   });
 
   test('should have player settings', () => {
-    // Current value is 0 as per user preference
-    expect(GameConfig.player.forwardSpeed).toBe(0);
+    expect(GameConfig.player.forwardSpeed).toBe(100);
     expect(GameConfig.player.turnSpeedYaw).toBeCloseTo(Math.PI / 1.5);
     expect(GameConfig.player.turnSpeedPitch).toBeCloseTo(Math.PI / 1.5);
     expect(GameConfig.player.maxBank).toBeCloseTo(Math.PI / 4);
