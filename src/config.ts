@@ -48,7 +48,7 @@ export const GameConfig = {
     boltLength: 30,
     thickness: 10,
     color: 0x00ffff,
-    alternateColor: 0xff00ff,
+    alternateColor: 0x0000ff,
     offsets: [
       { x: -1.2, y: 0.8 },
       { x: 1.2, y: 0.8 },
