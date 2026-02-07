@@ -23,6 +23,8 @@ describe('UIManager', () => {
         centerX: 512,
         centerY: 384,
       },
+      lasers: [],
+      gunColorToggles: [false, false, false, false],
     };
 
     // Clean up body

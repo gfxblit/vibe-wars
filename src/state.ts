@@ -3,6 +3,7 @@
  * major refactoring as the architecture is finalized.
  */
 import * as THREE from 'three';
+import { Player } from './entities/Player';
 import { TieFighter } from './entities/TieFighter';
 import { UserInput } from './input';
 import { Laser } from './entities/Laser';

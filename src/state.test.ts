@@ -3,7 +3,6 @@ import { state, initGame, addScore, takeDamage, nextPhase, checkCollision, updat
 import * as THREE from 'three';
 import { Player } from './entities/Player';
 import { TieFighter } from './entities/TieFighter';
-import { Laser } from './entities/Laser';
 
 beforeEach(() => {
   initGame();

@@ -40,13 +40,13 @@ describe('GameConfig', () => {
   });
 
   test('should have laser settings', () => {
-    expect(GameConfig.laser.speed).toBe(1000);
+    expect(GameConfig.laser.speed).toBe(2000);
     expect(GameConfig.laser.cooldown).toBe(0.15);
     expect(GameConfig.laser.targetDepth).toBe(200);
-    expect(GameConfig.laser.boltLength).toBe(60);
+    expect(GameConfig.laser.boltLength).toBe(30);
     expect(GameConfig.laser.thickness).toBe(10);
     expect(GameConfig.laser.color).toBe(0x00ffff);
-    expect(GameConfig.laser.alternateColor).toBe(0x0000ff);
+    expect(GameConfig.laser.alternateColor).toBe(0xff00ff);
     expect(GameConfig.laser.offsets).toEqual([
       { x: -1.2, y: 0.8 },
       { x: 1.2, y: 0.8 },

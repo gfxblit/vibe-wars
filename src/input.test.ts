@@ -294,5 +294,4 @@ describe('InputManager', () => {
     listeners['touchend']({ touches: [], target: fireButton });
     expect(inputManager.getInput().isFiring).toBe(false);
   });
-  });
 });

@@ -81,7 +81,6 @@ export class InputManager {
     // Only stop dragging if no touches are left (or if the drag touch ended)
     if (event.touches.length === 0) {
       this.isDragging = false;
-      this.pointerInput.set(0, 0);
     }
   };
 
