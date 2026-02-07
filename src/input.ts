@@ -62,6 +62,7 @@ export class InputManager {
     // If we touch the fire button, don't start dragging/steering
     if (event.target === this.fireButton) {
       this.isFiring = true;
+      event.preventDefault();
       return;
     }
 
