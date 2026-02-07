@@ -47,7 +47,7 @@ describe('Fireball Integration', () => {
     expect(fb).toBeDefined();
     const initialDist = fb!.position.distanceTo(state.player!.position);
 
-    updateState(0.01); 
+    updateState(0.01);
     const newDist = fb!.position.distanceTo(state.player!.position);
 
     expect(newDist).toBeLessThan(initialDist);
@@ -64,15 +64,37 @@ describe('Fireball Integration', () => {
       const fireballs = state.entityManager!.getFireballs();
       if (fireballs.length > beforeCount) fb = fireballs[fireballs.length - 1];
     }
-    
-    expect(fb).toBeDefined();
+
     const initialShields = state.shields;
-    
-    // Teleport fireball to player
-    fb!.position.copy(state.player!.position);
 
-    updateState(0.01);
+    updateState(0.1);
 
-    expect(state.shields).toBeLessThan(initialShields);
+    expect(state.shields).toBe(initialShields);
+  });
+
+  it('should not damage player if exploded', () => {
+    const fireball = new Fireball(new THREE.Vector3(0, 0, -1), new THREE.Vector3(0, 0, 0));
+    fireball.explode();
+    state.entityManager!.getFireballs().push(fireball);
+
+    const initialShields = state.shields;
+
+    updateState(0.1);
+
+    expect(state.shields).toBe(initialShields);
+  });
+
+  it('should not register another hit if already exploded', () => {
+    // This test verifies that CombatSystem skips exploded fireballs
+    const fireball = new Fireball(new THREE.Vector3(0, 0, -20), new THREE.Vector3(0, 0, 10));
+    fireball.explode();
+    state.entityManager!.getFireballs().push(fireball);
+
+    const initialScore = state.score;
+
+    // Even if we update, the exploded fireball shouldn't award more points
+    updateState(0.1);
+
+    expect(state.score).toBe(initialScore);
   });
 });

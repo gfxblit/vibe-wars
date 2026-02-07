@@ -109,5 +109,8 @@ export const GameConfig = deepFreeze({
     points: 100,
     damage: 1,
     expirationDistance: 10,
+    sparkleCount: 8,
+    sparkleSize: 0.5,
+    explosionVelocity: 25,
   },
 } as const);

@@ -36,7 +36,32 @@ describe('Fireball', () => {
     expect(fb.velocity.z).toBe(3);
   });
 
-  it('should have a mesh of type LineSegments', () => {
-    expect(fireball.mesh).toBeInstanceOf(THREE.LineSegments);
+  it('should have a mesh of type Group', () => {
+    expect(fireball.mesh).toBeInstanceOf(THREE.Group);
+  });
+
+  it('should initialize as not exploded', () => {
+    expect(fireball.isExploded).toBe(false);
+  });
+
+  it('should set isExploded to true when explode() is called', () => {
+    fireball.explode();
+    expect(fireball.isExploded).toBe(true);
+  });
+
+  it('should move sparkles outward when exploded', () => {
+    const dt = 1.0;
+    fireball.explode();
+    
+    // Capture initial positions of sparkles relative to the group
+    const initialSparklePositions = fireball.mesh.children.map(c => c.position.clone());
+    
+    fireball.update(dt);
+    
+    fireball.mesh.children.forEach((child, i) => {
+      const initialPos = initialSparklePositions[i];
+      // The child should have moved away from the origin (0,0,0) of the group
+      expect(child.position.length()).toBeGreaterThan(initialPos.length());
+    });
   });
 });
