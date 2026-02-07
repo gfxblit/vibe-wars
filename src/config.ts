@@ -42,13 +42,13 @@ export const GameConfig = {
     meshSize: 1,
   },
   laser: {
-    speed: 1000,
+    speed: 2000,
     cooldown: 0.15,
     targetDepth: 200,
-    boltLength: 60,
+    boltLength: 30,
     thickness: 10,
     color: 0x00ffff,
-    alternateColor: 0x0000ff,
+    alternateColor: 0xff00ff,
     offsets: [
       { x: -1.2, y: 0.8 },
       { x: 1.2, y: 0.8 },
