@@ -7,6 +7,9 @@ import { UserInput } from './input';
 export class CombatSystem {
   private camera: THREE.Camera;
   private fireCooldown: number = 0;
+  private readonly laserPos2D = new THREE.Vector2();
+  private readonly fbPos2D = new THREE.Vector2();
+  private readonly tempVector3 = new THREE.Vector3();
 
   constructor(camera: THREE.Camera) {
     this.camera = camera;
@@ -46,22 +49,20 @@ export class CombatSystem {
     const lasers = state.entityManager.getLasers();
     const fireballs = state.entityManager.getFireballs();
 
-    const laserPos2D = new THREE.Vector2();
-    const fbPos2D = new THREE.Vector2();
     const collisionRadiusSq = GameConfig.fireball.collisionRadiusNDC * GameConfig.fireball.collisionRadiusNDC;
 
     // We don't iterate lasers and remove them here because EntityManager.update handles their lifecycle (expiration).
     // However, we DO check collisions between current lasers and fireballs.
     lasers.forEach(laser => {
-      laserPos2D.set(laser.mesh.position.x, laser.mesh.position.y);
+      this.laserPos2D.set(laser.mesh.position.x, laser.mesh.position.y);
 
       // Check for collision with fireballs
       for (let j = fireballs.length - 1; j >= 0; j--) {
         const fb = fireballs[j];
-        const fbNDC = fb.getNDCDelta(this.camera);
-        fbPos2D.set(fbNDC.x, fbNDC.y);
+        fb.projectToNDC(this.camera, this.tempVector3);
+        this.fbPos2D.set(this.tempVector3.x, this.tempVector3.y);
 
-        const distSq = laserPos2D.distanceToSquared(fbPos2D);
+        const distSq = this.laserPos2D.distanceToSquared(this.fbPos2D);
         if (distSq < collisionRadiusSq) {
           addScore(GameConfig.fireball.points);
           state.entityManager!.removeFireball(j);

@@ -14,6 +14,14 @@ export class EntityManager {
   private hudScene: THREE.Scene;
   private strategyFactory: AIStrategyFactory;
 
+  // Scratch vectors to avoid GC pressure
+  private readonly scratchPlayerVelocity = new THREE.Vector3();
+  private readonly scratchRelativeVelocity = new THREE.Vector3();
+  private readonly scratchTotalVelocity = new THREE.Vector3();
+  private readonly scratchFireballPos = new THREE.Vector3();
+  private readonly scratchPlayerForward = new THREE.Vector3();
+  private readonly scratchToFireball = new THREE.Vector3();
+
   constructor(worldScene: THREE.Scene, hudScene: THREE.Scene, strategyFactory: AIStrategyFactory = new AIStrategyFactory()) {
     this.worldScene = worldScene;
     this.hudScene = hudScene;
@@ -21,7 +29,7 @@ export class EntityManager {
   }
 
   public update(deltaTime: number, playerPosition: THREE.Vector3, playerQuaternion: THREE.Quaternion, isSmartAI: boolean, onPlayerHit?: (damage: number) => void): void {
-    const playerForward = new THREE.Vector3(0, 0, -1).applyQuaternion(playerQuaternion);
+    this.scratchPlayerForward.set(0, 0, -1).applyQuaternion(playerQuaternion);
 
     // 1. Update existing TIE fighters
     for (let i = this.tieFighters.length - 1; i >= 0; i--) {
@@ -30,11 +38,12 @@ export class EntityManager {
 
       if (fireDirection && !tf.isExploded) {
         // Inherit player's forward velocity so the fireball closure rate is exactly relativeSpeed
-        const playerVelocity = playerForward.clone().multiplyScalar(GameConfig.player.forwardSpeed);
-        const relativeVelocity = fireDirection.multiplyScalar(GameConfig.fireball.relativeSpeed);
-        const totalVelocity = playerVelocity.add(relativeVelocity);
+        this.scratchPlayerVelocity.copy(this.scratchPlayerForward).multiplyScalar(GameConfig.player.forwardSpeed);
+        this.scratchRelativeVelocity.copy(fireDirection).multiplyScalar(GameConfig.fireball.relativeSpeed);
+        this.scratchTotalVelocity.copy(this.scratchPlayerVelocity).add(this.scratchRelativeVelocity);
         
-        this.spawnFireball(tf.position.clone(), totalVelocity);
+        this.scratchFireballPos.copy(tf.position);
+        this.spawnFireball(this.scratchFireballPos, this.scratchTotalVelocity);
       }
 
       // Cleanup distant TIE fighters
@@ -45,14 +54,13 @@ export class EntityManager {
     }
 
     // 2. Update fireballs and check for player collision
-    const toFireball = new THREE.Vector3();
     for (let i = this.fireballs.length - 1; i >= 0; i--) {
       const fb = this.fireballs[i];
       fb.update(deltaTime);
 
       // If fireball is far behind player, expire it
-      toFireball.subVectors(fb.position, playerPosition);
-      const dot = toFireball.dot(playerForward);
+      this.scratchToFireball.subVectors(fb.position, playerPosition);
+      const dot = this.scratchToFireball.dot(this.scratchPlayerForward);
       
       // If it's more than configured units behind the player, it's missed
       if (dot < -GameConfig.fireball.expirationDistance) {

@@ -25,10 +25,8 @@ export class Fireball extends Entity {
     this.mesh.position.addScaledVector(this.velocity, deltaTime);
   }
 
-  getNDCDelta(camera: THREE.Camera): THREE.Vector3 {
-    const pos = this.position.clone();
-    pos.project(camera);
-    return pos;
+  projectToNDC(camera: THREE.Camera, target: THREE.Vector3): void {
+    target.copy(this.position).project(camera);
   }
 
   dispose(): void {
