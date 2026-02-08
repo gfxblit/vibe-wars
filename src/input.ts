@@ -16,6 +16,7 @@ export class InputManager {
   private keys: Set<string> = new Set();
   private isDragging: boolean = false;
   private dragTouchId: number | null = null;
+  private dragStartedOnFireButton: boolean = false;
   private isFiring: boolean = false;
   private useRelativeInput: boolean = false;
   private pointerAnchor: THREE.Vector2 = new THREE.Vector2(0, 0);
@@ -32,16 +33,16 @@ export class InputManager {
   };
 
   private handleMouseDown = (event: MouseEvent) => {
-    // Clicks on the fire button should only set firing state.
+    // Clicks on the fire button should set firing state
     if (event.target === this.fireButton) {
       this.isFiring = true;
-      return;
-    }
-
-    // Clicks on other UI elements should be ignored for game input.
-    const target = event.target as HTMLElement;
-    if (target.tagName !== 'CANVAS' && target !== document.body && target !== document.documentElement) {
-      return;
+      // Continue to drag logic
+    } else {
+        // Clicks on other UI elements should be ignored for game input.
+        const target = event.target as HTMLElement;
+        if (target.tagName !== 'CANVAS' && target !== document.body && target !== document.documentElement) {
+            return;
+        }
     }
 
     this.isDragging = true;
@@ -65,6 +66,17 @@ export class InputManager {
       
       if (touch.target === this.fireButton) {
         this.isFiring = true;
+        
+        // Fire button can initiate drag if we aren't dragging yet
+        if (!this.isDragging) {
+            this.isDragging = true;
+            this.dragTouchId = touch.identifier;
+            this.dragStartedOnFireButton = true;
+            this.useRelativeInput = true;
+            this.pointerAnchor.set(touch.clientX, touch.clientY);
+            this.pointerInput.set(0, 0);
+        }
+        
         event.preventDefault();
         continue;
       }
@@ -79,9 +91,17 @@ export class InputManager {
       if (!this.isDragging) {
         this.isDragging = true;
         this.dragTouchId = touch.identifier;
+        this.dragStartedOnFireButton = false;
         this.useRelativeInput = true;
         this.pointerAnchor.set(touch.clientX, touch.clientY);
         this.pointerInput.set(0, 0);
+      } 
+      // HIJACK: If we ARE dragging, but it started on the fire button, allow this new canvas touch to take over
+      else if (this.isDragging && this.dragStartedOnFireButton) {
+          this.dragTouchId = touch.identifier;
+          this.dragStartedOnFireButton = false; // Transferred to canvas
+          this.pointerAnchor.set(touch.clientX, touch.clientY);
+          this.pointerInput.set(0, 0);
       }
     }
   };
