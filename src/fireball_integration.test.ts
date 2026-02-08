@@ -75,13 +75,14 @@ describe('Fireball Integration', () => {
     const initialShields = state.shields;
     
     if (fb) {
-         // Teleport player and camera to origin so fireball at -0.11 is at near plane
+         // Teleport player and camera to origin
          state.player!.position.set(0, 0, 0);
          camera.position.set(0, 0, 0);
          camera.updateMatrixWorld();
          
-         fb.mesh.position.set(0, 0, -0.11);
-         fb.velocity.set(0, 0, 0);
+         // Start outside threshold (1.5) and move through it
+         fb.mesh.position.set(0, 0, -2.0);
+         fb.velocity.set(0, 0, 40); // Will move 4.0 in 0.1s, reaching +2.0
     }
 
     updateState(0.1, camera);
@@ -90,8 +91,8 @@ describe('Fireball Integration', () => {
   });
 
   it('should not damage player if exploded', () => {
-    // Fireball at near plane (-0.11) but exploded
-    const fireball = new Fireball(new THREE.Vector3(0, 0, -0.11), new THREE.Vector3(0, 0, 0));
+    // Fireball moving across threshold but already exploded
+    const fireball = new Fireball(new THREE.Vector3(0, 0, -2.0), new THREE.Vector3(0, 0, 40));
     fireball.explode();
     state.entityManager!.getFireballs().push(fireball);
 
@@ -104,7 +105,7 @@ describe('Fireball Integration', () => {
 
   it('should not register another hit if already exploded', () => {
     // This test verifies that CombatSystem skips exploded fireballs
-    const fireball = new Fireball(new THREE.Vector3(0, 0, -0.11), new THREE.Vector3(0, 0, 10));
+    const fireball = new Fireball(new THREE.Vector3(0, 0, -2.0), new THREE.Vector3(0, 0, 40));
     fireball.explode();
     state.entityManager!.getFireballs().push(fireball);
 

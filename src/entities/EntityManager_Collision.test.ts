@@ -27,16 +27,12 @@ describe('EntityManager Collision', () => {
   test('should detect collision when fireball hits near plane (screen)', () => {
     const onPlayerHit = vi.fn();
     
-    // A fireball at z=-0.11 is just past the near plane (0.1)
-    // In NDC, z = -1 is near, z = 1 is far.
-    // So z=-0.11 should be very close to -1.
-    const fbPos = new THREE.Vector3(0, 0, -0.11); 
-    const fbVel = new THREE.Vector3(0, 0, 0);
+    // threshold is 1.5. Start at 2.0.
+    const fbPos = new THREE.Vector3(0, 0, -2.0); 
+    const fbVel = new THREE.Vector3(0, 0, 40); // Moves 4.0 in 0.1s
     const fireball = entityManager.spawnFireball(fbPos, fbVel);
 
-    const ndc = new THREE.Vector3().copy(fbPos).project(mockCamera);
-    console.log(`Fireball at ${fbPos.z}, NDC: ${ndc.x}, ${ndc.y}, ${ndc.z}`);
-
+    // Moves to z = +2.0 (behind camera). Crossing 1.5, 0, etc.
     entityManager.update(0.1, playerPosition, playerQuaternion, false, mockCamera, onPlayerHit);
 
     expect(onPlayerHit).toHaveBeenCalledWith(GameConfig.fireball.damage);
@@ -45,9 +41,9 @@ describe('EntityManager Collision', () => {
 
   test('should NOT detect collision when fireball is off-screen (NDC X > 1)', () => {
     const onPlayerHit = vi.fn();
-    // Way to the right, but at same depth
-    const fbPos = new THREE.Vector3(10, 0, -0.11);
-    const fbVel = new THREE.Vector3(0, 0, 0);
+    // Way to the right. Start at z = -2.0.
+    const fbPos = new THREE.Vector3(10, 0, -2.0);
+    const fbVel = new THREE.Vector3(0, 0, 40);
     const fireball = entityManager.spawnFireball(fbPos, fbVel);
 
     entityManager.update(0.1, playerPosition, playerQuaternion, false, mockCamera, onPlayerHit);
@@ -56,11 +52,11 @@ describe('EntityManager Collision', () => {
     expect(fireball.isExploded).toBe(false);
   });
 
-  test('should NOT detect collision when fireball is too far (NDC Z > threshold)', () => {
+  test('should NOT detect collision when fireball is too far (dist > threshold)', () => {
     const onPlayerHit = vi.fn();
-    // Far away
+    // Far away, moving but won't reach threshold
     const fbPos = new THREE.Vector3(0, 0, -10);
-    const fbVel = new THREE.Vector3(0, 0, 0);
+    const fbVel = new THREE.Vector3(0, 0, 20); // Moves to -8.0
     const fireball = entityManager.spawnFireball(fbPos, fbVel);
 
     entityManager.update(0.1, playerPosition, playerQuaternion, false, mockCamera, onPlayerHit);
@@ -71,15 +67,13 @@ describe('EntityManager Collision', () => {
 
   test('should NOT detect collision when fireball is behind the camera', () => {
     const onPlayerHit = vi.fn();
-    // Behind camera (positive Z)
+    // Behind camera (positive Z), moving further away
     const fbPos = new THREE.Vector3(0, 0, 1); 
-    const fbVel = new THREE.Vector3(0, 0, 0);
+    const fbVel = new THREE.Vector3(0, 0, 40); 
     const fireball = entityManager.spawnFireball(fbPos, fbVel);
 
     entityManager.update(0.1, playerPosition, playerQuaternion, false, mockCamera, onPlayerHit);
 
-    // Three.js project() for points behind camera usually results in z > 1
-    // or sometimes weird values, but definitely not < -0.9
     expect(onPlayerHit).not.toHaveBeenCalled();
     expect(fireball.isExploded).toBe(false);
   });

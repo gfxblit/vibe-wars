@@ -40,18 +40,19 @@ describe('Damage FX Integration', () => {
     expect(fireball).not.toBeNull();
     
     // Teleport fireball to near camera to cause collision (Hit Screen)
-    // Assuming mock camera at (0,0,10) looking at (0,0,0)
+    // Use origin-based camera for simplicity
     const camera = new THREE.PerspectiveCamera();
-    camera.position.set(0, 0, 10);
-    camera.lookAt(0, 0, 0);
+    camera.position.set(0, 0, 0);
+    camera.lookAt(0, 0, -1);
     camera.updateMatrixWorld();
     camera.updateProjectionMatrix();
 
-    fireball!.position.set(0, 0, 9.9);
-    fireball!.velocity.set(0, 0, 0);
+    // Start outside threshold (1.5) and move through it
+    fireball!.position.set(0, 0, -2.0);
+    fireball!.velocity.set(0, 0, 40);
 
     // Update state to process collision
-    updateState(0.01, camera);
+    updateState(0.1, camera);
     
     expect(state.shields).toBeLessThan(GameConfig.player.maxShields);
 

@@ -22,6 +22,7 @@ export class EntityManager {
   private readonly scratchFireballPos = new THREE.Vector3();
   private readonly scratchPlayerForward = new THREE.Vector3();
   private readonly scratchToFireball = new THREE.Vector3();
+  private readonly scratchToPrevFireball = new THREE.Vector3();
 
   constructor(worldScene: THREE.Scene, hudScene: THREE.Scene, strategyFactory: AIStrategyFactory = new AIStrategyFactory()) {
     this.worldScene = worldScene;
@@ -77,20 +78,31 @@ export class EntityManager {
 
       // Camera Plane Collision check
       if (!fb.isExploded) {
-        // Reuse scratch vector for NDC calculation
-        fb.projectToNDC(camera, this.scratchFireballPos);
+        // Continuous Collision Detection (CCD): 
+        // Check if fireball crossed the hit plane between previous and current frame.
+        this.scratchToFireball.subVectors(fb.position, camera.position);
+        this.scratchToPrevFireball.subVectors(fb.previousPosition, camera.position);
         
-        const hitZThreshold = GameConfig.fireball.hitZThreshold;
-        const ndcZ = this.scratchFireballPos.z;
-        const ndcX = this.scratchFireballPos.x;
-        const ndcY = this.scratchFireballPos.y;
+        const currDist = this.scratchToFireball.dot(this.scratchPlayerForward);
+        const prevDist = this.scratchToPrevFireball.dot(this.scratchPlayerForward);
         
-        // Check if hit screen plane (approaching from front maps to Z approaching -1 in NDC)
-        if (ndcZ < hitZThreshold && Math.abs(ndcX) <= 1 && Math.abs(ndcY) <= 1) {
+        const threshold = GameConfig.fireball.hitDistanceThreshold;
+        
+        // Trigger if it crossed from front of threshold to behind threshold
+        if (prevDist > threshold && currDist <= threshold) {
+          fb.projectToNDC(camera, this.scratchFireballPos);
+          
+          const ndcX = this.scratchFireballPos.x;
+          const ndcY = this.scratchFireballPos.y;
+          const ndcThreshold = GameConfig.fireball.hitNDCThreshold;
+          
+          // Check if it's roughly on screen at the moment of impact
+          if (Math.abs(ndcX) <= ndcThreshold && Math.abs(ndcY) <= ndcThreshold) {
              if (onPlayerHit) {
                onPlayerHit(GameConfig.fireball.damage);
              }
              fb.explode();
+          }
         }
       }
     }

@@ -78,27 +78,21 @@ describe('Game State', () => {
     // Let's manually set collision by ensuring projectToNDC returns what we want?
     // We can spy on it.
     
-    const fbPos = new THREE.Vector3(0, 0, 1);
-    const fbVel = new THREE.Vector3(0, 0, 0); // Stationary for test control
+    // Start outside threshold (1.5) and move through it
+    const fbPos = new THREE.Vector3(0, 0, -2.0); // 2.0 in front of camera
+    const fbVel = new THREE.Vector3(0, 0, 40); // Move towards camera
     const fireball = spawnFireball(fbPos, fbVel);
 
-    // Update camera to ensure matrices are ready for this "frame"
-    mockCamera.position.set(0, 0, 10);
-    mockCamera.lookAt(0, 0, 0);
+    // Update camera to be at 0,0,0 facing -Z
+    mockCamera.position.set(0, 0, 0);
+    mockCamera.lookAt(0, 0, -1);
     mockCamera.updateMatrixWorld();
     mockCamera.updateProjectionMatrix();
 
     const initialShields = state.shields;
     
-    // We can spy on projectToNDC for the fireball instance to guarantee a hit
-    // since geometric calculations can be finicky in tests.
-    // But `spawnFireball` returns a fireball instance.
-    // @ts-ignore
-    fireball.projectToNDC = (camera, target) => {
-        target.set(0, 0, -0.95); // Hit!
-    };
-
-    updateState(0.01, mockCamera);
+    // We don't need to mock projectToNDC if it's already centered
+    updateState(0.1, mockCamera);
 
     expect(state.shields).toBeLessThan(initialShields);
     // Fireball should now be exploded but still in array
