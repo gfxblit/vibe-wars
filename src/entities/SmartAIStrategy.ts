@@ -8,11 +8,11 @@ export class SmartAIStrategy implements AIStrategy {
   private escapeTimer: number = 0;
   private extraIntensity: number = 0;
   private isInitialized: boolean = false;
-  private phase: 'APPROACH' | 'SHADOW' | 'ESCAPE' = 'APPROACH';
+  private stage: 'APPROACH' | 'SHADOW' | 'ESCAPE' = 'APPROACH';
   private readonly offset = new THREE.Vector3();
   private readonly escapeDirection = new THREE.Vector3(0, 0, -1);
   private readonly arcDirection = new THREE.Vector2();
-  private readonly phaseOffsets = { x: 0, y: 0 };
+  private readonly stageOffsets = { x: 0, y: 0 };
 
   // Reusable objects to avoid GC pressure
   private readonly prevWorldPos = new THREE.Vector3();
@@ -29,14 +29,14 @@ export class SmartAIStrategy implements AIStrategy {
       this.rng.random() > 0.5 ? 1 : -1,
       this.rng.random() > 0.5 ? 1 : -1
     );
-    this.phaseOffsets.x = this.rng.random() * Math.PI * 2;
-    this.phaseOffsets.y = this.rng.random() * Math.PI * 2;
+    this.stageOffsets.x = this.rng.random() * Math.PI * 2;
+    this.stageOffsets.y = this.rng.random() * Math.PI * 2;
   }
 
   public getColor(debug: boolean = false): number {
     if (!debug) return GameConfig.tieFighter.meshColor;
-    if (this.phase === 'ESCAPE') return 0xffff00; // Yellow for Escape
-    if (this.phase === 'SHADOW') return 0x00ffff; // Cyan for Shadow
+    if (this.stage === 'ESCAPE') return 0xffff00; // Yellow for Escape
+    if (this.stage === 'SHADOW') return 0x00ffff; // Cyan for Shadow
     return GameConfig.tieFighter.meshColor; // Red for Approach
   }
 
@@ -62,9 +62,9 @@ export class SmartAIStrategy implements AIStrategy {
     this.prevWorldPos.copy(entityPosition);
     const relativeSpeed = GameConfig.tieFighter.smartSpeed - GameConfig.player.forwardSpeed;
 
-    // Phase transitions and Z-Movement logic
+    // Stage transitions and Z-Movement logic
     let speedFactor = 1.0;
-    if (this.phase === 'APPROACH') {
+    if (this.stage === 'APPROACH') {
       const distToShadow = this.offset.z - GameConfig.tieFighter.smartShadowDistance;
       const brakingZone = GameConfig.tieFighter.smartBrakingZone;
       
@@ -75,18 +75,18 @@ export class SmartAIStrategy implements AIStrategy {
       // Smoothly ramp up extra intensity as we approach
       this.extraIntensity = GameConfig.tieFighter.smartIntensityMax * (1.0 - speedFactor);
 
-      if (distToShadow <= GameConfig.tieFighter.smartPhaseThreshold) {
-        this.phase = 'SHADOW';
+      if (distToShadow <= GameConfig.tieFighter.smartStageThreshold) {
+        this.stage = 'SHADOW';
         this.shadowTimer = 0;
         this.offset.z = GameConfig.tieFighter.smartShadowDistance;
         this.extraIntensity = GameConfig.tieFighter.smartIntensityMax;
       }
-    } else if (this.phase === 'SHADOW') {
+    } else if (this.stage === 'SHADOW') {
       this.shadowTimer += deltaTime;
       this.offset.z = GameConfig.tieFighter.smartShadowDistance;
       this.extraIntensity = GameConfig.tieFighter.smartIntensityMax;
       if (this.shadowTimer >= GameConfig.tieFighter.smartShadowDuration) {
-        this.phase = 'ESCAPE';
+        this.stage = 'ESCAPE';
         this.escapeTimer = 0;
         
         // Randomize escape trajectory
@@ -107,7 +107,7 @@ export class SmartAIStrategy implements AIStrategy {
           ).normalize();
         }
       }
-    } else if (this.phase === 'ESCAPE') {
+    } else if (this.stage === 'ESCAPE') {
       this.escapeTimer += deltaTime;
       const accelerationDuration = GameConfig.tieFighter.smartEscapeAccelerationDuration;
       const t = Math.min(1.0, this.escapeTimer / accelerationDuration);
@@ -125,9 +125,9 @@ export class SmartAIStrategy implements AIStrategy {
 
     // Cinematic Arc: Intensity is high near the player and during shadowing
     const arcIntensity = Math.exp(-Math.pow(this.offset.z / GameConfig.tieFighter.smartArcFalloff, 2)) + this.extraIntensity;
-    const xArc = Math.sin(this.elapsedTime * GameConfig.tieFighter.smartArcFrequency + this.phaseOffsets.x) * 
+    const xArc = Math.sin(this.elapsedTime * GameConfig.tieFighter.smartArcFrequency + this.stageOffsets.x) * 
                  GameConfig.tieFighter.smartArcAmplitude * arcIntensity * this.arcDirection.x;
-    const yArc = Math.cos(this.elapsedTime * GameConfig.tieFighter.smartArcFrequency * GameConfig.tieFighter.smartArcFrequencyMult + this.phaseOffsets.y) * 
+    const yArc = Math.cos(this.elapsedTime * GameConfig.tieFighter.smartArcFrequency * GameConfig.tieFighter.smartArcFrequencyMult + this.stageOffsets.y) * 
                  GameConfig.tieFighter.smartArcAmplitude * GameConfig.tieFighter.smartArcAmplitudeMult * arcIntensity * this.arcDirection.y;
 
     // Small persistent oscillation

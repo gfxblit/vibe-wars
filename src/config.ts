@@ -91,7 +91,7 @@ export const GameConfig = deepFreeze({
     smartSpawnRandomY: 30,
     smartBrakingZone: 60,
     smartIntensityMax: 0.8,
-    smartPhaseThreshold: 0.1,
+    smartStageThreshold: 0.1,
     smartEscapeAccelerationDuration: 6.0,
     smartEscapeFadeDuration: 3.0,
     smartArcFalloff: 60,
@@ -131,10 +131,9 @@ export const GameConfig = deepFreeze({
     sparkleCount: 8,
     sparkleSize: 4.0,
     explosionVelocity: 30,
-        explosionDuration: 0.5, // Seconds before removing exploded fireball
-        hitZThreshold: -0.8,
-        hitDistanceThreshold: 2.0,
-        hitNDCThreshold: 1.2,
-      },
-    } as const);
-    
+    explosionDuration: 0.5, // Seconds before removing exploded fireball
+    hitZThreshold: -0.8,
+    hitDistanceThreshold: 2.0,
+    hitNDCThreshold: 1.2,
+  },
+} as const);

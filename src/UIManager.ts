@@ -1,4 +1,4 @@
-import { GameState, state } from './state';
+import { GameState, state, setStage } from './state';
 import { GameConfig } from './config';
 
 export class UIManager {
@@ -7,13 +7,14 @@ export class UIManager {
   private shieldValue!: HTMLElement;
   private shieldBar!: HTMLElement;
   private waveValue!: HTMLElement;
-  private phaseValue!: HTMLElement;
+  private stageValue!: HTMLElement;
   private instructionValue!: HTMLElement;
   private gameOver!: HTMLElement;
   private debugPanel?: HTMLElement;
   private damageOverlay!: HTMLElement;
+  private stageButtons?: Map<string, HTMLElement>;
   private lastShields: number;
-  private lastPhase: string = '';
+  private lastStage: string = '';
   private damageTimeout: any = null;
   private shieldTimeout: any = null;
 
@@ -21,7 +22,7 @@ export class UIManager {
 
   constructor() {
     this.lastShields = GameConfig.player.maxShields;
-    
+
     // Set CSS variables from config (convert ms to s)
     document.documentElement.style.setProperty('--ui-damage-flash-duration', `${GameConfig.ui.damageFlashDuration / 1000}s`);
 
@@ -34,10 +35,10 @@ export class UIManager {
     this.createScoreSection(topBar);
     this.createShieldSection(topBar);
     this.createWaveSection(topBar);
-    
+
     // Central info area
     const centerArea = this.createEl('div', 'fixed top-1/4 left-1/2 -translate-x-1/2 flex flex-col items-center space-y-4 pointer-events-none', this.hud);
-    this.phaseValue = this.createEl('div', 'text-vector-yellow text-4xl animate-pulse hidden', centerArea);
+    this.stageValue = this.createEl('div', 'text-vector-yellow text-4xl animate-pulse hidden', centerArea);
     this.instructionValue = this.createEl('div', 'text-vector-green text-xl text-center hidden', centerArea);
 
     this.createGameOverOverlay();
@@ -56,7 +57,7 @@ export class UIManager {
   private createDebugPanel() {
     this.debugPanel = this.createEl('div', 'fixed bottom-4 left-4 pointer-events-auto bg-black bg-opacity-70 border border-vector-green p-4 flex flex-col space-y-2 text-vector-green font-retro text-xs z-20', document.body);
     this.debugPanel.id = 'debug-panel';
-    
+
     const title = this.createEl('div', 'mb-2 border-b border-vector-green pb-1', this.debugPanel);
     title.textContent = 'DEBUG CONSOLE';
 
@@ -80,6 +81,22 @@ export class UIManager {
       () => { state.showChassis = !state.showChassis; },
       this.debugPanel
     );
+
+    // Stage Switcher
+    this.createEl('div', 'mt-4 mb-2 border-b border-vector-green pb-1', this.debugPanel).textContent = 'STAGE SWITCHER';
+    const stageRow = this.createEl('div', 'flex space-x-2', this.debugPanel);
+    this.stageButtons = new Map();
+
+    const dogfightBtn = this.createActionButton('stage-dogfight', 'DOGFIGHT', () => { setStage('DOGFIGHT'); }, stageRow);
+    this.stageButtons.set('DOGFIGHT', dogfightBtn);
+
+    const surfaceBtn = this.createActionButton('stage-surface', 'SURFACE', () => { setStage('SURFACE'); }, stageRow);
+    this.stageButtons.set('SURFACE', surfaceBtn);
+
+    const trenchBtn = this.createActionButton('stage-trench', 'TRENCH', () => { setStage('TRENCH'); }, stageRow);
+    this.stageButtons.set('TRENCH', trenchBtn);
+
+    this.updateStageButtons(state.stage);
   }
 
   private createToggleButton(id: string, getText: () => string, onClick: () => void, parent: HTMLElement) {
@@ -91,6 +108,32 @@ export class UIManager {
       btn.textContent = getText();
     };
     return btn;
+  }
+
+  private createActionButton(id: string, text: string, onClick: () => void, parent: HTMLElement) {
+    const btn = this.createEl('button', 'px-2 py-1 border border-vector-green hover:bg-vector-green hover:text-black transition-colors', parent);
+    btn.id = id;
+    btn.textContent = text;
+    btn.onclick = () => {
+      onClick();
+    };
+    return btn;
+  }
+
+  private updateStageButtons(currentStage: string) {
+    if (!this.stageButtons) return;
+
+    this.stageButtons.forEach((button, stage) => {
+      if (stage === currentStage) {
+        // Active stage: green background, black text
+        button.classList.add('bg-vector-green', 'text-black');
+        button.classList.remove('hover:bg-vector-green', 'hover:text-black');
+      } else {
+        // Inactive stage: default styling
+        button.classList.remove('bg-vector-green', 'text-black');
+        button.classList.add('hover:bg-vector-green', 'hover:text-black');
+      }
+    });
   }
 
   private createEl(tag: string, className: string, parent?: HTMLElement): HTMLElement {
@@ -153,7 +196,7 @@ export class UIManager {
     if (this.scoreValue.textContent !== state.score.toString()) {
       this.scoreValue.textContent = state.score.toString();
     }
-    
+
     if (this.shieldValue.textContent !== state.shields.toString()) {
       // Trigger damage FX only if shields decreased AND it's not the first update
       if (!this.firstUpdate && state.shields < this.lastShields) {
@@ -170,19 +213,19 @@ export class UIManager {
       this.waveValue.textContent = state.wave.toString();
     }
 
-    // Handle Phase display and instructions
-    if (this.lastPhase !== state.phase) {
-      this.lastPhase = state.phase;
-      this.phaseValue.textContent = `PHASE: ${state.phase}`;
-      this.phaseValue.classList.remove('hidden');
-      
-      // Auto-hide phase title after 3 seconds
+    // Handle Stage display and instructions
+    if (this.lastStage !== state.stage) {
+      this.lastStage = state.stage;
+      this.stageValue.textContent = `STAGE: ${state.stage}`;
+      this.stageValue.classList.remove('hidden');
+
+      // Auto-hide stage title after 3 seconds
       setTimeout(() => {
-        this.phaseValue.classList.add('hidden');
+        this.stageValue.classList.add('hidden');
       }, 3000);
 
       // Context-sensitive instructions
-      switch (state.phase) {
+      switch (state.stage) {
         case 'DOGFIGHT':
           this.instructionValue.textContent = 'CLEAR THE SECTOR OF TIE FIGHTERS';
           this.instructionValue.classList.remove('hidden');
@@ -196,7 +239,7 @@ export class UIManager {
           this.instructionValue.classList.remove('hidden');
           break;
       }
-      
+
       // Auto-hide instructions after 5 seconds
       setTimeout(() => {
         this.instructionValue.classList.add('hidden');
@@ -209,75 +252,78 @@ export class UIManager {
       this.gameOver.classList.add('hidden');
     }
 
+    if (this.stageButtons) {
+      this.updateStageButtons(state.stage);
+    }
+
     this.firstUpdate = false;
   }
 
-    private retriggerAnimation(element: HTMLElement, className: string, existingTimeout?: any, onComplete?: (timeout: any) => void) {
+  private retriggerAnimation(element: HTMLElement, className: string, existingTimeout?: any, onComplete?: (timeout: any) => void) {
 
-      if (existingTimeout) {
+    if (existingTimeout) {
 
-        clearTimeout(existingTimeout);
-
-      }
-
-  
-
-      element.classList.remove(className);
-
-      // Force a reflow
-
-      void element.offsetWidth; 
-
-      element.classList.add(className);
-
-  
-
-      const newTimeout = setTimeout(() => {
-
-        element.classList.remove(className);
-
-      }, GameConfig.ui.damageFlashDuration + 100);
-
-  
-
-      if (onComplete) {
-
-        onComplete(newTimeout);
-
-      }
+      clearTimeout(existingTimeout);
 
     }
 
-  
 
-    private triggerDamageFX() {
 
-      this.retriggerAnimation(
+    element.classList.remove(className);
 
-        this.damageOverlay, 
+    // Force a reflow
 
-        'animate-damage-flash', 
+    void element.offsetWidth;
 
-        this.damageTimeout,
+    element.classList.add(className);
 
-        (t) => this.damageTimeout = t
 
-      );
 
-      this.retriggerAnimation(
+    const newTimeout = setTimeout(() => {
 
-        this.shieldBar, 
+      element.classList.remove(className);
 
-        'animate-shield-impact', 
+    }, GameConfig.ui.damageFlashDuration + 100);
 
-        this.shieldTimeout,
 
-        (t) => this.shieldTimeout = t
 
-      );
+    if (onComplete) {
+
+      onComplete(newTimeout);
 
     }
 
   }
 
-  
+
+
+  private triggerDamageFX() {
+
+    this.retriggerAnimation(
+
+      this.damageOverlay,
+
+      'animate-damage-flash',
+
+      this.damageTimeout,
+
+      (t) => this.damageTimeout = t
+
+    );
+
+    this.retriggerAnimation(
+
+      this.shieldBar,
+
+      'animate-shield-impact',
+
+      this.shieldTimeout,
+
+      (t) => this.shieldTimeout = t
+
+    );
+
+  }
+
+}
+

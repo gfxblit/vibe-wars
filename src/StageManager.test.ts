@@ -20,14 +20,14 @@ describe('StageManager', () => {
   });
 
   it('should initialize with DogfightStage', () => {
-    expect(state.phase).toBe('DOGFIGHT');
+    expect(state.stage).toBe('DOGFIGHT');
   });
 
   it('should transition to SurfaceStage when kill threshold is met', () => {
     state.kills = GameConfig.stage.trenchKillsThreshold;
     stageManager.update(0.1, player);
     
-    expect(state.phase).toBe('SURFACE');
+    expect(state.stage).toBe('SURFACE');
     expect(scene.children.some(child => child.type === 'Mesh' && (child as THREE.Mesh).geometry.type === 'SphereGeometry')).toBe(true);
 
     // Verify TIE fighters are cleared and spawning is disabled
@@ -39,7 +39,7 @@ describe('StageManager', () => {
   it('should transition to TrenchStage when player is close to DeathStar', () => {
     state.kills = GameConfig.stage.trenchKillsThreshold;
     stageManager.update(0.1, player);
-    expect(state.phase).toBe('SURFACE');
+    expect(state.stage).toBe('SURFACE');
     
     // Find the spawned DeathStar mesh in the scene
     const deathStarMesh = scene.children.find(child => child.type === 'Mesh' && (child as THREE.Mesh).geometry.type === 'SphereGeometry') as THREE.Mesh;
@@ -51,7 +51,7 @@ describe('StageManager', () => {
     
     stageManager.update(0.1, player);
     
-    expect(state.phase).toBe('TRENCH');
+    expect(state.stage).toBe('TRENCH');
     // Verify player pose reset
     expect(player.position.x).toBe(0);
     expect(player.position.y).toBe(0);
@@ -59,9 +59,9 @@ describe('StageManager', () => {
     expect(player.mesh.quaternion.w).toBe(1);
   });
 
-  it('should apply trench clamping in TRENCH phase', () => {
-    state.phase = 'TRENCH';
-    // We need to manually set the stage to TrenchStage because state.phase change alone doesn't do it if we don't call update with transition
+  it('should apply trench clamping in TRENCH stage', () => {
+    state.stage = 'TRENCH';
+    // We need to manually set the stage to TrenchStage because state.stage change alone doesn't do it if we don't call update with transition
     stageManager.reset(); 
     
     const halfWidth = GameConfig.stage.trenchWidth / 2;
@@ -80,8 +80,8 @@ describe('StageManager', () => {
     expect(player.position.y).toBeGreaterThanOrEqual(-halfHeight);
   });
 
-  it('should detect collision with catwalks in TRENCH phase', () => {
-    state.phase = 'TRENCH';
+  it('should detect collision with catwalks in TRENCH stage', () => {
+    state.stage = 'TRENCH';
     stageManager.reset();
     const initialShields = state.shields;
 
@@ -110,8 +110,8 @@ describe('StageManager', () => {
     expect(state.shields).toBe(currentShields - 1);
   });
 
-  it('should allow passing safely through gaps in TRENCH phase', () => {
-    state.phase = 'TRENCH';
+  it('should allow passing safely through gaps in TRENCH stage', () => {
+    state.stage = 'TRENCH';
     stageManager.reset();
     const initialShields = state.shields;
 
@@ -127,27 +127,27 @@ describe('StageManager', () => {
   });
 
   it('should complete level when reaching end of trench', () => {
-    state.phase = 'TRENCH';
+    state.stage = 'TRENCH';
     stageManager.reset();
     
     player.position.set(0, 0, -GameConfig.stage.trenchLength - 100);
     stageManager.update(0.1, player);
     
-    // Should loop back to DOGFIGHT (or whatever next phase logic is)
-    // based on StageManager reset() calling initStage() which reads state.phase.
-    // Wait, StageManager.ts sets nextPhase() which cycles the enum?
-    // Let's check nextPhase() behavior or what happens after Trench.
-    // The code says: nextPhase(); manager.reset();
-    // We assume nextPhase cycles back to DOGFIGHT if it's the end.
+    // Should loop back to DOGFIGHT (or whatever next stage logic is)
+    // based on StageManager reset() calling initStage() which reads state.stage.
+    // Wait, StageManager.ts sets goToNextStage() which cycles the enum?
+    // Let's check goToNextStage() behavior or what happens after Trench.
+    // The code says: goToNextStage(); manager.reset();
+    // We assume goToNextStage cycles back to DOGFIGHT if it's the end.
     
-    // Actually, looking at previous tests, nextPhase updates state.phase.
+    // Actually, looking at previous tests, goToNextStage updates state.stage.
     // If TRENCH is the last, it might cycle or stop. 
     // Let's just check that it changed from TRENCH.
-    expect(state.phase).not.toBe('TRENCH');
+    expect(state.stage).not.toBe('TRENCH');
   });
 
   it('should complete level when hitting the exhaust port', () => {
-    state.phase = 'TRENCH';
+    state.stage = 'TRENCH';
     stageManager.reset();
     
     const { catwalkEndZ, exhaustPortZOffset, trenchHeight } = GameConfig.stage;
@@ -157,6 +157,6 @@ describe('StageManager', () => {
     player.position.set(0, portY, portZ);
     stageManager.update(0.1, player);
     
-    expect(state.phase).not.toBe('TRENCH');
+    expect(state.stage).not.toBe('TRENCH');
   });
 });

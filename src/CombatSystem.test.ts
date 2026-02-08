@@ -97,7 +97,7 @@ describe('CombatSystem', () => {
   });
 
   it('completes level and awards bonus when hitting exhaust port', () => {
-    state.phase = 'TRENCH';
+    state.stage = 'TRENCH';
     state.stageManager!.reset();
     
     // Position camera to look at the port
@@ -118,7 +118,7 @@ describe('CombatSystem', () => {
     const initialScore = state.score;
     combatSystem.update(0.01, input);
 
-    expect(state.phase).not.toBe('TRENCH');
+    expect(state.stage).not.toBe('TRENCH');
     expect(state.score).toBeGreaterThan(initialScore + 9999);
   });
 });

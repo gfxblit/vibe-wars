@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { GameConfig } from './config';
-import { state, nextPhase, takeDamage } from './state';
+import { state, goToNextStage, takeDamage } from './state';
 import { Player } from './entities/Player';
 import { DeathStar } from './entities/DeathStar';
 import { Trench } from './entities/Trench';
@@ -13,7 +13,7 @@ export interface Stage {
 }
 
 class DogfightStage implements Stage {
-  constructor(private manager: StageManager) {
+  constructor() {
     if (state.entityManager) {
       state.entityManager.setSpawningEnabled(true);
     }
@@ -21,8 +21,7 @@ class DogfightStage implements Stage {
 
   update(_deltaTime: number, _player: Player): void {
     if (state.kills >= GameConfig.stage.trenchKillsThreshold) {
-      nextPhase();
-      this.manager.setStage(new SurfaceStage(this.manager));
+      goToNextStage();
     }
   }
 
@@ -62,8 +61,7 @@ class SurfaceStage implements Stage {
     const dist = toDeathStar.length();
 
     if (dist < GameConfig.stage.trenchTransitionDistance + GameConfig.stage.deathStarSize) {
-      nextPhase();
-      this.manager.setStage(new TrenchStage(this.manager));
+      goToNextStage();
     }
 
     // Magnetic Steering: Slowly rotate player towards Death Star
@@ -128,8 +126,7 @@ class TrenchStage implements Stage {
     // If player reaches the end of the trench or hits the port, they win the stage
     const hitPort = this.trench.checkPortCollision(player.position);
     if (hitPort || player.position.z <= -GameConfig.stage.trenchLength) {
-      nextPhase();
-      this.manager.reset();
+      goToNextStage();
     }
   }
 
@@ -147,9 +144,9 @@ export class StageManager {
   }
 
   private initStage(): void {
-    switch (state.phase) {
+    switch (state.stage) {
       case 'DOGFIGHT':
-        this.currentStage = new DogfightStage(this);
+        this.currentStage = new DogfightStage();
         break;
       case 'SURFACE':
         this.currentStage = new SurfaceStage(this);
@@ -174,7 +171,7 @@ export class StageManager {
   }
 
   public checkExhaustPortHit(input: UserInput, camera: THREE.Camera): boolean {
-    if (state.phase !== 'TRENCH' || !this.currentStage) return false;
+    if (state.stage !== 'TRENCH' || !this.currentStage) return false;
     if (!state.player) return false;
     
     // The port position is fixed in world space based on config

@@ -45,7 +45,7 @@ function animate(time: number) {
 
   // Render
   if (state.player) {
-    starField.points.visible = state.phase !== 'TRENCH'
+    starField.points.visible = state.stage !== 'TRENCH'
     if (starField.points.visible) {
       starField.update(state.player.position)
     }

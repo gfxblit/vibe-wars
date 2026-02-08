@@ -1,5 +1,5 @@
 import { expect, test, beforeEach, describe } from 'vitest'
-import { state, initGame, addScore, takeDamage, nextPhase, checkCollision, updateState, spawnLasers, spawnFireball } from './state'
+import { state, initGame, addScore, takeDamage, goToNextStage, checkCollision, updateState, spawnLasers, spawnFireball } from './state'
 import * as THREE from 'three';
 import { Player } from './entities/Player';
 import { TieFighter } from './entities/TieFighter';
@@ -23,7 +23,7 @@ describe('Game State', () => {
     expect(state.score).toBe(0)
     expect(state.shields).toBe(6)
     expect(state.kills).toBe(0)
-    expect(state.phase).toBe('DOGFIGHT')
+    expect(state.stage).toBe('DOGFIGHT')
     expect(state.player).toBeInstanceOf(Player)
     expect(state.entityManager!.getTieFighters()[0]).toBeInstanceOf(TieFighter)
     expect(state.entityManager!.getLasers()).toEqual([]);
@@ -159,14 +159,14 @@ describe('Game State', () => {
     expect(state.isGameOver).toBe(true);
   })
 
-  test('nextPhase transitions through phases', () => {
-    expect(state.phase).toBe('DOGFIGHT');
-    nextPhase();
-    expect(state.phase).toBe('SURFACE');
-    nextPhase();
-    expect(state.phase).toBe('TRENCH');
-    nextPhase();
-    expect(state.phase).toBe('DOGFIGHT');
+  test('goToNextStage transitions through stages', () => {
+    expect(state.stage).toBe('DOGFIGHT');
+    goToNextStage();
+    expect(state.stage).toBe('SURFACE');
+    goToNextStage();
+    expect(state.stage).toBe('TRENCH');
+    goToNextStage();
+    expect(state.stage).toBe('DOGFIGHT');
     expect(state.wave).toBe(2);
   })
 

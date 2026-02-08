@@ -11,7 +11,7 @@ import { GameConfig } from './config';
 import { EntityManager } from './entities/EntityManager';
 import { StageManager } from './StageManager';
 
-export type GamePhase = 'DOGFIGHT' | 'SURFACE' | 'TRENCH';
+export type GameStage = 'DOGFIGHT' | 'SURFACE' | 'TRENCH';
 
 export interface Viewport {
   width: number;
@@ -25,7 +25,7 @@ export interface GameState {
   shields: number;
   kills: number;
   wave: number;
-  phase: GamePhase;
+  stage: GameStage;
   isGameOver: boolean;
   player: Player | null;
   entityManager: EntityManager | null;
@@ -46,7 +46,7 @@ export const state: GameState = {
   shields: GameConfig.player.maxShields,
   kills: 0,
   wave: 1,
-  phase: 'DOGFIGHT',
+  stage: 'DOGFIGHT',
   isGameOver: false,
   player: null,
   entityManager: null,
@@ -73,7 +73,7 @@ export function initGame(worldScene: THREE.Scene, hudScene: THREE.Scene) {
   state.shields = GameConfig.player.maxShields;
   state.kills = 0;
   state.wave = 1;
-  state.phase = 'DOGFIGHT';
+  state.stage = 'DOGFIGHT';
   state.isGameOver = false;
   state.gunColorToggles = GameConfig.laser.offsets.map(() => false);
 
@@ -110,6 +110,14 @@ export function updateState(deltaTime: number, camera: THREE.Camera, input: User
   );
 
   state.stageManager.update(deltaTime, state.player);
+}
+
+export function setStage(stage: GameStage) {
+  state.stage = stage;
+  state.kills = 0;
+  if (state.stageManager) {
+    state.stageManager.reset();
+  }
 }
 
 export function spawnLasers(input: Pick<UserInput, 'x' | 'y'>): Laser[] {
@@ -165,14 +173,14 @@ export function takeDamage(amount: number = 1) {
   }
 }
 
-export function nextPhase() {
-  const phases: GamePhase[] = ['DOGFIGHT', 'SURFACE', 'TRENCH'];
-  const currentIndex = phases.indexOf(state.phase);
-  if (currentIndex < phases.length - 1) {
-    state.phase = phases[currentIndex + 1];
+export function goToNextStage() {
+  const stages: GameStage[] = ['DOGFIGHT', 'SURFACE', 'TRENCH'];
+  const currentIndex = stages.indexOf(state.stage);
+  if (currentIndex < stages.length - 1) {
+    setStage(stages[currentIndex + 1]);
   } else {
-    state.phase = 'DOGFIGHT';
     state.wave++;
+    setStage('DOGFIGHT');
   }
 }
 
