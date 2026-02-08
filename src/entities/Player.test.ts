@@ -3,8 +3,6 @@ import * as THREE from 'three'
 import { Player } from './Player'
 import { GameConfig } from '../config'
 
-import { state } from '../state'
-
 describe('Player', () => {
   let player: Player;
 

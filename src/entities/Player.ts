@@ -2,7 +2,6 @@ import * as THREE from 'three';
 import { Entity } from './Entity';
 import { GameConfig } from '../config';
 import { UserInput } from '../input';
-import { state } from '../state';
 
 export class Player extends Entity {
   public readonly mesh: THREE.Group;

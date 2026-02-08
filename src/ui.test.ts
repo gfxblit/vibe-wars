@@ -23,6 +23,7 @@ describe('UIManager', () => {
       isGameOver: false,
       player: null,
       entityManager: null,
+      stageManager: null,
       viewport: {
         width: 1024,
         height: 768,
