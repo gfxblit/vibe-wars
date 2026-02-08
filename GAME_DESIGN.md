@@ -50,29 +50,29 @@ The control scheme simulates the original flight yoke using modern input methods
 
 ---
 
-## 3. Level Design (The 3 Phases)
+## 3. Level Design (The 3 Stages)
 
-The game loops through three distinct phases of increasing difficulty.
+The game loops through three distinct stages of increasing difficulty.
 
-### Phase 1: Dogfight in Deep Space
+### Stage 1: Dogfight in Deep Space
 * **Objective:** Destroy incoming TIE Fighters and Darth Vader’s TIE Advanced.
 * **Hazards:** Enemy ships fire "fireballs" (slow-moving projectiles) that the player must shoot or dodge.
 * **Transition:** Once a set number of enemies are defeated or time elapses, the player approaches the Death Star surface.
 
-### Phase 2: The Surface
+### Stage 2: The Surface
 * **Objective:** Destroy defensive bunkers and laser towers on the surface of the Death Star.
 * **Hazards:**
     * **Towers:** The tops of towers must be shot off to prevent them from firing.
     * **Collision:** Flying too low results in crashing into the surface.
 * **Visuals:** A grid-like floor moves beneath the player to simulate speed.
 
-### Phase 3: The Trench Run
+### Stage 3: The Trench Run
 * **Objective:** Navigate the narrow trench and fire a proton torpedo into the exhaust port.
 * **Mechanics:**
     * **Obstacles:** Catwalks and wall turrets appear in the trench. The player must weave over and under catwalks.
     * **The Shot:** As the exhaust port approaches, a distance countdown begins. At the correct moment, the player must fire.
     * **Success:** A cutscene of the Death Star exploding plays.
-    * **Failure:** If the player misses the port or hits the wall, they lose a shield and must restart the Trench Run phase.
+    * **Failure:** If the player misses the port or hits the wall, they lose a shield and must restart the Trench Run stage.
 
 ---
 
@@ -95,7 +95,7 @@ The game loops through three distinct phases of increasing difficulty.
 
 ## 5. Progression & Difficulty
 
-The game uses an **infinite loop** system. After destroying the Death Star, the game restarts at Phase 1 with increased difficulty settings:
+The game uses an **infinite loop** system. After destroying the Death Star, the game restarts at Stage 1 with increased difficulty settings:
 
 * **Wave 1:** Standard difficulty.
 * **Wave 2:** TIE Fighters shoot more frequently; Trench catwalks are more dense.

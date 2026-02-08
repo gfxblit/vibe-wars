@@ -63,7 +63,7 @@ describe('CombatSystem', () => {
     expect(initialCount).toBeGreaterThan(0);
 
     // Update via EntityManager to expire lasers
-    state.entityManager!.update(2.1, new THREE.Vector3(), new THREE.Quaternion(), true, camera, () => { });
+    state.entityManager!.update(2.1, new THREE.Vector3(), new THREE.Quaternion(), true, camera, 100, () => { });
 
     expect(state.entityManager!.getLasers().length).toBe(0);
     expect(hudScene.children.length).toBe(0);
@@ -99,19 +99,19 @@ describe('CombatSystem', () => {
   it('completes level and awards bonus when hitting exhaust port', () => {
     state.stage = 'TRENCH';
     state.stageManager!.reset();
-    
+
     // Position camera to look at the port
     const { catwalkEndZ, exhaustPortZOffset, trenchHeight } = GameConfig.stage;
     const portZ = catwalkEndZ - exhaustPortZOffset;
     const portY = -trenchHeight / 2 + 10;
-    
+
     // Set player position so it's within range
     state.player!.position.set(0, 0, portZ + 100);
-    
+
     // Camera is usually at (0, 0, 0) relative to player in this test setup
     camera.position.set(0, 0, portZ + 100);
     camera.lookAt(0, portY, portZ);
-    
+
     // input pointing directly at it (0,0 in NDC)
     const input = { x: 0, y: 0, isFiring: false, isLaunchingTorpedo: true };
 

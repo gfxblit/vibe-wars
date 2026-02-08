@@ -7,7 +7,7 @@ import { state } from '../state';
 export class TieFighter extends Entity {
   public readonly mesh: THREE.Group;
   private strategy: AIStrategy;
-  
+
   public isExploded: boolean = false;
   private pieceVelocities: THREE.Vector3[] = [];
 
@@ -25,22 +25,22 @@ export class TieFighter extends Entity {
     super();
     this.mesh = new THREE.Group();
     this.strategy = strategy;
-    
+
     const size = GameConfig.tieFighter.meshSize;
 
     if (!TieFighter.material) {
-        TieFighter.material = new THREE.MeshBasicMaterial({ 
-            color: GameConfig.tieFighter.meshColor, 
-            wireframe: true 
-        });
+      TieFighter.material = new THREE.MeshBasicMaterial({
+        color: GameConfig.tieFighter.meshColor,
+        wireframe: true
+      });
     }
 
     if (!TieFighter.bodyGeo) {
-        TieFighter.bodyGeo = new THREE.SphereGeometry(size / 3, 8, 8);
+      TieFighter.bodyGeo = new THREE.SphereGeometry(size / 3, 8, 8);
     }
 
     if (!TieFighter.wingGeo) {
-        TieFighter.wingGeo = new THREE.PlaneGeometry(size, size);
+      TieFighter.wingGeo = new THREE.PlaneGeometry(size, size);
     }
 
     // Body (Sphere)
@@ -67,31 +67,31 @@ export class TieFighter extends Entity {
 
     // Generate random velocities for each piece
     this.mesh.children.forEach(() => {
-        const vel = GameConfig.tieFighter.explosionVelocity;
-        const velocity = new THREE.Vector3(
-            (Math.random() - 0.5) * vel,
-            (Math.random() - 0.5) * vel,
-            (Math.random() - 0.5) * vel
-        );
-        this.pieceVelocities.push(velocity);
+      const vel = GameConfig.tieFighter.explosionVelocity;
+      const velocity = new THREE.Vector3(
+        (Math.random() - 0.5) * vel,
+        (Math.random() - 0.5) * vel,
+        (Math.random() - 0.5) * vel
+      );
+      this.pieceVelocities.push(velocity);
     });
   }
 
-  public update(deltaTime: number, playerPosition: THREE.Vector3, playerQuaternion: THREE.Quaternion): THREE.Vector3 | null {
+  public update(deltaTime: number, playerPosition: THREE.Vector3, playerQuaternion: THREE.Quaternion, playerSpeed: number): THREE.Vector3 | null {
     if (this.isExploded) {
-        // Move pieces
-        this.mesh.children.forEach((child, index) => {
-            if (this.pieceVelocities[index]) {
-                child.position.addScaledVector(this.pieceVelocities[index], deltaTime);
-                child.rotation.x += deltaTime * 2;
-                child.rotation.y += deltaTime * 2;
-            }
-        });
-        return null; 
+      // Move pieces
+      this.mesh.children.forEach((child, index) => {
+        if (this.pieceVelocities[index]) {
+          child.position.addScaledVector(this.pieceVelocities[index], deltaTime);
+          child.rotation.x += deltaTime * 2;
+          child.rotation.y += deltaTime * 2;
+        }
+      });
+      return null;
     }
 
     this.fireCooldown -= deltaTime;
-    this.strategy.update(deltaTime, this.mesh.position, this.mesh.quaternion, playerPosition, playerQuaternion);
+    this.strategy.update(deltaTime, this.mesh.position, this.mesh.quaternion, playerPosition, playerQuaternion, playerSpeed);
 
     // Debug: Update color if strategy provides one and mode coloring is enabled
     if (this.strategy.getColor) {

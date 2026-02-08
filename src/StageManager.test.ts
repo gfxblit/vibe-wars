@@ -26,7 +26,7 @@ describe('StageManager', () => {
   it('should transition to SurfaceStage when kill threshold is met', () => {
     state.kills = GameConfig.stage.trenchKillsThreshold;
     stageManager.update(0.1, player);
-    
+
     expect(state.stage).toBe('SURFACE');
     expect(scene.children.some(child => child.type === 'Mesh' && (child as THREE.Mesh).geometry.type === 'SphereGeometry')).toBe(true);
 
@@ -40,7 +40,7 @@ describe('StageManager', () => {
     state.kills = GameConfig.stage.trenchKillsThreshold;
     stageManager.update(0.1, player);
     expect(state.stage).toBe('SURFACE');
-    
+
     // Find the spawned DeathStar mesh in the scene
     const deathStarMesh = scene.children.find(child => child.type === 'Mesh' && (child as THREE.Mesh).geometry.type === 'SphereGeometry') as THREE.Mesh;
     expect(deathStarMesh).toBeDefined();
@@ -48,9 +48,9 @@ describe('StageManager', () => {
     // Move player close to the DeathStar's surface
     const dsPos = deathStarMesh.position.clone();
     player.position.copy(dsPos).add(new THREE.Vector3(0, 0, GameConfig.stage.deathStarSize + GameConfig.stage.trenchTransitionDistance - 10));
-    
+
     stageManager.update(0.1, player);
-    
+
     expect(state.stage).toBe('TRENCH');
     // Verify player pose reset
     expect(player.position.x).toBe(0);
@@ -62,20 +62,20 @@ describe('StageManager', () => {
   it('should apply trench clamping in TRENCH stage', () => {
     state.stage = 'TRENCH';
     // We need to manually set the stage to TrenchStage because state.stage change alone doesn't do it if we don't call update with transition
-    stageManager.reset(); 
-    
+    stageManager.reset();
+
     const halfWidth = GameConfig.stage.trenchWidth / 2;
     const halfHeight = GameConfig.stage.trenchHeight / 2;
-    
+
     player.position.set(halfWidth + 10, halfHeight + 10, 0);
     stageManager.update(0.1, player);
-    
+
     expect(player.position.x).toBeLessThanOrEqual(halfWidth);
     expect(player.position.y).toBeLessThanOrEqual(halfHeight);
-    
+
     player.position.set(-halfWidth - 10, -halfHeight - 10, 0);
     stageManager.update(0.1, player);
-    
+
     expect(player.position.x).toBeGreaterThanOrEqual(-halfWidth);
     expect(player.position.y).toBeGreaterThanOrEqual(-halfHeight);
   });
@@ -100,10 +100,10 @@ describe('StageManager', () => {
     // Move to safe spot at same Z (Y = 20 should be safe for this one)
     // Note: Once we hit, we are "safe" from that specific obstacle ID until we leave it
     // But let's test a clean run for the next obstacle (-1000, Y = 20)
-    
+
     // Reset shields or account for previous damage
     const currentShields = state.shields;
-    
+
     // Move to -1000, Y = 20 (High catwalk)
     player.position.set(0, 20, -1000);
     stageManager.update(0.1, player);
@@ -129,17 +129,17 @@ describe('StageManager', () => {
   it('should complete level when reaching end of trench', () => {
     state.stage = 'TRENCH';
     stageManager.reset();
-    
+
     player.position.set(0, 0, -GameConfig.stage.trenchLength - 100);
     stageManager.update(0.1, player);
-    
+
     // Should loop back to DOGFIGHT (or whatever next stage logic is)
     // based on StageManager reset() calling initStage() which reads state.stage.
     // Wait, StageManager.ts sets goToNextStage() which cycles the enum?
     // Let's check goToNextStage() behavior or what happens after Trench.
     // The code says: goToNextStage(); manager.reset();
     // We assume goToNextStage cycles back to DOGFIGHT if it's the end.
-    
+
     // Actually, looking at previous tests, goToNextStage updates state.stage.
     // If TRENCH is the last, it might cycle or stop. 
     // Let's just check that it changed from TRENCH.
@@ -149,14 +149,14 @@ describe('StageManager', () => {
   it('should complete level when hitting the exhaust port', () => {
     state.stage = 'TRENCH';
     stageManager.reset();
-    
+
     const { catwalkEndZ, exhaustPortZOffset, trenchHeight } = GameConfig.stage;
     const portZ = catwalkEndZ - exhaustPortZOffset;
     const portY = -trenchHeight / 2 + 10;
-    
+
     player.position.set(0, portY, portZ);
     stageManager.update(0.1, player);
-    
+
     expect(state.stage).not.toBe('TRENCH');
   });
 });

@@ -22,7 +22,12 @@ export const GameConfig = deepFreeze({
     backgroundColor: 0x000000,
   },
   player: {
-    forwardSpeed: 100,
+    baseForwardSpeed: 100,
+    forwardSpeeds: {
+      DOGFIGHT: 100,
+      SURFACE: 200,
+      TRENCH: 500,
+    },
     turnSpeedYaw: Math.PI / 1.5,
     turnSpeedPitch: Math.PI / 1.5,
     maxBank: Math.PI / 4,

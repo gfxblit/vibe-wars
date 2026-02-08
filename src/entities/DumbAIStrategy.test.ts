@@ -19,27 +19,27 @@ describe('DumbAIStrategy', () => {
   })
 
   test('update should move entity ahead of player', () => {
-    strategy.update(0.1, entityPosition, entityQuaternion, playerPosition, playerQuaternion);
-    
+    strategy.update(0.1, entityPosition, entityQuaternion, playerPosition, playerQuaternion, 100);
+
     const expectedZ = -GameConfig.tieFighter.distance;
     expect(entityPosition.z).toBeCloseTo(expectedZ, 1);
   })
 
   test('update should include horizontal oscillation', () => {
     const deltaTime = 0.5;
-    strategy.update(deltaTime, entityPosition, entityQuaternion, playerPosition, playerQuaternion);
-    
+    strategy.update(deltaTime, entityPosition, entityQuaternion, playerPosition, playerQuaternion, 100);
+
     const freq = GameConfig.tieFighter.oscillationFrequency;
     const amp = GameConfig.tieFighter.oscillationAmplitude;
     const expectedX = Math.sin(deltaTime * freq) * amp;
-    
+
     expect(entityPosition.x).toBeCloseTo(expectedX, 1);
   })
 
   test('update should align entity rotation with player', () => {
     playerQuaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI / 4);
-    strategy.update(0.1, entityPosition, entityQuaternion, playerPosition, playerQuaternion);
-    
+    strategy.update(0.1, entityPosition, entityQuaternion, playerPosition, playerQuaternion, 100);
+
     expect(entityQuaternion.x).toBeCloseTo(playerQuaternion.x);
     expect(entityQuaternion.y).toBeCloseTo(playerQuaternion.y);
     expect(entityQuaternion.z).toBeCloseTo(playerQuaternion.z);

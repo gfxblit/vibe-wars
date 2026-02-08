@@ -45,7 +45,8 @@ export class SmartAIStrategy implements AIStrategy {
     entityPosition: THREE.Vector3,
     entityQuaternion: THREE.Quaternion,
     playerPosition: THREE.Vector3,
-    playerQuaternion: THREE.Quaternion
+    playerQuaternion: THREE.Quaternion,
+    playerSpeed: number
   ): void {
     this.elapsedTime += deltaTime;
 
@@ -60,14 +61,14 @@ export class SmartAIStrategy implements AIStrategy {
     }
 
     this.prevWorldPos.copy(entityPosition);
-    const relativeSpeed = GameConfig.tieFighter.smartSpeed - GameConfig.player.forwardSpeed;
+    const relativeSpeed = GameConfig.tieFighter.smartSpeed - playerSpeed;
 
     // Stage transitions and Z-Movement logic
     let speedFactor = 1.0;
     if (this.stage === 'APPROACH') {
       const distToShadow = this.offset.z - GameConfig.tieFighter.smartShadowDistance;
       const brakingZone = GameConfig.tieFighter.smartBrakingZone;
-      
+
       // Continuous deceleration to zero
       speedFactor = Math.max(0, Math.min(1.0, distToShadow / brakingZone));
       this.offset.z -= relativeSpeed * speedFactor * deltaTime;
@@ -88,7 +89,7 @@ export class SmartAIStrategy implements AIStrategy {
       if (this.shadowTimer >= GameConfig.tieFighter.smartShadowDuration) {
         this.stage = 'ESCAPE';
         this.escapeTimer = 0;
-        
+
         // Randomize escape trajectory
         const isFarAway = this.rng.random() > 0.5;
         if (isFarAway) {
@@ -111,8 +112,8 @@ export class SmartAIStrategy implements AIStrategy {
       this.escapeTimer += deltaTime;
       const accelerationDuration = GameConfig.tieFighter.smartEscapeAccelerationDuration;
       const t = Math.min(1.0, this.escapeTimer / accelerationDuration);
-      speedFactor = t * t; 
-      
+      speedFactor = t * t;
+
       // Move along the randomized escape vector
       const moveAmount = relativeSpeed * speedFactor * deltaTime;
       this.offset.x += this.escapeDirection.x * moveAmount;
@@ -132,14 +133,14 @@ export class SmartAIStrategy implements AIStrategy {
 
     // Small persistent oscillation
     const xOsc = Math.sin(this.elapsedTime * GameConfig.tieFighter.smartOscillationFreq) * GameConfig.tieFighter.smartOscillationAmp;
-    
+
     this.currentRelativePos.copy(this.offset);
     this.currentRelativePos.x += xArc + xOsc;
     this.currentRelativePos.y += yArc;
 
     // Transform relative position to world position
     entityPosition.copy(this.currentRelativePos).applyQuaternion(playerQuaternion).add(playerPosition);
-    
+
     // Face the direction of motion with smooth interpolation
     this.velocity.copy(entityPosition).sub(this.prevWorldPos);
 

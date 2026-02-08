@@ -17,7 +17,7 @@ describe('EntityManager Collision', () => {
     entityManager = new EntityManager(scene, hudScene);
     playerPosition = new THREE.Vector3(0, 0, 0);
     playerQuaternion = new THREE.Quaternion();
-    
+
     // Near: 0.1, Far: 1000
     mockCamera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
     mockCamera.position.set(0, 0, 0);
@@ -26,14 +26,14 @@ describe('EntityManager Collision', () => {
 
   test('should detect collision when fireball hits near plane (screen)', () => {
     const onPlayerHit = vi.fn();
-    
+
     // threshold is 2.0. Start at 3.0.
-    const fbPos = new THREE.Vector3(0, 0, -3.0); 
+    const fbPos = new THREE.Vector3(0, 0, -3.0);
     const fbVel = new THREE.Vector3(0, 0, 40); // Moves 4.0 in 0.1s
     const fireball = entityManager.spawnFireball(fbPos, fbVel);
 
     // Moves to z = +2.0 (behind camera). Crossing 1.5, 0, etc.
-    entityManager.update(0.1, playerPosition, playerQuaternion, false, mockCamera, onPlayerHit);
+    entityManager.update(0.1, playerPosition, playerQuaternion, false, mockCamera, 100, onPlayerHit);
 
     expect(onPlayerHit).toHaveBeenCalledWith(GameConfig.fireball.damage);
     expect(fireball.isExploded).toBe(true);
@@ -46,7 +46,7 @@ describe('EntityManager Collision', () => {
     const fbVel = new THREE.Vector3(0, 0, 40);
     const fireball = entityManager.spawnFireball(fbPos, fbVel);
 
-    entityManager.update(0.1, playerPosition, playerQuaternion, false, mockCamera, onPlayerHit);
+    entityManager.update(0.1, playerPosition, playerQuaternion, false, mockCamera, 100, onPlayerHit);
 
     expect(onPlayerHit).not.toHaveBeenCalled();
     expect(fireball.isExploded).toBe(false);
@@ -59,7 +59,7 @@ describe('EntityManager Collision', () => {
     const fbVel = new THREE.Vector3(0, 0, 20); // Moves to -8.0
     const fireball = entityManager.spawnFireball(fbPos, fbVel);
 
-    entityManager.update(0.1, playerPosition, playerQuaternion, false, mockCamera, onPlayerHit);
+    entityManager.update(0.1, playerPosition, playerQuaternion, false, mockCamera, 100, onPlayerHit);
 
     expect(onPlayerHit).not.toHaveBeenCalled();
     expect(fireball.isExploded).toBe(false);
@@ -68,11 +68,11 @@ describe('EntityManager Collision', () => {
   test('should NOT detect collision when fireball is behind the camera', () => {
     const onPlayerHit = vi.fn();
     // Behind camera (positive Z), moving further away
-    const fbPos = new THREE.Vector3(0, 0, 1); 
-    const fbVel = new THREE.Vector3(0, 0, 40); 
+    const fbPos = new THREE.Vector3(0, 0, 1);
+    const fbVel = new THREE.Vector3(0, 0, 40);
     const fireball = entityManager.spawnFireball(fbPos, fbVel);
 
-    entityManager.update(0.1, playerPosition, playerQuaternion, false, mockCamera, onPlayerHit);
+    entityManager.update(0.1, playerPosition, playerQuaternion, false, mockCamera, 100, onPlayerHit);
 
     expect(onPlayerHit).not.toHaveBeenCalled();
     expect(fireball.isExploded).toBe(false);

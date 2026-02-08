@@ -32,17 +32,17 @@ export class EntityManager {
     this.strategyFactory = strategyFactory;
   }
 
-  public update(deltaTime: number, playerPosition: THREE.Vector3, playerQuaternion: THREE.Quaternion, isSmartAI: boolean, camera: THREE.Camera, onPlayerHit?: (damage: number) => void): void {
+  public update(deltaTime: number, playerPosition: THREE.Vector3, playerQuaternion: THREE.Quaternion, isSmartAI: boolean, camera: THREE.Camera, playerSpeed: number, onPlayerHit?: (damage: number) => void): void {
     this.scratchPlayerForward.set(0, 0, -1).applyQuaternion(playerQuaternion);
 
     // 1. Update existing TIE fighters
     for (let i = this.tieFighters.length - 1; i >= 0; i--) {
       const tf = this.tieFighters[i];
-      const fireDirection = tf.update(deltaTime, playerPosition, playerQuaternion);
+      const fireDirection = tf.update(deltaTime, playerPosition, playerQuaternion, playerSpeed);
 
       if (fireDirection && !tf.isExploded) {
         // Inherit player's forward velocity so the fireball closure rate is exactly relativeSpeed
-        this.scratchPlayerVelocity.copy(this.scratchPlayerForward).multiplyScalar(GameConfig.player.forwardSpeed);
+        this.scratchPlayerVelocity.copy(this.scratchPlayerForward).multiplyScalar(playerSpeed);
         this.scratchRelativeVelocity.copy(fireDirection).multiplyScalar(GameConfig.fireball.relativeSpeed);
         this.scratchTotalVelocity.copy(this.scratchPlayerVelocity).add(this.scratchRelativeVelocity);
 
@@ -82,28 +82,28 @@ export class EntityManager {
 
         this.scratchToFireball.subVectors(fb.position, this.scratchCameraPos);
         this.scratchToPrevFireball.subVectors(fb.previousPosition, this.scratchCameraPos);
-        
+
         const currDist = this.scratchToFireball.dot(this.scratchCameraDir);
         const prevDist = this.scratchToPrevFireball.dot(this.scratchCameraDir);
-        
+
         const threshold = GameConfig.fireball.hitDistanceThreshold;
-        
+
         // A. Camera Plane Collision (Frontal)
         // Trigger if it crossed from front of threshold to behind threshold
         if (prevDist > threshold && currDist <= threshold) {
           // Use previous position for NDC check to avoid NaN/weirdness when too close to camera
           this.scratchFireballPos.copy(fb.previousPosition).project(camera);
-          
+
           const ndcX = this.scratchFireballPos.x;
           const ndcY = this.scratchFireballPos.y;
           const ndcThreshold = GameConfig.fireball.hitNDCThreshold;
-          
+
           // Check if it's roughly on screen at the moment of impact
           if (Math.abs(ndcX) <= ndcThreshold && Math.abs(ndcY) <= ndcThreshold) {
-             if (onPlayerHit) {
-               onPlayerHit(GameConfig.fireball.damage);
-             }
-             fb.explode();
+            if (onPlayerHit) {
+              onPlayerHit(GameConfig.fireball.damage);
+            }
+            fb.explode();
           }
         }
 
@@ -228,4 +228,3 @@ export class EntityManager {
 }
 
 
-    

@@ -29,7 +29,7 @@ export class Player extends Entity {
     this.position.set(0, 0, 0);
   }
 
-  public update(input: UserInput, deltaTime: number, showChassis: boolean = false): void {
+  public update(input: UserInput, deltaTime: number, speed: number, showChassis: boolean = false): void {
     this.visualMesh.visible = showChassis;
 
     // Relative turning amounts
@@ -55,6 +55,6 @@ export class Player extends Entity {
     const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(this.mesh.quaternion);
 
     // Move position forward
-    this.position.add(forward.multiplyScalar(GameConfig.player.forwardSpeed * deltaTime));
+    this.position.add(forward.multiplyScalar(speed * deltaTime));
   }
 }

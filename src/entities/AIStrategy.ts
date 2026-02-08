@@ -10,7 +10,8 @@ export interface AIStrategy {
     entityPosition: THREE.Vector3,
     entityQuaternion: THREE.Quaternion,
     playerPosition: THREE.Vector3,
-    playerQuaternion: THREE.Quaternion
+    playerQuaternion: THREE.Quaternion,
+    playerSpeed: number
   ): void;
 
   getColor?(debug?: boolean): number;

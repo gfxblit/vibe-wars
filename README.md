@@ -21,7 +21,7 @@ The control scheme simulates the original flight yoke. The ship's nose "chases" 
     *   **Inverted Option:** Toggle available in settings to invert Y-Axis (Mouse Up = Ship Down) to mimic real flight controls.
 *   **Mobile (Touch):** Virtual yoke (left) for steering, Action buttons (right) for fire.
 
-### Level Phases
+### Level Stages
 1.  **Dogfight:** Destroy TIE Fighters and avoid fireballs.
 2.  **Surface:** Destroy bunkers and towers on the Death Star surface.
 3.  **Trench Run:** Navigate obstacles and fire the proton torpedo into the exhaust port.
@@ -70,7 +70,7 @@ To achieve the 1983 arcade look, we utilize Three.js `LineSegments` with `LineBa
 Game state is centralized in `src/state.ts`. This module handles:
 *   Health/Shield reduction
 *   Score increments
-*   State transitions (e.g., Phase 1 -> Phase 2)
+*   State transitions (e.g., Stage 1 -> Stage 2)
 *   Collision math and bounds checking
 
 ---
