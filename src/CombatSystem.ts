@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { state, spawnLasers, addScore, addKill, goToNextStage } from './state';
+import { state, spawnLasers, addScore, addKill, spawnTorpedo } from './state';
 import { checkAim } from './collision';
 import { GameConfig } from './config';
 import { UserInput } from './input';
@@ -7,6 +7,7 @@ import { UserInput } from './input';
 export class CombatSystem {
   private camera: THREE.Camera;
   private fireCooldown: number = 0;
+  private torpedoCooldown: number = 0;
   private readonly laserPos2D = new THREE.Vector2();
   private readonly fbPos2D = new THREE.Vector2();
   private readonly tempVector3 = new THREE.Vector3();
@@ -17,6 +18,7 @@ export class CombatSystem {
 
   public update(deltaTime: number, input: UserInput) {
     this.fireCooldown -= deltaTime;
+    this.torpedoCooldown -= deltaTime;
 
     // 1. Handle Firing (Lasers)
     if (input.isFiring && this.fireCooldown <= 0) {
@@ -25,13 +27,12 @@ export class CombatSystem {
     }
 
     // 2. Handle Torpedo (Trench Run)
-    if (input.isLaunchingTorpedo && state.stage === 'TRENCH' && state.stageManager) {
-      // Ideally we'd have a cooldown or ammo check here, but for now 
-      // just check if the shot lands
-      if (state.stageManager.checkExhaustPortHit(input, this.camera)) {
-        goToNextStage();
-        state.stageManager.reset();
-        addScore(10000); // Big bonus!
+    if (state.stage === 'TRENCH' && state.stageManager) {
+      state.stageManager.canFireTorpedo = state.stageManager.checkExhaustPortHit(input, this.camera);
+      
+      if (input.isLaunchingTorpedo && this.torpedoCooldown <= 0) {
+        this.launchTorpedo(input);
+        this.torpedoCooldown = GameConfig.torpedo.cooldown;
       }
     }
 
@@ -42,6 +43,22 @@ export class CombatSystem {
   private fire(input: UserInput) {
     spawnLasers(input);
     this.checkHits(input);
+  }
+
+  private launchTorpedo(input: UserInput) {
+    if (!state.player) return;
+
+    // Launch from player position
+    const position = state.player.position.clone();
+    
+    // Direction: towards where the player is aiming
+    const targetPoint = new THREE.Vector3(input.x, input.y, 0.5);
+    targetPoint.unproject(this.camera);
+    
+    const direction = new THREE.Vector3().subVectors(targetPoint, this.camera.position).normalize();
+    const velocity = direction.multiplyScalar(GameConfig.player.forwardSpeed * GameConfig.torpedo.speedMultiplier);
+
+    spawnTorpedo(position, velocity);
   }
 
   private checkHits(input: UserInput) {

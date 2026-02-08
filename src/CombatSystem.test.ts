@@ -3,13 +3,13 @@ import * as THREE from 'three';
 import { CombatSystem } from './CombatSystem';
 import { state, initGame } from './state';
 import * as StateModule from './state';
-import { GameConfig } from './config';
 
 vi.mock('./state', async (importOriginal) => {
   const actual = await importOriginal<typeof import('./state')>();
   return {
     ...actual,
     spawnLasers: vi.fn(actual.spawnLasers),
+    spawnTorpedo: vi.fn(actual.spawnTorpedo),
   };
 });
 
@@ -96,29 +96,33 @@ describe('CombatSystem', () => {
     expect(state.kills).toBe(initialKills + 1);
   });
 
-  it('completes level and awards bonus when hitting exhaust port', () => {
+  it('spawns a torpedo when launching torpedoes in TRENCH stage', () => {
     state.stage = 'TRENCH';
     state.stageManager!.reset();
-
-    // Position camera to look at the port
-    const { catwalkEndZ, exhaustPortZOffset, trenchHeight } = GameConfig.stage;
-    const portZ = catwalkEndZ - exhaustPortZOffset;
-    const portY = -trenchHeight / 2 + 10;
-
-    // Set player position so it's within range
-    state.player!.position.set(0, 0, portZ + 100);
-
-    // Camera is usually at (0, 0, 0) relative to player in this test setup
-    camera.position.set(0, 0, portZ + 100);
-    camera.lookAt(0, portY, portZ);
-
-    // input pointing directly at it (0,0 in NDC)
+    
     const input = { x: 0, y: 0, isFiring: false, isLaunchingTorpedo: true };
 
-    const initialScore = state.score;
     combatSystem.update(0.01, input);
 
-    expect(state.stage).not.toBe('TRENCH');
-    expect(state.score).toBeGreaterThan(initialScore + 9999);
+    expect(StateModule.spawnTorpedo).toHaveBeenCalled();
+    expect(state.stage).toBe('TRENCH'); // Should still be in TRENCH until torpedo hits
+  });
+
+  it('launches torpedo towards aim point', () => {
+    state.stage = 'TRENCH';
+    state.stageManager!.reset();
+    
+    // Reset camera orientation
+    camera.position.set(0, 0, 0);
+    camera.lookAt(0, 0, -1);
+    camera.updateMatrixWorld();
+    
+    // Aim to the right
+    const input = { x: 0.5, y: 0, isFiring: false, isLaunchingTorpedo: true };
+    combatSystem.update(0.1, input);
+
+    expect(StateModule.spawnTorpedo).toHaveBeenCalled();
+    const velocity = (StateModule.spawnTorpedo as any).mock.calls[0][1];
+    expect(velocity.x).toBeGreaterThan(0);
   });
 });

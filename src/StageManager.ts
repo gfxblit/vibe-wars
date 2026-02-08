@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { GameConfig } from './config';
-import { state, goToNextStage, takeDamage } from './state';
+import { state, goToNextStage, takeDamage, addScore } from './state';
 import { Player } from './entities/Player';
 import { DeathStar } from './entities/DeathStar';
 import { Trench } from './entities/Trench';
@@ -130,7 +130,26 @@ class TrenchStage implements Stage {
 
     // If player reaches the end of the trench or hits the port, they win the stage
     const hitPort = this.trench.checkPortCollision(player.position);
-    if (hitPort || player.position.z <= -GameConfig.stage.trenchLength) {
+    
+    // Check if any torpedoes hit the port or obstacles
+    let torpedoHit = false;
+    if (state.entityManager) {
+      state.entityManager.getTorpedoes().forEach(torpedo => {
+        if (!torpedo.isExploded) {
+          if (this.trench.checkPortCollision(torpedo.position)) {
+            torpedoHit = true;
+            torpedo.explode();
+          } else if (this.trench.checkObstacleCollision(torpedo.position) !== null) {
+            torpedo.explode();
+          }
+        }
+      });
+    }
+
+    if (hitPort || torpedoHit || player.position.z <= -GameConfig.stage.trenchLength) {
+      if (torpedoHit) {
+        addScore(GameConfig.torpedo.bonusPoints);
+      }
       goToNextStage();
     }
   }
@@ -143,6 +162,7 @@ class TrenchStage implements Stage {
 
 export class StageManager {
   private currentStage: Stage | null = null;
+  public canFireTorpedo: boolean = false;
 
   constructor(public worldScene: THREE.Scene) {
     this.initStage();
@@ -191,7 +211,7 @@ export class StageManager {
 
     // Range Check: Can only hit when close enough
     const distanceToPort = Math.abs(state.player.position.z - portZ);
-    if (distanceToPort > 2000) return false;
+    if (distanceToPort > GameConfig.torpedo.range) return false;
 
     return checkAim(portPos, input, camera);
   }

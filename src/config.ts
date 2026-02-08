@@ -143,4 +143,10 @@ export const GameConfig = deepFreeze({
     hitDistanceThreshold: 2.0,
     hitNDCThreshold: 1.2,
   },
+  torpedo: {
+    speedMultiplier: 2.0,
+    cooldown: 2.0,
+    bonusPoints: 10000,
+    range: 2000,
+  },
 } as const);

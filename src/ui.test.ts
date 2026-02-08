@@ -225,6 +225,22 @@ describe('UIManager', () => {
     expect(hud?.textContent).toContain('STAGE: TRENCH');
   });
 
+  it('should show TORPEDO READY indicator in TRENCH stage when aiming at port', () => {
+    mockState.stage = 'TRENCH';
+    
+    // Mock StageManager
+    state.stageManager = { 
+      checkExhaustPortHit: vi.fn().mockReturnValue(true),
+      reset: vi.fn(),
+      canFireTorpedo: true
+    } as any;
+    
+    uiManager.update(mockState);
+    
+    const hud = document.getElementById('hud');
+    expect(hud?.textContent).toContain('TORPEDO READY');
+  });
+
   describe('Debug Panel - Stage Switcher', () => {
     beforeEach(() => {
       state.debug = true;

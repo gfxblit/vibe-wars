@@ -9,6 +9,7 @@ export class UIManager {
   private waveValue!: HTMLElement;
   private stageValue!: HTMLElement;
   private instructionValue!: HTMLElement;
+  private torpedoReadyValue!: HTMLElement;
   private gameOver!: HTMLElement;
   private debugPanel?: HTMLElement;
   private damageOverlay!: HTMLElement;
@@ -40,6 +41,8 @@ export class UIManager {
     const centerArea = this.createEl('div', 'fixed top-1/4 left-1/2 -translate-x-1/2 flex flex-col items-center space-y-4 pointer-events-none', this.hud);
     this.stageValue = this.createEl('div', 'text-vector-yellow text-4xl animate-pulse hidden', centerArea);
     this.instructionValue = this.createEl('div', 'text-vector-green text-xl text-center hidden', centerArea);
+    this.torpedoReadyValue = this.createEl('div', 'text-vector-red text-2xl font-bold hidden animate-pulse', centerArea);
+    this.torpedoReadyValue.textContent = 'TORPEDO READY';
 
     this.createGameOverOverlay();
 
@@ -254,6 +257,13 @@ export class UIManager {
 
     if (this.stageButtons) {
       this.updateStageButtons(state.stage);
+    }
+
+    // Torpedo Ready indicator
+    if (state.stage === 'TRENCH' && state.stageManager?.canFireTorpedo) {
+      this.torpedoReadyValue.classList.remove('hidden');
+    } else {
+      this.torpedoReadyValue.classList.add('hidden');
     }
 
     this.firstUpdate = false;

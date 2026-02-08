@@ -167,6 +167,11 @@ export function spawnFireball(position: THREE.Vector3, velocity: THREE.Vector3):
   return state.entityManager.spawnFireball(position, velocity);
 }
 
+export function spawnTorpedo(position: THREE.Vector3, velocity: THREE.Vector3) {
+  if (!state.entityManager) return null;
+  return state.entityManager.spawnTorpedo(position, velocity);
+}
+
 export function addScore(points: number) {
   state.score += points;
 }
