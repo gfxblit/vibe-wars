@@ -98,4 +98,32 @@ describe('Fireball Integration', () => {
 
     expect(state.score).toBe(initialScore);
   });
+
+  it('Fireballs should track player when player moves', () => {
+    state.isSmartAI = false;
+    initGame(scene, hudScene);
+    
+    // Spawn a fireball
+    let fb: Fireball | null = null;
+    for (let i = 0; i < 200 && !fb; i++) {
+      const beforeCount = state.entityManager!.getFireballs().length;
+      updateState(0.1);
+      const fireballs = state.entityManager!.getFireballs();
+      if (fireballs.length > beforeCount) fb = fireballs[fireballs.length - 1];
+    }
+
+    expect(fb).toBeDefined();
+    
+    // Position player far in front of the fireball's world velocity (-Z)
+    // Fireball is at z ~ -100 to -200, moving at z-velocity ~ -60.
+    state.player!.position.set(20, 0, -1000);
+    
+    const initialVelocity = fb!.velocity.clone();
+    
+    // Update state to trigger tracking
+    updateState(0.1);
+    
+    // Velocity should have changed and moved towards positive X
+    expect(fb!.velocity.x).toBeGreaterThan(initialVelocity.x);
+  });
 });

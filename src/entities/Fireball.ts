@@ -101,7 +101,27 @@ export class Fireball extends Entity {
     });
   }
 
-  update(deltaTime: number): void {
+  update(deltaTime: number, targetPosition?: THREE.Vector3): void {
+    if (targetPosition && !this.isExploded) {
+      const speed = this.velocity.length();
+      const currentDir = this.velocity.clone().normalize();
+      const targetDir = targetPosition.clone().sub(this.position).normalize();
+      
+      // Pseudo-tracking: rotate velocity towards target
+      const angle = currentDir.angleTo(targetDir);
+      
+      if (angle > 0.0001) {
+        const maxRotation = GameConfig.fireball.trackingStrength * deltaTime;
+        const actualRotation = Math.min(angle, maxRotation);
+        
+        const axis = new THREE.Vector3().crossVectors(currentDir, targetDir).normalize();
+        if (axis.lengthSq() > 0.0001) {
+          currentDir.applyAxisAngle(axis, actualRotation);
+          this.velocity.copy(currentDir).multiplyScalar(speed);
+        }
+      }
+    }
+
     this.mesh.position.addScaledVector(this.velocity, deltaTime);
 
     // Track explosion timer
