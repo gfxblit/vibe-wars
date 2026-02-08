@@ -9,8 +9,7 @@ import { Laser } from './entities/Laser';
 import { Fireball } from './entities/Fireball';
 import { GameConfig } from './config';
 import { EntityManager } from './entities/EntityManager';
-
-export type GamePhase = 'DOGFIGHT' | 'SURFACE' | 'TRENCH';
+import { GamePhase } from './types';
 
 export interface Viewport {
   width: number;
@@ -92,6 +91,7 @@ export function updateState(deltaTime: number, input: UserInput = { x: 0, y: 0, 
     state.player.position,
     state.player.mesh.quaternion,
     state.isSmartAI,
+    state.phase,
     (damage) => takeDamage(damage)
   );
 }
