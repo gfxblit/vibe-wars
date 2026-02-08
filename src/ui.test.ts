@@ -150,10 +150,10 @@ describe('UIManager', () => {
 
   it('should trigger damage flash when shields decrease', () => {
     uiManager.update(mockState); // First update (sets lastShields)
-    
+
     mockState.shields = GameConfig.player.maxShields - 1;
     uiManager.update(mockState);
-    
+
     const overlay = document.getElementById('damage-overlay');
     expect(overlay?.classList.contains('animate-damage-flash')).toBe(true);
 
@@ -164,10 +164,10 @@ describe('UIManager', () => {
 
   it('should trigger shield impact animation when shields decrease', () => {
     uiManager.update(mockState); // First update
-    
+
     mockState.shields = GameConfig.player.maxShields - 1;
     uiManager.update(mockState);
-    
+
     const shieldBar = document.getElementById('shield-bar');
     expect(shieldBar?.classList.contains('animate-shield-impact')).toBe(true);
 
@@ -180,7 +180,7 @@ describe('UIManager', () => {
     // Start with low shields
     mockState.shields = 2;
     uiManager.update(mockState);
-    
+
     const overlay = document.getElementById('damage-overlay');
     expect(overlay?.classList.contains('animate-damage-flash')).toBe(false);
   });
@@ -188,7 +188,7 @@ describe('UIManager', () => {
   it('should not trigger damage FX when shields stay the same or increase', () => {
     uiManager.update(mockState); // First update
     const overlay = document.getElementById('damage-overlay');
-    
+
     // Reset if it somehow got there
     overlay?.classList.remove('animate-damage-flash');
 
@@ -204,10 +204,10 @@ describe('UIManager', () => {
   it('should display phase and instructions when phase changes', () => {
     // Initial update (DOGFIGHT)
     uiManager.update(mockState);
-    
+
     // We don't have IDs on phase/instruction elements, but we can find them by content or relative to HUD
     const hud = document.getElementById('hud');
-    
+
     // Check for DOGFIGHT instruction
     expect(hud?.textContent).toContain('CLEAR THE SECTOR OF TIE FIGHTERS');
     expect(hud?.textContent).toContain('PHASE: DOGFIGHT');
@@ -223,5 +223,63 @@ describe('UIManager', () => {
     uiManager.update(mockState);
     expect(hud?.textContent).toContain('STAY LOW AND FIRE TORPEDOES INTO THE PORT (SPACE/RIGHT-CLICK)');
     expect(hud?.textContent).toContain('PHASE: TRENCH');
+  });
+
+  describe('Debug Panel - Phase Switcher', () => {
+    beforeEach(() => {
+      state.debug = true;
+      state.phase = 'DOGFIGHT';
+      uiManager.destroy(); // Clean up existing
+      uiManager = new UIManager();
+    });
+
+    it('should show phase buttons in debug panel', () => {
+      expect(document.getElementById('phase-dogfight')).not.toBeNull();
+      expect(document.getElementById('phase-surface')).not.toBeNull();
+      expect(document.getElementById('phase-trench')).not.toBeNull();
+    });
+
+    it('should highlight active phase button on initialization', () => {
+      const dogfightBtn = document.getElementById('phase-dogfight');
+      const surfaceBtn = document.getElementById('phase-surface');
+      const trenchBtn = document.getElementById('phase-trench');
+
+      expect(dogfightBtn?.classList.contains('bg-vector-green')).toBe(true);
+      expect(dogfightBtn?.classList.contains('text-black')).toBe(true);
+      expect(surfaceBtn?.classList.contains('bg-vector-green')).toBe(false);
+      expect(trenchBtn?.classList.contains('bg-vector-green')).toBe(false);
+    });
+
+    it('should update button highlighting when phase changes via state', () => {
+      const dogfightBtn = document.getElementById('phase-dogfight');
+      const surfaceBtn = document.getElementById('phase-surface');
+
+      // Update state manually
+      mockState.phase = 'SURFACE';
+      uiManager.update(mockState);
+
+      expect(dogfightBtn?.classList.contains('bg-vector-green')).toBe(false);
+      expect(surfaceBtn?.classList.contains('bg-vector-green')).toBe(true);
+      expect(surfaceBtn?.classList.contains('text-black')).toBe(true);
+    });
+
+    it('should update button highlighting when clicking buttons', () => {
+      const dogfightBtn = document.getElementById('phase-dogfight');
+      const surfaceBtn = document.getElementById('phase-surface');
+      const trenchBtn = document.getElementById('phase-trench');
+
+      // Click SURFACE button
+      surfaceBtn?.click();
+
+      // We expect state.phase to have changed, and UI to reflect it on next update
+      expect(state.phase).toBe('SURFACE');
+
+      mockState.phase = state.phase;
+      uiManager.update(mockState);
+
+      expect(dogfightBtn?.classList.contains('bg-vector-green')).toBe(false);
+      expect(surfaceBtn?.classList.contains('bg-vector-green')).toBe(true);
+      expect(trenchBtn?.classList.contains('bg-vector-green')).toBe(false);
+    });
   });
 });
