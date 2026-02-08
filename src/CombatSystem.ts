@@ -7,7 +7,6 @@ import { UserInput } from './input';
 export class CombatSystem {
   private camera: THREE.Camera;
   private fireCooldown: number = 0;
-  private torpedoCooldown: number = 0;
   private readonly laserPos2D = new THREE.Vector2();
   private readonly fbPos2D = new THREE.Vector2();
   private readonly tempVector3 = new THREE.Vector3();
@@ -18,7 +17,6 @@ export class CombatSystem {
 
   public update(deltaTime: number, input: UserInput) {
     this.fireCooldown -= deltaTime;
-    this.torpedoCooldown -= deltaTime;
 
     // 1. Handle Firing (Lasers)
     if (input.isFiring && this.fireCooldown <= 0) {
@@ -30,9 +28,9 @@ export class CombatSystem {
     if (state.stage === 'TRENCH' && state.stageManager) {
       state.stageManager.canFireTorpedo = state.stageManager.checkExhaustPortHit(input, this.camera);
       
-      if (input.isLaunchingTorpedo && this.torpedoCooldown <= 0) {
+      if (input.isFiring && state.stageManager.canFireTorpedo && !state.stageManager.hasFiredTorpedo) {
         this.launchTorpedo(input);
-        this.torpedoCooldown = GameConfig.torpedo.cooldown;
+        state.stageManager.hasFiredTorpedo = true;
       }
     }
 

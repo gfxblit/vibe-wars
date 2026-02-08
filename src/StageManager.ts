@@ -163,12 +163,14 @@ class TrenchStage implements Stage {
 export class StageManager {
   private currentStage: Stage | null = null;
   public canFireTorpedo: boolean = false;
+  public hasFiredTorpedo: boolean = false;
 
   constructor(public worldScene: THREE.Scene) {
     this.initStage();
   }
 
   private initStage(): void {
+    this.hasFiredTorpedo = false;
     switch (state.stage) {
       case 'DOGFIGHT':
         this.currentStage = new DogfightStage();

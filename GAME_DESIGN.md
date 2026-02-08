@@ -17,7 +17,7 @@ A first-person space combat simulator that puts the player in the role of Luke S
 1.  **Pilot:** Steer the X-Wing through space and trench environments.
 2.  **Combat:** Aim the crosshairs to shoot down TIE Fighters, fireballs, and towers.
 3.  **Survive:** Avoid incoming fire and collisions (Shield Management).
-4.  **Destroy:** Fire proton torpedoes into the Death Star exhaust port.
+4.  **Destroy:** Aim at the Death Star exhaust port while firing to auto-launch a proton torpedo.
 5.  **Repeat:** Game difficulty increases with each successful Death Star destruction.
 
 ### 2.2 Controls
@@ -29,8 +29,7 @@ The control scheme simulates the original flight yoke using modern input methods
     * Moving the mouse moves the targeting crosshair.
     * Moving the crosshair to the edges of the screen banks and pitches the X-Wing.
 * **Combat:**
-    * **Left Click:** Fire Laser Cannons (Quad-link fire).
-    * **Right Click / Spacebar:** Fire Proton Torpedo (Only active during the final Trench Run moment).
+    * **Left Click / Spacebar:** Fire Laser Cannons (Quad-link fire). Torpedoes auto-fire when aiming at the exhaust port during the trench run.
 * **Inverted Option:** Toggle available in settings to invert Y-Axis (Mouse Up = Ship Down) to mimic real flight controls.
 
 **B. Mobile (Touch Screen)**
@@ -38,9 +37,8 @@ The control scheme simulates the original flight yoke using modern input methods
     * A floating virtual joystick on the left side of the screen controls Pitch and Yaw.
     * Dragging up/down controls the ship's vertical movement.
     * Dragging left/right controls the ship's horizontal movement.
-* **Combat (Action Buttons - Right Side):**
-    * **Large Button:** Fire Laser Cannons (Hold for continuous fire).
-    * **Context Button:** "Launch Torpedo" button appears only when the exhaust port is in range.
+* **Combat (Action Button - Right Side):**
+    * **Large Button:** Fire Laser Cannons (Hold for continuous fire). Torpedoes auto-fire when aiming at the exhaust port during the trench run.
 
 ### 2.3 Health System (Shields)
 * The player starts with **6 Shields**.
@@ -70,7 +68,7 @@ The game loops through three distinct stages of increasing difficulty.
 * **Objective:** Navigate the narrow trench and fire a proton torpedo into the exhaust port.
 * **Mechanics:**
     * **Obstacles:** Catwalks and wall turrets appear in the trench. The player must weave over and under catwalks.
-    * **The Shot:** As the exhaust port approaches, a distance countdown begins. At the correct moment, the player must fire.
+    * **The Shot:** As the exhaust port approaches, a distance countdown begins. To succeed, the player must be firing as they aim at the port, which will automatically launch the proton torpedo.
     * **Success:** A cutscene of the Death Star exploding plays.
     * **Failure:** If the player misses the port or hits the wall, they lose a shield and must restart the Trench Run stage.
 

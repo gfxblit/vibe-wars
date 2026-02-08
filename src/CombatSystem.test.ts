@@ -29,7 +29,7 @@ describe('CombatSystem', () => {
   });
 
   it('spawns lasers when firing and cooldown is 0', () => {
-    const input = { x: 0, y: 0, isFiring: true, isLaunchingTorpedo: false };
+    const input = { x: 0, y: 0, isFiring: true };
     combatSystem.update(0.01, input);
 
     expect(StateModule.spawnLasers).toHaveBeenCalled();
@@ -37,7 +37,7 @@ describe('CombatSystem', () => {
   });
 
   it('respects firing cooldown using spy', () => {
-    const input = { x: 0, y: 0, isFiring: true, isLaunchingTorpedo: false };
+    const input = { x: 0, y: 0, isFiring: true };
 
     // First shot
     combatSystem.update(0.01, input);
@@ -56,7 +56,7 @@ describe('CombatSystem', () => {
   });
 
   it('updates and removes expired lasers', () => {
-    const input = { x: 0, y: 0, isFiring: true, isLaunchingTorpedo: false };
+    const input = { x: 0, y: 0, isFiring: true };
     combatSystem.update(0.01, input);
 
     const initialCount = state.entityManager!.getLasers().length;
@@ -75,7 +75,7 @@ describe('CombatSystem', () => {
     tf.position.set(0, 0, -50);
 
     // input pointing directly at it (0,0 in NDC)
-    const input = { x: 0, y: 0, isFiring: true, isLaunchingTorpedo: false };
+    const input = { x: 0, y: 0, isFiring: true };
 
     const initialScore = state.score;
     combatSystem.update(0.01, input);
@@ -87,7 +87,7 @@ describe('CombatSystem', () => {
   it('increments kills when a TIE fighter is hit', () => {
     const tf = state.entityManager!.getTieFighters()[0];
     tf.position.set(0, 0, -50);
-    const input = { x: 0, y: 0, isFiring: true, isLaunchingTorpedo: false };
+    const input = { x: 0, y: 0, isFiring: true };
 
     const initialKills = state.kills;
     combatSystem.update(0.01, input);
@@ -96,11 +96,12 @@ describe('CombatSystem', () => {
     expect(state.kills).toBe(initialKills + 1);
   });
 
-  it('spawns a torpedo when launching torpedoes in TRENCH stage', () => {
+  it('spawns a torpedo when firing and over port in TRENCH stage', () => {
     state.stage = 'TRENCH';
     state.stageManager!.reset();
+    vi.spyOn(state.stageManager!, 'checkExhaustPortHit').mockReturnValue(true);
     
-    const input = { x: 0, y: 0, isFiring: false, isLaunchingTorpedo: true };
+    const input = { x: 0, y: 0, isFiring: true };
 
     combatSystem.update(0.01, input);
 
@@ -108,9 +109,51 @@ describe('CombatSystem', () => {
     expect(state.stage).toBe('TRENCH'); // Should still be in TRENCH until torpedo hits
   });
 
-  it('launches torpedo towards aim point', () => {
+  it('does not fire torpedo when firing but NOT over exhaust port', () => {
     state.stage = 'TRENCH';
     state.stageManager!.reset();
+    vi.spyOn(state.stageManager!, 'checkExhaustPortHit').mockReturnValue(false);
+
+    const input = { x: 0, y: 0, isFiring: true };
+    combatSystem.update(0.01, input);
+
+    expect(StateModule.spawnTorpedo).not.toHaveBeenCalled();
+  });
+
+  it('only fires one torpedo per trench stage', () => {
+    state.stage = 'TRENCH';
+    state.stageManager!.reset();
+    vi.spyOn(state.stageManager!, 'checkExhaustPortHit').mockReturnValue(true);
+
+    const input = { x: 0, y: 0, isFiring: true };
+    
+    combatSystem.update(0.01, input);
+    expect(StateModule.spawnTorpedo).toHaveBeenCalledTimes(1);
+
+    combatSystem.update(0.01, input);
+    expect(StateModule.spawnTorpedo).toHaveBeenCalledTimes(1);
+  });
+
+  it('resets torpedo quota when resetting TRENCH stage', () => {
+    state.stage = 'TRENCH';
+    state.stageManager!.reset();
+    vi.spyOn(state.stageManager!, 'checkExhaustPortHit').mockReturnValue(true);
+
+    const input = { x: 0, y: 0, isFiring: true };
+    
+    combatSystem.update(0.01, input);
+    expect(StateModule.spawnTorpedo).toHaveBeenCalledTimes(1);
+
+    state.stageManager!.reset();
+    
+    combatSystem.update(0.01, input);
+    expect(StateModule.spawnTorpedo).toHaveBeenCalledTimes(2);
+  });
+
+  it('launches torpedo towards aim point when auto-firing', () => {
+    state.stage = 'TRENCH';
+    state.stageManager!.reset();
+    vi.spyOn(state.stageManager!, 'checkExhaustPortHit').mockReturnValue(true);
     
     // Reset camera orientation
     camera.position.set(0, 0, 0);
@@ -118,7 +161,7 @@ describe('CombatSystem', () => {
     camera.updateMatrixWorld();
     
     // Aim to the right
-    const input = { x: 0.5, y: 0, isFiring: false, isLaunchingTorpedo: true };
+    const input = { x: 0.5, y: 0, isFiring: true };
     combatSystem.update(0.1, input);
 
     expect(StateModule.spawnTorpedo).toHaveBeenCalled();

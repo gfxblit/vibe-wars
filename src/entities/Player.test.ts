@@ -37,7 +37,7 @@ describe('Player', () => {
   it('update should move player forward if speed > 0', () => {
     const initialZ = player.position.z;
     const speed = GameConfig.player.baseForwardSpeed;
-    player.update({ x: 0, y: 0, isFiring: false, isLaunchingTorpedo: false }, 0.1, speed);
+    player.update({ x: 0, y: 0, isFiring: false }, 0.1, speed);
     if (speed > 0) {
       expect(player.position.z).toBeLessThan(initialZ);
     } else {
@@ -48,7 +48,7 @@ describe('Player', () => {
   it('update should move player horizontally based on input x (if speed > 0)', () => {
     const player = new Player();
     const speed = GameConfig.player.baseForwardSpeed;
-    player.update({ x: 1, y: 0, isFiring: false, isLaunchingTorpedo: false }, 0.1, speed);
+    player.update({ x: 1, y: 0, isFiring: false }, 0.1, speed);
     if (speed > 0) {
       expect(player.position.x).toBeGreaterThan(0);
     } else {
@@ -59,7 +59,7 @@ describe('Player', () => {
   it('update should move player vertically based on input y (if speed > 0)', () => {
     const player = new Player();
     const speed = GameConfig.player.baseForwardSpeed;
-    player.update({ x: 0, y: 1, isFiring: false, isLaunchingTorpedo: false }, 0.1, speed);
+    player.update({ x: 0, y: 1, isFiring: false }, 0.1, speed);
     if (speed > 0) {
       expect(player.position.y).toBeGreaterThan(0);
     } else {
@@ -68,26 +68,26 @@ describe('Player', () => {
   })
 
   it('update should bank the visual mesh based on input x', () => {
-    player.update({ x: 1, y: 0, isFiring: false, isLaunchingTorpedo: false }, 0.1, GameConfig.player.baseForwardSpeed);
+    player.update({ x: 1, y: 0, isFiring: false }, 0.1, GameConfig.player.baseForwardSpeed);
     // @ts-ignore - access private visualMesh via property if needed or check rotation.z
     expect(player.mesh.children[0].rotation.z).toBeLessThan(0);
   })
 
   it('update should rotate the player mesh based on input y', () => {
     const initialQuat = player.mesh.quaternion.clone();
-    player.update({ x: 0, y: 1, isFiring: false, isLaunchingTorpedo: false }, 0.1, GameConfig.player.baseForwardSpeed);
+    player.update({ x: 0, y: 1, isFiring: false }, 0.1, GameConfig.player.baseForwardSpeed);
     expect(player.mesh.quaternion.equals(initialQuat)).toBe(false);
   })
 
   it('should rotate over time with horizontal input', () => {
     const startQuat = player.mesh.quaternion.clone();
-    player.update({ x: 1, y: 0, isFiring: false, isLaunchingTorpedo: false }, 0.5, GameConfig.player.baseForwardSpeed);
+    player.update({ x: 1, y: 0, isFiring: false }, 0.5, GameConfig.player.baseForwardSpeed);
     expect(player.mesh.quaternion.equals(startQuat)).toBe(false);
   })
 
   it('should rotate over time with vertical input', () => {
     const startQuat = player.mesh.quaternion.clone();
-    player.update({ x: 0, y: 1, isFiring: false, isLaunchingTorpedo: false }, 0.5, GameConfig.player.baseForwardSpeed);
+    player.update({ x: 0, y: 1, isFiring: false }, 0.5, GameConfig.player.baseForwardSpeed);
     expect(player.mesh.quaternion.equals(startQuat)).toBe(false);
   })
 
@@ -95,10 +95,10 @@ describe('Player', () => {
     const player = new Player();
     const speed = GameConfig.player.baseForwardSpeed;
     // Turn 90 degrees right (approx)
-    player.update({ x: 1, y: 0, isFiring: false, isLaunchingTorpedo: false }, 1.0, speed);
+    player.update({ x: 1, y: 0, isFiring: false }, 1.0, speed);
 
     const initialX = player.position.x;
-    player.update({ x: 0, y: 0, isFiring: false, isLaunchingTorpedo: false }, 0.1, speed);
+    player.update({ x: 0, y: 0, isFiring: false }, 0.1, speed);
 
     if (speed > 0) {
       expect(player.position.x).not.toBe(initialX);
@@ -115,11 +115,11 @@ describe('Player', () => {
     expect(visualMesh.visible).toBe(false);
 
     // Toggle on
-    player.update({ x: 0, y: 0, isFiring: false, isLaunchingTorpedo: false }, 0.1, GameConfig.player.baseForwardSpeed, true);
+    player.update({ x: 0, y: 0, isFiring: false }, 0.1, GameConfig.player.baseForwardSpeed, true);
     expect(visualMesh.visible).toBe(true);
 
     // Toggle off
-    player.update({ x: 0, y: 0, isFiring: false, isLaunchingTorpedo: false }, 0.1, GameConfig.player.baseForwardSpeed, false);
+    player.update({ x: 0, y: 0, isFiring: false }, 0.1, GameConfig.player.baseForwardSpeed, false);
     expect(visualMesh.visible).toBe(false);
   })
 
@@ -128,7 +128,7 @@ describe('Player', () => {
       // Give some horizontal input that would normally cause rotation (yaw/pitch)
       // and potentially roll if using relative quaternions without care.
       // But the requirement is specifically about world roll being 0.
-      player.update({ x: 1, y: 0.5, isFiring: false, isLaunchingTorpedo: false }, 0.1, 100, false, { lockUpright: true });
+      player.update({ x: 1, y: 0.5, isFiring: false }, 0.1, 100, false, { lockUpright: true });
       
       const euler = new THREE.Euler().setFromQuaternion(player.mesh.quaternion, 'YXZ');
       expect(euler.z).toBeCloseTo(0);
@@ -136,7 +136,7 @@ describe('Player', () => {
 
     it('should clamp pitch to the upper limit', () => {
       const maxPitch = Math.PI / 6; // 30 degrees
-      player.update({ x: 0, y: 10, isFiring: false, isLaunchingTorpedo: false }, 1.0, 100, false, { lockUpright: true, maxPitch });
+      player.update({ x: 0, y: 10, isFiring: false }, 1.0, 100, false, { lockUpright: true, maxPitch });
       
       const euler = new THREE.Euler().setFromQuaternion(player.mesh.quaternion, 'YXZ');
       expect(euler.x).toBeCloseTo(maxPitch);
@@ -144,7 +144,7 @@ describe('Player', () => {
 
     it('should clamp pitch to the lower limit', () => {
       const maxPitch = Math.PI / 6; // 30 degrees
-      player.update({ x: 0, y: -10, isFiring: false, isLaunchingTorpedo: false }, 1.0, 100, false, { lockUpright: true, maxPitch });
+      player.update({ x: 0, y: -10, isFiring: false }, 1.0, 100, false, { lockUpright: true, maxPitch });
 
       const euler = new THREE.Euler().setFromQuaternion(player.mesh.quaternion, 'YXZ');
       expect(euler.x).toBeCloseTo(-maxPitch);
@@ -153,7 +153,7 @@ describe('Player', () => {
     it('should clamp yaw to the upper limit', () => {
       const maxYaw = Math.PI / 6; // 30 degrees
       // input.x = -10 should result in positive yaw (yawAmount = -input.x * ...)
-      player.update({ x: -10, y: 0, isFiring: false, isLaunchingTorpedo: false }, 1.0, 100, false, { lockUpright: true, maxYaw });
+      player.update({ x: -10, y: 0, isFiring: false }, 1.0, 100, false, { lockUpright: true, maxYaw });
       
       const euler = new THREE.Euler().setFromQuaternion(player.mesh.quaternion, 'YXZ');
       expect(euler.y).toBeCloseTo(maxYaw);
@@ -162,7 +162,7 @@ describe('Player', () => {
     it('should clamp yaw to the lower limit', () => {
       const maxYaw = Math.PI / 6; // 30 degrees
       // input.x = 10 should result in negative yaw
-      player.update({ x: 10, y: 0, isFiring: false, isLaunchingTorpedo: false }, 1.0, 100, false, { lockUpright: true, maxYaw });
+      player.update({ x: 10, y: 0, isFiring: false }, 1.0, 100, false, { lockUpright: true, maxYaw });
       
       const euler = new THREE.Euler().setFromQuaternion(player.mesh.quaternion, 'YXZ');
       expect(euler.y).toBeCloseTo(-maxYaw);
@@ -171,7 +171,7 @@ describe('Player', () => {
     it('should maintain 6DOF behavior when no options are provided', () => {
       // In 6DOF, we should be able to loop.
       // 10 seconds of full pitch up should result in a loop (more than 30 degrees)
-      player.update({ x: 0, y: 1, isFiring: false, isLaunchingTorpedo: false }, 10.0, 100);
+      player.update({ x: 0, y: 1, isFiring: false }, 10.0, 100);
       
       const euler = new THREE.Euler().setFromQuaternion(player.mesh.quaternion, 'YXZ');
       // If it's not clamped to 30 degrees (Math.PI/6 ~ 0.52), it should be much larger or have wrapped.

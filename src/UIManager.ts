@@ -238,7 +238,7 @@ export class UIManager {
           this.instructionValue.classList.remove('hidden');
           break;
         case 'TRENCH':
-          this.instructionValue.textContent = 'STAY LOW AND FIRE TORPEDOES INTO THE PORT (SPACE/RIGHT-CLICK)';
+          this.instructionValue.textContent = 'STAY LOW AND AIM AT THE PORT TO AUTO-FIRE TORPEDOES';
           this.instructionValue.classList.remove('hidden');
           break;
       }

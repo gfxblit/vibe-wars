@@ -44,27 +44,17 @@ describe('InputManager', () => {
   });
 
   it('initializes with zero input', () => {
-    expect(inputManager.getInput()).toEqual({ x: 0, y: 0, isFiring: false, isLaunchingTorpedo: false });
+    expect(inputManager.getInput()).toEqual({ x: 0, y: 0, isFiring: false });
   });
 
-  it('reports isLaunchingTorpedo when space is pressed', () => {
+  it('reports isFiring when space is pressed', () => {
     const event = new KeyboardEvent('keydown', { code: 'Space' });
     listeners['keydown'](event);
-    expect(inputManager.getInput().isLaunchingTorpedo).toBe(true);
+    expect(inputManager.getInput().isFiring).toBe(true);
 
     const upEvent = new KeyboardEvent('keyup', { code: 'Space' });
     listeners['keyup'](upEvent);
-    expect(inputManager.getInput().isLaunchingTorpedo).toBe(false);
-  });
-
-  it('does not report isLaunchingTorpedo when right clicked', () => {
-    const event = createMouseEvent('mousedown', { button: 2 });
-    listeners['mousedown'](event);
-    expect(inputManager.getInput().isLaunchingTorpedo).toBe(false);
-
-    const upEvent = createMouseEvent('mouseup', { button: 2 });
-    listeners['mouseup'](upEvent);
-    expect(inputManager.getInput().isLaunchingTorpedo).toBe(false);
+    expect(inputManager.getInput().isFiring).toBe(false);
   });
 
   it('responds to ArrowLeft keydown', () => {
@@ -316,13 +306,12 @@ describe('InputManager', () => {
     expect(inputManager.getInput().isFiring).toBe(false);
   });
 
-  it('updates input coordinates but not isFiring or isLaunchingTorpedo when right-clicked and dragged', () => {
+  it('updates input coordinates but not isFiring when right-clicked and dragged', () => {
     // Right mouse down (button 2)
     const downEvent = createMouseEvent('mousedown', { button: 2 });
     listeners['mousedown'](downEvent);
     
     expect(inputManager.getInput().isFiring).toBe(false);
-    expect(inputManager.getInput().isLaunchingTorpedo).toBe(false);
 
     // Move mouse while right-clicking
     listeners['mousemove'](new MouseEvent('mousemove', { clientX: 0, clientY: 0 }));
@@ -331,7 +320,6 @@ describe('InputManager', () => {
     expect(inputManager.getInput().x).toBe(-1);
     expect(inputManager.getInput().y).toBe(1);
     expect(inputManager.getInput().isFiring).toBe(false);
-    expect(inputManager.getInput().isLaunchingTorpedo).toBe(false);
 
     // Mouse up
     const upEvent = createMouseEvent('mouseup', { button: 2 });

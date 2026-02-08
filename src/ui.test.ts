@@ -221,7 +221,7 @@ describe('UIManager', () => {
     // Change to TRENCH
     mockState.stage = 'TRENCH';
     uiManager.update(mockState);
-    expect(hud?.textContent).toContain('STAY LOW AND FIRE TORPEDOES INTO THE PORT (SPACE/RIGHT-CLICK)');
+    expect(hud?.textContent).toContain('STAY LOW AND AIM AT THE PORT TO AUTO-FIRE TORPEDOES');
     expect(hud?.textContent).toContain('STAGE: TRENCH');
   });
 
