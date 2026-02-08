@@ -44,7 +44,27 @@ describe('InputManager', () => {
   });
 
   it('initializes with zero input', () => {
-    expect(inputManager.getInput()).toEqual({ x: 0, y: 0, isFiring: false });
+    expect(inputManager.getInput()).toEqual({ x: 0, y: 0, isFiring: false, isLaunchingTorpedo: false });
+  });
+
+  it('reports isLaunchingTorpedo when space is pressed', () => {
+    const event = new KeyboardEvent('keydown', { code: 'Space' });
+    listeners['keydown'](event);
+    expect(inputManager.getInput().isLaunchingTorpedo).toBe(true);
+
+    const upEvent = new KeyboardEvent('keyup', { code: 'Space' });
+    listeners['keyup'](upEvent);
+    expect(inputManager.getInput().isLaunchingTorpedo).toBe(false);
+  });
+
+  it('reports isLaunchingTorpedo when right clicked', () => {
+    const event = createMouseEvent('mousedown', { button: 2 });
+    listeners['mousedown'](event);
+    expect(inputManager.getInput().isLaunchingTorpedo).toBe(true);
+
+    const upEvent = createMouseEvent('mouseup', { button: 2 });
+    listeners['mouseup'](upEvent);
+    expect(inputManager.getInput().isLaunchingTorpedo).toBe(false);
   });
 
   it('responds to ArrowLeft keydown', () => {

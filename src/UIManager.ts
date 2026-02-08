@@ -7,10 +7,13 @@ export class UIManager {
   private shieldValue!: HTMLElement;
   private shieldBar!: HTMLElement;
   private waveValue!: HTMLElement;
+  private phaseValue!: HTMLElement;
+  private instructionValue!: HTMLElement;
   private gameOver!: HTMLElement;
   private debugPanel?: HTMLElement;
   private damageOverlay!: HTMLElement;
   private lastShields: number;
+  private lastPhase: string = '';
 
   private firstUpdate = true;
 
@@ -32,6 +35,12 @@ export class UIManager {
     this.createScoreSection(topBar);
     this.createShieldSection(topBar);
     this.createWaveSection(topBar);
+    
+    // Central info area
+    const centerArea = this.createEl('div', 'fixed top-1/4 left-1/2 -translate-x-1/2 flex flex-col items-center space-y-4 pointer-events-none', this.hud);
+    this.phaseValue = this.createEl('div', 'text-vector-yellow text-4xl animate-pulse hidden', centerArea);
+    this.instructionValue = this.createEl('div', 'text-vector-green text-xl text-center hidden', centerArea);
+
     this.createGameOverOverlay();
 
     if (state.debug) {
@@ -149,6 +158,39 @@ export class UIManager {
 
     if (this.waveValue.textContent !== state.wave.toString()) {
       this.waveValue.textContent = state.wave.toString();
+    }
+
+    // Handle Phase display and instructions
+    if (this.lastPhase !== state.phase) {
+      this.lastPhase = state.phase;
+      this.phaseValue.textContent = `PHASE: ${state.phase}`;
+      this.phaseValue.classList.remove('hidden');
+      
+      // Auto-hide phase title after 3 seconds
+      setTimeout(() => {
+        this.phaseValue.classList.add('hidden');
+      }, 3000);
+
+      // Context-sensitive instructions
+      switch (state.phase) {
+        case 'DOGFIGHT':
+          this.instructionValue.textContent = 'CLEAR THE SECTOR OF TIE FIGHTERS';
+          this.instructionValue.classList.remove('hidden');
+          break;
+        case 'SURFACE':
+          this.instructionValue.textContent = 'APPROACH THE DEATH STAR';
+          this.instructionValue.classList.remove('hidden');
+          break;
+        case 'TRENCH':
+          this.instructionValue.textContent = 'STAY LOW AND FIRE TORPEDOES INTO THE PORT (SPACE/RIGHT-CLICK)';
+          this.instructionValue.classList.remove('hidden');
+          break;
+      }
+      
+      // Auto-hide instructions after 5 seconds
+      setTimeout(() => {
+        this.instructionValue.classList.add('hidden');
+      }, 5000);
     }
 
     if (state.isGameOver) {

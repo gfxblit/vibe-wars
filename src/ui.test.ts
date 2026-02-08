@@ -172,4 +172,28 @@ describe('UIManager', () => {
     uiManager.update(mockState);
     expect(overlay?.classList.contains('animate-damage-flash')).toBe(false);
   });
+
+  it('should display phase and instructions when phase changes', () => {
+    // Initial update (DOGFIGHT)
+    uiManager.update(mockState);
+    
+    // We don't have IDs on phase/instruction elements, but we can find them by content or relative to HUD
+    const hud = document.getElementById('hud');
+    
+    // Check for DOGFIGHT instruction
+    expect(hud?.textContent).toContain('CLEAR THE SECTOR OF TIE FIGHTERS');
+    expect(hud?.textContent).toContain('PHASE: DOGFIGHT');
+
+    // Change to SURFACE
+    mockState.phase = 'SURFACE';
+    uiManager.update(mockState);
+    expect(hud?.textContent).toContain('APPROACH THE DEATH STAR');
+    expect(hud?.textContent).toContain('PHASE: SURFACE');
+
+    // Change to TRENCH
+    mockState.phase = 'TRENCH';
+    uiManager.update(mockState);
+    expect(hud?.textContent).toContain('STAY LOW AND FIRE TORPEDOES INTO THE PORT (SPACE/RIGHT-CLICK)');
+    expect(hud?.textContent).toContain('PHASE: TRENCH');
+  });
 });

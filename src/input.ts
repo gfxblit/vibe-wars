@@ -6,6 +6,7 @@ export interface UserInput {
   x: number;
   y: number;
   isFiring: boolean;
+  isLaunchingTorpedo: boolean;
 }
 
 export class InputManager {
@@ -18,16 +19,23 @@ export class InputManager {
   private dragTouchId: number | null = null;
   private dragStartedOnFireButton: boolean = false;
   private isFiring: boolean = false;
+  private isLaunchingTorpedo: boolean = false;
   private useRelativeInput: boolean = false;
   private pointerAnchor: THREE.Vector2 = new THREE.Vector2(0, 0);
   private fireButton: HTMLElement | null = null;
   
   private handleKeyDown = (event: KeyboardEvent) => {
+    if (event.code === 'Space') {
+      this.isLaunchingTorpedo = true;
+    }
     this.keys.add(event.code);
     this.updateKeyboardTarget();
   };
 
   private handleKeyUp = (event: KeyboardEvent) => {
+    if (event.code === 'Space') {
+      this.isLaunchingTorpedo = false;
+    }
     this.keys.delete(event.code);
     this.updateKeyboardTarget();
   };
@@ -40,13 +48,25 @@ export class InputManager {
       return;
     }
 
-    this.isFiring = true;
-    this.startDrag(event.clientX, event.clientY, null, target === this.fireButton, false);
+    if (event.button === 2) { // Right click
+      this.isLaunchingTorpedo = true;
+    } else {
+      this.isFiring = true;
+      this.startDrag(event.clientX, event.clientY, null, target === this.fireButton, false);
+    }
   };
 
-  private handlePointerUp = () => {
-    this.isDragging = false;
-    this.isFiring = false;
+  private handlePointerUp = (event: MouseEvent) => {
+    if (event.button === 2) { // Right click
+      this.isLaunchingTorpedo = false;
+    } else {
+      this.isDragging = false;
+      this.isFiring = false;
+    }
+  };
+
+  private handleContextMenu = (event: MouseEvent) => {
+    event.preventDefault();
   };
 
   private handleMouseMove = (event: MouseEvent) => {
@@ -161,6 +181,7 @@ export class InputManager {
     window.addEventListener('keyup', this.handleKeyUp);
     window.addEventListener('mousedown', this.handleMouseDown);
     window.addEventListener('mouseup', this.handlePointerUp);
+    window.addEventListener('contextmenu', this.handleContextMenu);
     window.addEventListener('mousemove', this.handleMouseMove);
     window.addEventListener('touchstart', this.handleTouchStart, { passive: false });
     window.addEventListener('touchend', this.handleTouchEnd, { passive: false });
@@ -173,6 +194,7 @@ export class InputManager {
     window.removeEventListener('keyup', this.handleKeyUp);
     window.removeEventListener('mousedown', this.handleMouseDown);
     window.removeEventListener('mouseup', this.handlePointerUp);
+    window.removeEventListener('contextmenu', this.handleContextMenu);
     window.removeEventListener('mousemove', this.handleMouseMove);
     window.removeEventListener('touchstart', this.handleTouchStart);
     window.removeEventListener('touchend', this.handleTouchEnd);
@@ -214,7 +236,8 @@ export class InputManager {
     return {
       x: this.input.x,
       y: this.input.y,
-      isFiring: this.isFiring
+      isFiring: this.isFiring,
+      isLaunchingTorpedo: this.isLaunchingTorpedo
     };
   }
 }

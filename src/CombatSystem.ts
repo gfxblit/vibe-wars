@@ -18,13 +18,24 @@ export class CombatSystem {
   public update(deltaTime: number, input: UserInput) {
     this.fireCooldown -= deltaTime;
 
-    // 1. Handle Firing
+    // 1. Handle Firing (Lasers)
     if (input.isFiring && this.fireCooldown <= 0) {
       this.fire(input);
       this.fireCooldown = GameConfig.laser.cooldown;
     }
 
-    // 2. Update existing lasers and check collisions
+    // 2. Handle Torpedo (Trench Run)
+    if (input.isLaunchingTorpedo && state.phase === 'TRENCH' && state.stageManager) {
+       // Ideally we'd have a cooldown or ammo check here, but for now 
+       // just check if the shot lands
+       if (state.stageManager.checkExhaustPortHit(input, this.camera)) {
+        nextPhase();
+        state.stageManager.reset();
+        addScore(10000); // Big bonus!
+      }
+    }
+
+    // 3. Update existing lasers and check collisions
     this.updateLasers();
   }
 
@@ -44,19 +55,6 @@ export class CombatSystem {
         addKill();
       }
     });
-
-    // Check for exhaust port hit if in TRENCH phase
-    if (state.phase === 'TRENCH' && state.stageManager) {
-      if (state.stageManager.checkExhaustPortHit(input, this.camera)) {
-        // Trigger win/next phase
-        // Actually, StageManager should probably handle the phase transition
-        // But we can call nextPhase() here or signal StageManager.
-        // Let's just use nextPhase() and reset StageManager for now.
-        nextPhase();
-        state.stageManager.reset();
-        addScore(10000); // Big bonus!
-      }
-    }
   }
 
   private updateLasers() {

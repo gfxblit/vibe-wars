@@ -27,7 +27,7 @@ describe('Fireball Explosion Integration', () => {
 
     // Create a laser that will hit the fireball
     // projected NDC of (0,0,-20) with camera at (0,0,0) looking at -Z should be (0,0)
-    const input = { x: 0, y: 0, isFiring: true };
+    const input = { x: 0, y: 0, isFiring: true, isLaunchingTorpedo: false };
 
     const initialScore = state.score;
 

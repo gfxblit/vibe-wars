@@ -88,7 +88,7 @@ class SurfaceStage implements Stage {
 
 class TrenchStage implements Stage {
   private trench: Trench;
-  private lastCatwalkHitZ: number = 0;
+  private lastCatwalkHitZ: number | null = null;
 
   constructor(private manager: StageManager) {
     if (state.entityManager) {
@@ -118,6 +118,8 @@ class TrenchStage implements Stage {
         takeDamage(1);
         this.lastCatwalkHitZ = hitZ;
       }
+    } else {
+      this.lastCatwalkHitZ = null;
     }
 
     // Trench update logic (procedural generation etc) could go here
@@ -173,12 +175,17 @@ export class StageManager {
 
   public checkExhaustPortHit(input: UserInput, camera: THREE.Camera): boolean {
     if (state.phase !== 'TRENCH' || !this.currentStage) return false;
+    if (!state.player) return false;
     
     // The port position is fixed in world space based on config
     const { catwalkEndZ, exhaustPortZOffset, trenchHeight } = GameConfig.stage;
     const portZ = catwalkEndZ - exhaustPortZOffset;
     const portY = -trenchHeight / 2 + 10;
     const portPos = new THREE.Vector3(0, portY, portZ);
+
+    // Range Check: Can only hit when close enough
+    const distanceToPort = Math.abs(state.player.position.z - portZ);
+    if (distanceToPort > 2000) return false;
 
     return checkAim(portPos, input, camera);
   }

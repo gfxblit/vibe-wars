@@ -9,7 +9,7 @@ describe('Player Relative Turning', () => {
     // 1. Pitch up 90 degrees (looking straight up at +Y)
     // TURN_SPEED_PITCH is Math.PI / 1.5
     // 90 deg is 0.75s
-    player.update({ x: 0, y: 1, isFiring: false }, 0.75);
+    player.update({ x: 0, y: 1, isFiring: false, isLaunchingTorpedo: false }, 0.75);
     
     // Confirm we are looking UP
     const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(player.mesh.quaternion);
@@ -30,7 +30,7 @@ describe('Player Relative Turning', () => {
     // WAIT. If Local Up is World -Z, and Local Forward is World +Y.
     // Rotating around Local Up (-Z) will rotate the Forward vector (+Y) in the XY plane.
     
-    player.update({ x: 1, y: 0, isFiring: false }, 0.1);
+    player.update({ x: 1, y: 0, isFiring: false, isLaunchingTorpedo: false }, 0.1);
     
     const newForward = new THREE.Vector3(0, 0, -1).applyQuaternion(player.mesh.quaternion);
     
