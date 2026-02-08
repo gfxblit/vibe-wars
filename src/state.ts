@@ -88,7 +88,7 @@ export function initGame(worldScene: THREE.Scene, hudScene: THREE.Scene) {
   console.log('Game initialized', { debug: state.debug });
 }
 
-export function updateState(deltaTime: number, input: UserInput = { x: 0, y: 0, isFiring: false, isLaunchingTorpedo: false }) {
+export function updateState(deltaTime: number, camera: THREE.Camera, input: UserInput = { x: 0, y: 0, isFiring: false, isLaunchingTorpedo: false }) {
   if (state.isGameOver || !state.player || !state.entityManager || !state.stageManager) {
     return;
   }
@@ -100,6 +100,7 @@ export function updateState(deltaTime: number, input: UserInput = { x: 0, y: 0, 
     state.player.position,
     state.player.mesh.quaternion,
     state.isSmartAI,
+    camera,
     (damage) => takeDamage(damage)
   );
 

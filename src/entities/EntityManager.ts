@@ -29,7 +29,7 @@ export class EntityManager {
     this.strategyFactory = strategyFactory;
   }
 
-  public update(deltaTime: number, playerPosition: THREE.Vector3, playerQuaternion: THREE.Quaternion, isSmartAI: boolean, onPlayerHit?: (damage: number) => void): void {
+  public update(deltaTime: number, playerPosition: THREE.Vector3, playerQuaternion: THREE.Quaternion, isSmartAI: boolean, camera: THREE.Camera, onPlayerHit?: (damage: number) => void): void {
     this.scratchPlayerForward.set(0, 0, -1).applyQuaternion(playerQuaternion);
 
     // 1. Update existing TIE fighters
@@ -75,14 +75,25 @@ export class EntityManager {
         continue;
       }
 
-      // Basic collision check with player (only if not already exploded)
+      // Camera Plane Collision check
       if (!fb.isExploded) {
-        const distance = fb.position.distanceTo(playerPosition);
-        if (distance < (GameConfig.fireball.collisionRadiusWorld + GameConfig.player.meshSize)) {
-          if (onPlayerHit) {
-            onPlayerHit(GameConfig.fireball.damage);
-          }
-          fb.explode();
+        // Reuse scratch vector for NDC calculation
+        fb.projectToNDC(camera, this.scratchFireballPos);
+        
+        const hitZThreshold = GameConfig.fireball.hitZThreshold;
+        const ndcZ = this.scratchFireballPos.z;
+        const ndcX = this.scratchFireballPos.x;
+        const ndcY = this.scratchFireballPos.y;
+        
+        console.log('Checking collision', { ndcZ, ndcX, ndcY, hitZThreshold });
+
+        // Check if hit screen plane (approaching from front maps to Z approaching -1 in NDC)
+        if (ndcZ < hitZThreshold && Math.abs(ndcX) <= 1 && Math.abs(ndcY) <= 1) {
+             console.log('Collision Detected!', { ndcZ, ndcX, ndcY, hitZThreshold });
+             if (onPlayerHit) {
+               onPlayerHit(GameConfig.fireball.damage);
+             }
+             fb.explode();
         }
       }
     }

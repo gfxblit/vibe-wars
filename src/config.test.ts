@@ -56,17 +56,18 @@ describe('GameConfig', () => {
   });
 
   test('should have fireball settings', () => {
-    expect(GameConfig.fireball.meshSize).toBe(1.5);
+    expect(GameConfig.fireball.meshSize).toBe(3.0);
     expect(GameConfig.fireball.meshColor).toBe(0xff4500);
     expect(GameConfig.fireball.relativeSpeed).toBe(40);
     expect(GameConfig.fireball.fireRate).toBe(2.0);
     expect(GameConfig.fireball.damage).toBe(1);
-    expect(GameConfig.fireball.expirationDistance).toBe(10);
+    expect(GameConfig.fireball.expirationDistance).toBe(20);
     expect(GameConfig.fireball.sparkleCount).toBe(8);
-    expect(GameConfig.fireball.sparkleSize).toBe(2.0);
+    expect(GameConfig.fireball.sparkleSize).toBe(4.0);
     expect(GameConfig.fireball.explosionVelocity).toBe(30);
     expect(GameConfig.fireball.explosionDuration).toBe(0.5);
     expect(GameConfig.fireball.explosionDuration).toBeGreaterThan(0);
+    expect(GameConfig.fireball.hitZThreshold).toBe(-0.8);
   });
 
   test('should have tieFighter settings', () => {

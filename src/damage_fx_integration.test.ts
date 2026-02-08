@@ -39,11 +39,19 @@ describe('Damage FX Integration', () => {
     
     expect(fireball).not.toBeNull();
     
-    // Teleport fireball to player to cause collision
-    fireball!.position.copy(state.player!.position);
+    // Teleport fireball to near camera to cause collision (Hit Screen)
+    // Assuming mock camera at (0,0,10) looking at (0,0,0)
+    const camera = new THREE.PerspectiveCamera();
+    camera.position.set(0, 0, 10);
+    camera.lookAt(0, 0, 0);
+    camera.updateMatrixWorld();
+    camera.updateProjectionMatrix();
+
+    fireball!.position.set(0, 0, 9.9);
+    fireball!.velocity.set(0, 0, 0);
 
     // Update state to process collision
-    updateState(0.01);
+    updateState(0.01, camera);
     
     expect(state.shields).toBeLessThan(GameConfig.player.maxShields);
 

@@ -17,7 +17,7 @@ export const GameConfig = deepFreeze({
     fov: 75,
     near: 0.1,
     far: 5000,
-    position: { x: 0, y: 2, z: 10 },
+    position: { x: 0, y: 0.5, z: 0 },
     lookAt: { x: 0, y: 0, z: 0 },
     backgroundColor: 0x000000,
   },
@@ -119,7 +119,7 @@ export const GameConfig = deepFreeze({
     ],
   },
   fireball: {
-    meshSize: 1.5,
+    meshSize: 3.0,
     meshColor: 0xff4500, // Orange-red
     relativeSpeed: 40,
     fireRate: 2.0, // Seconds between shots
@@ -127,10 +127,11 @@ export const GameConfig = deepFreeze({
     collisionRadiusNDC: 0.05,
     points: 100,
     damage: 1,
-    expirationDistance: 10,
+    expirationDistance: 20,
     sparkleCount: 8,
-    sparkleSize: 2.0,
+    sparkleSize: 4.0,
     explosionVelocity: 30,
     explosionDuration: 0.5, // Seconds before removing exploded fireball
+    hitZThreshold: -0.8,
   },
 } as const);

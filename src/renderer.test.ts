@@ -29,8 +29,8 @@ describe('Renderer Utils', () => {
     
     expect(camera.parent).toBe(player.mesh);
     expect(camera.position.x).toBe(0);
-    expect(camera.position.y).toBe(2);
-    expect(camera.position.z).toBe(10);
+    expect(camera.position.y).toBe(0.5);
+    expect(camera.position.z).toBe(0);
     
     // Check orientation (looking at player center)
     const target = new THREE.Vector3(0, 0, 0);

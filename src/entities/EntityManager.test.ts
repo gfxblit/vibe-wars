@@ -42,7 +42,7 @@ describe('EntityManager', () => {
     // We need to make sure the strategy doesn't move it back during update
     vi.spyOn(actualTf, 'update').mockReturnValue(new THREE.Vector3());
     
-    entityManager.update(0.1, playerPosition, playerQuaternion, true);
+    entityManager.update(0.1, playerPosition, playerQuaternion, true, new THREE.PerspectiveCamera());
     
     expect(entityManager.getTieFighters().length).toBe(0);
     expect(scene.children.length).toBe(0);
