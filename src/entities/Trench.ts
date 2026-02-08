@@ -37,6 +37,35 @@ export class Trench extends Entity {
     this.floor = new THREE.Mesh(floorGeometry, floorMaterial);
     this.floor.position.set(0, -GameConfig.stage.trenchHeight / 2 - 5, -2500);
     this.mesh.add(this.floor);
+
+    this.addObstacles();
+  }
+
+  private addObstacles() {
+    // Add catwalks every 500 units
+    const catwalkGeometry = new THREE.BoxGeometry(GameConfig.stage.trenchWidth, 10, 20);
+    const catwalkMaterial = new THREE.MeshBasicMaterial({
+      color: 0xaaaaaa,
+      wireframe: true,
+    });
+
+    for (let z = -500; z > -4500; z -= 500) {
+      const catwalk = new THREE.Mesh(catwalkGeometry, catwalkMaterial);
+      // Alternating height: some high, some low
+      const y = (Math.abs(z) % 1000 === 0) ? 20 : -20;
+      catwalk.position.set(0, y, z);
+      this.mesh.add(catwalk);
+    }
+
+    // Add Exhaust Port at the end
+    const portGeometry = new THREE.BoxGeometry(20, 20, 20);
+    const portMaterial = new THREE.MeshBasicMaterial({
+      color: 0xffff00,
+      wireframe: true,
+    });
+    const port = new THREE.Mesh(portGeometry, portMaterial);
+    port.position.set(0, -GameConfig.stage.trenchHeight / 2 + 10, -4900);
+    this.mesh.add(port);
   }
 
   update(_deltaTime: number) {

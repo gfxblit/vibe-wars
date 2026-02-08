@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { GameConfig } from './config';
-import { state, nextPhase } from './state';
+import { state, nextPhase, takeDamage } from './state';
 import { Player } from './entities/Player';
 import { DeathStar } from './entities/DeathStar';
 import { Trench } from './entities/Trench';
@@ -86,6 +86,7 @@ class SurfaceStage implements Stage {
 
 class TrenchStage implements Stage {
   private trench: Trench;
+  private lastCatwalkHitZ: number = 0;
 
   constructor(private manager: StageManager) {
     if (state.entityManager) {
@@ -108,8 +109,30 @@ class TrenchStage implements Stage {
     player.position.x = THREE.MathUtils.clamp(player.position.x, -halfWidth, halfWidth);
     player.position.y = THREE.MathUtils.clamp(player.position.y, -halfHeight, halfHeight);
 
+    // Catwalk collisions
+    const pZ = player.position.z;
+    const pY = player.position.y;
+    
+    // Check if we are passing a catwalk (every 500 units from -500 to -4500)
+    if (pZ < -400 && pZ > -4600) {
+      const catwalkZ = Math.round(pZ / 500) * 500;
+      if (Math.abs(pZ - catwalkZ) < 15 && catwalkZ !== this.lastCatwalkHitZ) {
+        const y = (Math.abs(catwalkZ) % 1000 === 0) ? 20 : -20;
+        if (Math.abs(pY - y) < 15) {
+          takeDamage(1);
+          this.lastCatwalkHitZ = catwalkZ; // Prevent multiple hits for same catwalk
+        }
+      }
+    }
+
     // Trench update logic (procedural generation etc) could go here
     this.trench.update(deltaTime);
+
+    // If player reaches the end of the trench, they win the stage
+    if (player.position.z <= -5000) {
+      nextPhase();
+      this.manager.reset();
+    }
   }
 
   cleanup(): void {
