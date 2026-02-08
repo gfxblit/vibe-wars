@@ -45,7 +45,10 @@ function animate(time: number) {
 
   // Render
   if (state.player) {
-    starField.update(state.player.position, state.phase)
+    starField.points.visible = state.phase !== 'TRENCH'
+    if (starField.points.visible) {
+      starField.update(state.player.position)
+    }
     render(webglRenderer, scene, camera, hudScene, hudCamera)
   }
 

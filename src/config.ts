@@ -53,6 +53,7 @@ export const GameConfig = deepFreeze({
     trenchHeight: 100,
     deathStarSize: 100,
     deathStarColor: 0x00ff00,
+    steeringStrength: 0.5,
   },
   tieFighter: {
     speed: 50,

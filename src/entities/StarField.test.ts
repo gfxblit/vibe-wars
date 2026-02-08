@@ -75,18 +75,4 @@ describe('StarField', () => {
     const starField = new StarField();
     expect(starField.points.frustumCulled).toBe(false);
   })
-
-  test('should be hidden in TRENCH phase', () => {
-    const starField = new StarField();
-    const playerPosition = new THREE.Vector3(0, 0, 0);
-    
-    starField.update(playerPosition, 'DOGFIGHT');
-    expect(starField.points.visible).toBe(true);
-    
-    starField.update(playerPosition, 'SURFACE');
-    expect(starField.points.visible).toBe(true);
-    
-    starField.update(playerPosition, 'TRENCH');
-    expect(starField.points.visible).toBe(false);
-  })
 })

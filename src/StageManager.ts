@@ -29,7 +29,6 @@ class DogfightStage implements Stage {
 
 class SurfaceStage implements Stage {
   private deathStar: DeathStar;
-  private readonly steeringStrength = 0.5; // Radians per second of auto-correction
 
   constructor(private manager: StageManager) {
     // Clear existing enemies for a clean transition
@@ -73,7 +72,7 @@ class SurfaceStage implements Stage {
       );
       
       // Gradually nudge the player's orientation
-      player.mesh.quaternion.slerp(targetRotation, this.steeringStrength * deltaTime);
+      player.mesh.quaternion.slerp(targetRotation, GameConfig.stage.steeringStrength * deltaTime);
     }
 
     this.deathStar.update(deltaTime);
