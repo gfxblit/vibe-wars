@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import { CombatSystem } from './CombatSystem';
 import { state, initGame } from './state';
 import * as StateModule from './state';
+import { GameConfig } from './config';
 
 vi.mock('./state', async (importOriginal) => {
   const actual = await importOriginal<typeof import('./state')>();
@@ -27,7 +28,7 @@ describe('CombatSystem', () => {
   });
 
   it('spawns lasers when firing and cooldown is 0', () => {
-    const input = { x: 0, y: 0, isFiring: true };
+    const input = { x: 0, y: 0, isFiring: true, isLaunchingTorpedo: false };
     combatSystem.update(0.01, input);
 
     expect(StateModule.spawnLasers).toHaveBeenCalled();
@@ -35,7 +36,7 @@ describe('CombatSystem', () => {
   });
 
   it('respects firing cooldown using spy', () => {
-    const input = { x: 0, y: 0, isFiring: true };
+    const input = { x: 0, y: 0, isFiring: true, isLaunchingTorpedo: false };
 
     // First shot
     combatSystem.update(0.01, input);
@@ -54,7 +55,7 @@ describe('CombatSystem', () => {
   });
 
   it('updates and removes expired lasers', () => {
-    const input = { x: 0, y: 0, isFiring: true };
+    const input = { x: 0, y: 0, isFiring: true, isLaunchingTorpedo: false };
     combatSystem.update(0.01, input);
 
     const initialCount = state.entityManager!.getLasers().length;
@@ -73,12 +74,50 @@ describe('CombatSystem', () => {
     tf.position.set(0, 0, -50);
 
     // input pointing directly at it (0,0 in NDC)
-    const input = { x: 0, y: 0, isFiring: true };
+    const input = { x: 0, y: 0, isFiring: true, isLaunchingTorpedo: false };
 
     const initialScore = state.score;
     combatSystem.update(0.01, input);
 
     expect(tf.isExploded).toBe(true);
     expect(state.score).toBeGreaterThan(initialScore);
+  });
+
+  it('increments kills when a TIE fighter is hit', () => {
+    const tf = state.entityManager!.getTieFighters()[0];
+    tf.position.set(0, 0, -50);
+    const input = { x: 0, y: 0, isFiring: true, isLaunchingTorpedo: false };
+
+    const initialKills = state.kills;
+    combatSystem.update(0.01, input);
+
+    expect(tf.isExploded).toBe(true);
+    expect(state.kills).toBe(initialKills + 1);
+  });
+
+  it('completes level and awards bonus when hitting exhaust port', () => {
+    state.phase = 'TRENCH';
+    state.stageManager!.reset();
+    
+    // Position camera to look at the port
+    const { catwalkEndZ, exhaustPortZOffset, trenchHeight } = GameConfig.stage;
+    const portZ = catwalkEndZ - exhaustPortZOffset;
+    const portY = -trenchHeight / 2 + 10;
+    
+    // Set player position so it's within range
+    state.player!.position.set(0, 0, portZ + 100);
+    
+    // Camera is usually at (0, 0, 0) relative to player in this test setup
+    camera.position.set(0, 0, portZ + 100);
+    camera.lookAt(0, portY, portZ);
+    
+    // input pointing directly at it (0,0 in NDC)
+    const input = { x: 0, y: 0, isFiring: false, isLaunchingTorpedo: true };
+
+    const initialScore = state.score;
+    combatSystem.update(0.01, input);
+
+    expect(state.phase).not.toBe('TRENCH');
+    expect(state.score).toBeGreaterThan(initialScore + 9999);
   });
 });

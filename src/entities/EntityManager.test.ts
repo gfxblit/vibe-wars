@@ -2,6 +2,7 @@ import { expect, test, describe, beforeEach, vi } from 'vitest'
 import * as THREE from 'three'
 import { EntityManager } from './EntityManager'
 import { GameConfig } from '../config'
+import { state, initGame } from '../state'
 
 describe('EntityManager', () => {
   let scene: THREE.Scene;
@@ -13,18 +14,21 @@ describe('EntityManager', () => {
   beforeEach(() => {
     scene = new THREE.Scene();
     hudScene = new THREE.Scene();
-    entityManager = new EntityManager(scene, hudScene);
+    initGame(scene, hudScene);
+    entityManager = state.entityManager!;
     playerPosition = new THREE.Vector3(0, 0, 0);
     playerQuaternion = new THREE.Quaternion();
   })
 
   test('spawnTieFighter should add to scene and list', () => {
+    entityManager.clear();
     entityManager.spawnTieFighter(true);
     expect(entityManager.getTieFighters().length).toBe(1);
     expect(scene.children.length).toBe(1);
   })
 
   test('removeTieFighter should call dispose and remove from scene', () => {
+    entityManager.clear();
     // Use spawnTieFighter to get it in the list properly or add it via a testing-only method if we had one
     // Since we don't, we'll just use spawnTieFighter and then override its position
     entityManager.spawnTieFighter(false);

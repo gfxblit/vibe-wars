@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { state, spawnLasers, addScore } from './state';
+import { state, spawnLasers, addScore, addKill, nextPhase } from './state';
 import { checkAim } from './collision';
 import { GameConfig } from './config';
 import { UserInput } from './input';
@@ -18,13 +18,24 @@ export class CombatSystem {
   public update(deltaTime: number, input: UserInput) {
     this.fireCooldown -= deltaTime;
 
-    // 1. Handle Firing
+    // 1. Handle Firing (Lasers)
     if (input.isFiring && this.fireCooldown <= 0) {
       this.fire(input);
       this.fireCooldown = GameConfig.laser.cooldown;
     }
 
-    // 2. Update existing lasers and check collisions
+    // 2. Handle Torpedo (Trench Run)
+    if (input.isLaunchingTorpedo && state.phase === 'TRENCH' && state.stageManager) {
+       // Ideally we'd have a cooldown or ammo check here, but for now 
+       // just check if the shot lands
+       if (state.stageManager.checkExhaustPortHit(input, this.camera)) {
+        nextPhase();
+        state.stageManager.reset();
+        addScore(10000); // Big bonus!
+      }
+    }
+
+    // 3. Update existing lasers and check collisions
     this.updateLasers();
   }
 
@@ -35,10 +46,13 @@ export class CombatSystem {
 
   private checkHits(input: UserInput) {
     if (!state.entityManager) return;
+
+    // Check for TIE fighter hits
     state.entityManager.getTieFighters().forEach(tf => {
       if (!tf.isExploded && checkAim(tf.position, input, this.camera)) {
         tf.explode();
         addScore(100);
+        addKill();
       }
     });
   }

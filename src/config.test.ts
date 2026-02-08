@@ -9,7 +9,7 @@ describe('GameConfig', () => {
   test('should have camera settings', () => {
     expect(GameConfig.camera.fov).toBe(75);
     expect(GameConfig.camera.near).toBe(0.1);
-    expect(GameConfig.camera.far).toBe(1000);
+    expect(GameConfig.camera.far).toBe(5000);
   });
 
   test('should have player settings', () => {

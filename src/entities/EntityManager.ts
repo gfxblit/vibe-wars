@@ -13,6 +13,7 @@ export class EntityManager {
   private worldScene: THREE.Scene;
   private hudScene: THREE.Scene;
   private strategyFactory: AIStrategyFactory;
+  private spawningEnabled: boolean = true;
 
   // Scratch vectors to avoid GC pressure
   private readonly scratchPlayerVelocity = new THREE.Vector3();
@@ -96,11 +97,17 @@ export class EntityManager {
     }
 
     // 4. Spawn new TIE fighters
-    this.spawnTimer += deltaTime;
-    if (this.spawnTimer >= GameConfig.tieFighter.spawnInterval) {
-      this.spawnTieFighter(isSmartAI);
-      this.spawnTimer = 0;
+    if (this.spawningEnabled) {
+      this.spawnTimer += deltaTime;
+      if (this.spawnTimer >= GameConfig.tieFighter.spawnInterval) {
+        this.spawnTieFighter(isSmartAI);
+        this.spawnTimer = 0;
+      }
     }
+  }
+
+  public setSpawningEnabled(enabled: boolean): void {
+    this.spawningEnabled = enabled;
   }
 
   public spawnTieFighter(isSmartAI: boolean): void {
@@ -186,3 +193,6 @@ export class EntityManager {
     this.spawnTimer = 0;
   }
 }
+
+
+    
