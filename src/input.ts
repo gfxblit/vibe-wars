@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { state } from './state';
+import { state, nextPhase } from './state';
 import { GameConfig } from './config';
 
 export interface UserInput {
@@ -24,6 +24,10 @@ export class InputManager {
   private handleKeyDown = (event: KeyboardEvent) => {
     this.keys.add(event.code);
     this.updateKeyboardTarget();
+
+    if (state.debug && event.code === 'KeyP') {
+      nextPhase();
+    }
   };
 
   private handleKeyUp = (event: KeyboardEvent) => {

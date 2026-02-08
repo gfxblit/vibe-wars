@@ -170,4 +170,54 @@ describe('UIManager', () => {
     uiManager.update(mockState);
     expect(overlay?.classList.contains('animate-damage-flash')).toBe(false);
   });
+
+  describe('Debug Panel - Phase Switcher', () => {
+    beforeEach(() => {
+      state.debug = true;
+      // Re-create UIManager to trigger debug panel creation
+      uiManager.destroy();
+      uiManager = new UIManager();
+    });
+
+    it('should display PHASE section title', () => {
+      const debugPanel = document.getElementById('debug-panel');
+      expect(debugPanel?.textContent).toContain('PHASE');
+    });
+
+    it('should create buttons for all phases', () => {
+      const dogfightBtn = document.getElementById('phase-dogfight');
+      const surfaceBtn = document.getElementById('phase-surface');
+      const trenchBtn = document.getElementById('phase-trench');
+
+      expect(dogfightBtn).not.toBeNull();
+      expect(dogfightBtn?.textContent).toBe('DOGFIGHT');
+      
+      expect(surfaceBtn).not.toBeNull();
+      expect(surfaceBtn?.textContent).toBe('SURFACE');
+      
+      expect(trenchBtn).not.toBeNull();
+      expect(trenchBtn?.textContent).toBe('TRENCH');
+    });
+
+    it('should switch to DOGFIGHT phase when clicked', () => {
+      state.phase = 'SURFACE';
+      const btn = document.getElementById('phase-dogfight');
+      btn?.click();
+      expect(state.phase).toBe('DOGFIGHT');
+    });
+
+    it('should switch to SURFACE phase when clicked', () => {
+      state.phase = 'DOGFIGHT';
+      const btn = document.getElementById('phase-surface');
+      btn?.click();
+      expect(state.phase).toBe('SURFACE');
+    });
+
+    it('should switch to TRENCH phase when clicked', () => {
+      state.phase = 'DOGFIGHT';
+      const btn = document.getElementById('phase-trench');
+      btn?.click();
+      expect(state.phase).toBe('TRENCH');
+    });
+  });
 });

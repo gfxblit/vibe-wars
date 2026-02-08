@@ -4,6 +4,7 @@ import { AIStrategyFactory } from './AIStrategyFactory';
 import { GameConfig } from '../config';
 import { Fireball } from './Fireball';
 import { Laser } from './Laser';
+import { GamePhase } from '../types';
 
 export class EntityManager {
   private tieFighters: TieFighter[] = [];
@@ -28,7 +29,7 @@ export class EntityManager {
     this.strategyFactory = strategyFactory;
   }
 
-  public update(deltaTime: number, playerPosition: THREE.Vector3, playerQuaternion: THREE.Quaternion, isSmartAI: boolean, onPlayerHit?: (damage: number) => void): void {
+  public update(deltaTime: number, playerPosition: THREE.Vector3, playerQuaternion: THREE.Quaternion, isSmartAI: boolean, phase: GamePhase, onPlayerHit?: (damage: number) => void): void {
     this.scratchPlayerForward.set(0, 0, -1).applyQuaternion(playerQuaternion);
 
     // 1. Update existing TIE fighters
@@ -95,11 +96,13 @@ export class EntityManager {
       }
     }
 
-    // 4. Spawn new TIE fighters
-    this.spawnTimer += deltaTime;
-    if (this.spawnTimer >= GameConfig.tieFighter.spawnInterval) {
-      this.spawnTieFighter(isSmartAI);
-      this.spawnTimer = 0;
+    // 4. Spawn new TIE fighters (ONLY in DOGFIGHT phase)
+    if (phase === 'DOGFIGHT') {
+      this.spawnTimer += deltaTime;
+      if (this.spawnTimer >= GameConfig.tieFighter.spawnInterval) {
+        this.spawnTieFighter(isSmartAI);
+        this.spawnTimer = 0;
+      }
     }
   }
 

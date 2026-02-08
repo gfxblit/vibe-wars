@@ -38,11 +38,25 @@ describe('EntityManager', () => {
     // We need to make sure the strategy doesn't move it back during update
     vi.spyOn(actualTf, 'update').mockReturnValue(new THREE.Vector3());
     
-    entityManager.update(0.1, playerPosition, playerQuaternion, true);
+    entityManager.update(0.1, playerPosition, playerQuaternion, true, 'DOGFIGHT');
     
     expect(entityManager.getTieFighters().length).toBe(0);
     expect(scene.children.length).toBe(0);
     expect(disposeSpy).toHaveBeenCalled();
+  })
+
+  test('should spawn TIE fighters when phase is DOGFIGHT', () => {
+    // Force spawn timer to be ready
+    const deltaTime = GameConfig.tieFighter.spawnInterval;
+    entityManager.update(deltaTime, playerPosition, playerQuaternion, true, 'DOGFIGHT');
+    expect(entityManager.getTieFighters().length).toBe(1);
+  })
+
+  test('should NOT spawn TIE fighters when phase is NOT DOGFIGHT', () => {
+    // Force spawn timer to be ready
+    const deltaTime = GameConfig.tieFighter.spawnInterval;
+    entityManager.update(deltaTime, playerPosition, playerQuaternion, true, 'SURFACE');
+    expect(entityManager.getTieFighters().length).toBe(0);
   })
 
   test('clear should dispose all fighters', () => {
