@@ -114,6 +114,7 @@ export function updateState(deltaTime: number, camera: THREE.Camera, input: User
 
 export function setStage(stage: GameStage) {
   state.stage = stage;
+  state.kills = 0;
   if (state.stageManager) {
     state.stageManager.reset();
   }

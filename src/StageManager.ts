@@ -13,7 +13,7 @@ export interface Stage {
 }
 
 class DogfightStage implements Stage {
-  constructor(private manager: StageManager) {
+  constructor() {
     if (state.entityManager) {
       state.entityManager.setSpawningEnabled(true);
     }
@@ -22,7 +22,6 @@ class DogfightStage implements Stage {
   update(_deltaTime: number, _player: Player): void {
     if (state.kills >= GameConfig.stage.trenchKillsThreshold) {
       goToNextStage();
-      this.manager.setStage(new SurfaceStage(this.manager));
     }
   }
 
@@ -63,7 +62,6 @@ class SurfaceStage implements Stage {
 
     if (dist < GameConfig.stage.trenchTransitionDistance + GameConfig.stage.deathStarSize) {
       goToNextStage();
-      this.manager.setStage(new TrenchStage(this.manager));
     }
 
     // Magnetic Steering: Slowly rotate player towards Death Star
@@ -129,7 +127,6 @@ class TrenchStage implements Stage {
     const hitPort = this.trench.checkPortCollision(player.position);
     if (hitPort || player.position.z <= -GameConfig.stage.trenchLength) {
       goToNextStage();
-      this.manager.reset();
     }
   }
 
@@ -149,7 +146,7 @@ export class StageManager {
   private initStage(): void {
     switch (state.stage) {
       case 'DOGFIGHT':
-        this.currentStage = new DogfightStage(this);
+        this.currentStage = new DogfightStage();
         break;
       case 'SURFACE':
         this.currentStage = new SurfaceStage(this);
