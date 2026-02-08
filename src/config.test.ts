@@ -85,7 +85,7 @@ describe('GameConfig', () => {
     expect(GameConfig.tieFighter.smartSpawnRandomY).toBe(30);
     expect(GameConfig.tieFighter.smartBrakingZone).toBe(60);
     expect(GameConfig.tieFighter.smartIntensityMax).toBe(0.8);
-    expect(GameConfig.tieFighter.smartPhaseThreshold).toBe(0.1);
+    expect(GameConfig.tieFighter.smartStageThreshold).toBe(0.1);
     expect(GameConfig.tieFighter.smartEscapeAccelerationDuration).toBe(6.0);
     expect(GameConfig.tieFighter.smartEscapeFadeDuration).toBe(3.0);
     expect(GameConfig.tieFighter.smartArcFalloff).toBe(60);

@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { GameConfig } from './config';
-import { state, nextPhase, takeDamage } from './state';
+import { state, goToNextStage, takeDamage } from './state';
 import { Player } from './entities/Player';
 import { DeathStar } from './entities/DeathStar';
 import { Trench } from './entities/Trench';
@@ -21,7 +21,7 @@ class DogfightStage implements Stage {
 
   update(_deltaTime: number, _player: Player): void {
     if (state.kills >= GameConfig.stage.trenchKillsThreshold) {
-      nextPhase();
+      goToNextStage();
       this.manager.setStage(new SurfaceStage(this.manager));
     }
   }
@@ -62,7 +62,7 @@ class SurfaceStage implements Stage {
     const dist = toDeathStar.length();
 
     if (dist < GameConfig.stage.trenchTransitionDistance + GameConfig.stage.deathStarSize) {
-      nextPhase();
+      goToNextStage();
       this.manager.setStage(new TrenchStage(this.manager));
     }
 
@@ -128,7 +128,7 @@ class TrenchStage implements Stage {
     // If player reaches the end of the trench or hits the port, they win the stage
     const hitPort = this.trench.checkPortCollision(player.position);
     if (hitPort || player.position.z <= -GameConfig.stage.trenchLength) {
-      nextPhase();
+      goToNextStage();
       this.manager.reset();
     }
   }
@@ -147,7 +147,7 @@ export class StageManager {
   }
 
   private initStage(): void {
-    switch (state.phase) {
+    switch (state.stage) {
       case 'DOGFIGHT':
         this.currentStage = new DogfightStage(this);
         break;
@@ -174,7 +174,7 @@ export class StageManager {
   }
 
   public checkExhaustPortHit(input: UserInput, camera: THREE.Camera): boolean {
-    if (state.phase !== 'TRENCH' || !this.currentStage) return false;
+    if (state.stage !== 'TRENCH' || !this.currentStage) return false;
     if (!state.player) return false;
     
     // The port position is fixed in world space based on config

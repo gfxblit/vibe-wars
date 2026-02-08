@@ -15,7 +15,7 @@ describe('Trench Integration', () => {
 
   it('should transition from DOGFIGHT to SURFACE to TRENCH', () => {
     const camera = new THREE.PerspectiveCamera();
-    expect(state.phase).toBe('DOGFIGHT');
+    expect(state.stage).toBe('DOGFIGHT');
     expect(state.kills).toBe(0);
 
     // 1. Reaching kill threshold
@@ -26,7 +26,7 @@ describe('Trench Integration', () => {
     // Trigger update to process transition
     updateState(0.1, camera);
     
-    expect(state.phase).toBe('SURFACE');
+    expect(state.stage).toBe('SURFACE');
     // DeathStar should be in scene
     expect(worldScene.children.some(child => child.type === 'Mesh' && (child as THREE.Mesh).geometry.type === 'SphereGeometry')).toBe(true);
 
@@ -40,7 +40,7 @@ describe('Trench Integration', () => {
     
     updateState(0.1, camera);
     
-    expect(state.phase).toBe('TRENCH');
+    expect(state.stage).toBe('TRENCH');
     // Trench should be in scene
     expect(worldScene.children.some(child => child instanceof THREE.Group)).toBe(true);
 

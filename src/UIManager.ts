@@ -1,4 +1,4 @@
-import { GameState, state } from './state';
+import { GameState, state, setStage } from './state';
 import { GameConfig } from './config';
 
 export class UIManager {
@@ -7,14 +7,14 @@ export class UIManager {
   private shieldValue!: HTMLElement;
   private shieldBar!: HTMLElement;
   private waveValue!: HTMLElement;
-  private phaseValue!: HTMLElement;
+  private stageValue!: HTMLElement;
   private instructionValue!: HTMLElement;
   private gameOver!: HTMLElement;
   private debugPanel?: HTMLElement;
   private damageOverlay!: HTMLElement;
-  private phaseButtons?: Map<string, HTMLElement>;
+  private stageButtons?: Map<string, HTMLElement>;
   private lastShields: number;
-  private lastPhase: string = '';
+  private lastStage: string = '';
   private damageTimeout: any = null;
   private shieldTimeout: any = null;
 
@@ -38,7 +38,7 @@ export class UIManager {
 
     // Central info area
     const centerArea = this.createEl('div', 'fixed top-1/4 left-1/2 -translate-x-1/2 flex flex-col items-center space-y-4 pointer-events-none', this.hud);
-    this.phaseValue = this.createEl('div', 'text-vector-yellow text-4xl animate-pulse hidden', centerArea);
+    this.stageValue = this.createEl('div', 'text-vector-yellow text-4xl animate-pulse hidden', centerArea);
     this.instructionValue = this.createEl('div', 'text-vector-green text-xl text-center hidden', centerArea);
 
     this.createGameOverOverlay();
@@ -82,21 +82,21 @@ export class UIManager {
       this.debugPanel
     );
 
-    // Phase Switcher
-    this.createEl('div', 'mt-4 mb-2 border-b border-vector-green pb-1', this.debugPanel).textContent = 'PHASE SWITCHER';
-    const phaseRow = this.createEl('div', 'flex space-x-2', this.debugPanel);
-    this.phaseButtons = new Map();
+    // Stage Switcher
+    this.createEl('div', 'mt-4 mb-2 border-b border-vector-green pb-1', this.debugPanel).textContent = 'STAGE SWITCHER';
+    const stageRow = this.createEl('div', 'flex space-x-2', this.debugPanel);
+    this.stageButtons = new Map();
 
-    const dogfightBtn = this.createActionButton('phase-dogfight', 'DOGFIGHT', () => { state.phase = 'DOGFIGHT'; }, phaseRow);
-    this.phaseButtons.set('DOGFIGHT', dogfightBtn);
+    const dogfightBtn = this.createActionButton('stage-dogfight', 'DOGFIGHT', () => { setStage('DOGFIGHT'); }, stageRow);
+    this.stageButtons.set('DOGFIGHT', dogfightBtn);
 
-    const surfaceBtn = this.createActionButton('phase-surface', 'SURFACE', () => { state.phase = 'SURFACE'; }, phaseRow);
-    this.phaseButtons.set('SURFACE', surfaceBtn);
+    const surfaceBtn = this.createActionButton('stage-surface', 'SURFACE', () => { setStage('SURFACE'); }, stageRow);
+    this.stageButtons.set('SURFACE', surfaceBtn);
 
-    const trenchBtn = this.createActionButton('phase-trench', 'TRENCH', () => { state.phase = 'TRENCH'; }, phaseRow);
-    this.phaseButtons.set('TRENCH', trenchBtn);
+    const trenchBtn = this.createActionButton('stage-trench', 'TRENCH', () => { setStage('TRENCH'); }, stageRow);
+    this.stageButtons.set('TRENCH', trenchBtn);
 
-    this.updatePhaseButtons(state.phase);
+    this.updateStageButtons(state.stage);
   }
 
   private createToggleButton(id: string, getText: () => string, onClick: () => void, parent: HTMLElement) {
@@ -120,16 +120,16 @@ export class UIManager {
     return btn;
   }
 
-  private updatePhaseButtons(currentPhase: string) {
-    if (!this.phaseButtons) return;
+  private updateStageButtons(currentStage: string) {
+    if (!this.stageButtons) return;
 
-    this.phaseButtons.forEach((button, phase) => {
-      if (phase === currentPhase) {
-        // Active phase: green background, black text
+    this.stageButtons.forEach((button, stage) => {
+      if (stage === currentStage) {
+        // Active stage: green background, black text
         button.classList.add('bg-vector-green', 'text-black');
         button.classList.remove('hover:bg-vector-green', 'hover:text-black');
       } else {
-        // Inactive phase: default styling
+        // Inactive stage: default styling
         button.classList.remove('bg-vector-green', 'text-black');
         button.classList.add('hover:bg-vector-green', 'hover:text-black');
       }
@@ -213,19 +213,19 @@ export class UIManager {
       this.waveValue.textContent = state.wave.toString();
     }
 
-    // Handle Phase display and instructions
-    if (this.lastPhase !== state.phase) {
-      this.lastPhase = state.phase;
-      this.phaseValue.textContent = `PHASE: ${state.phase}`;
-      this.phaseValue.classList.remove('hidden');
+    // Handle Stage display and instructions
+    if (this.lastStage !== state.stage) {
+      this.lastStage = state.stage;
+      this.stageValue.textContent = `STAGE: ${state.stage}`;
+      this.stageValue.classList.remove('hidden');
 
-      // Auto-hide phase title after 3 seconds
+      // Auto-hide stage title after 3 seconds
       setTimeout(() => {
-        this.phaseValue.classList.add('hidden');
+        this.stageValue.classList.add('hidden');
       }, 3000);
 
       // Context-sensitive instructions
-      switch (state.phase) {
+      switch (state.stage) {
         case 'DOGFIGHT':
           this.instructionValue.textContent = 'CLEAR THE SECTOR OF TIE FIGHTERS';
           this.instructionValue.classList.remove('hidden');
@@ -252,8 +252,8 @@ export class UIManager {
       this.gameOver.classList.add('hidden');
     }
 
-    if (this.phaseButtons) {
-      this.updatePhaseButtons(state.phase);
+    if (this.stageButtons) {
+      this.updateStageButtons(state.stage);
     }
 
     this.firstUpdate = false;

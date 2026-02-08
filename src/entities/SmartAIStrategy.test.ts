@@ -38,8 +38,8 @@ describe('SmartAIStrategy', () => {
     mockRng.random = vi.fn()
       .mockReturnValueOnce(0.1) // arcDirection X: 0.1 > 0.5 ? false -> -1
       .mockReturnValueOnce(0.9) // arcDirection Y: 0.9 > 0.5 ? true -> 1
-      .mockReturnValueOnce(0.0) // phaseOffset X: 0
-      .mockReturnValueOnce(0.0) // phaseOffset Y: 0
+      .mockReturnValueOnce(0.0) // stageOffset X: 0
+      .mockReturnValueOnce(0.0) // stageOffset Y: 0
       .mockReturnValueOnce(0.5) // initialZOffset random: 0.5
       .mockReturnValueOnce(0.6) // offset X random: 0.6
       .mockReturnValueOnce(0.5); // offset Y random: 0.5
@@ -79,7 +79,7 @@ describe('SmartAIStrategy', () => {
     
     strategy.update(0, entityPosition, entityQuaternion, playerPosition, playerQuaternion);
     
-    // Check lateral movement near Z=0 and during shadow phase
+    // Check lateral movement near Z=0 and during shadow stage
     let maxLateralMovement = 0;
     for (let t = 0; t < 5; t += 0.1) {
       strategy.update(0.1, entityPosition, entityQuaternion, playerPosition, playerQuaternion);
@@ -91,10 +91,10 @@ describe('SmartAIStrategy', () => {
     expect(maxLateralMovement).toBeGreaterThan(GameConfig.tieFighter.smartArcAmplitude * 0.4);
   })
 
-  test('should maintain constant distance during shadowing phase', () => {
+  test('should maintain constant distance during shadowing stage', () => {
     strategy.update(0, entityPosition, entityQuaternion, playerPosition, playerQuaternion);
     
-    // Fast forward to shadowing phase
+    // Fast forward to shadowing stage
     // relative speed is 80, distance to -50 is 150-200. 
     // Braking zone is 60. 
     // We need enough time to decelerate smoothly to the 0.1 threshold.

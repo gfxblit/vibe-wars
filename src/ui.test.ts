@@ -19,7 +19,7 @@ describe('UIManager', () => {
       shields: GameConfig.player.maxShields,
       kills: 0,
       wave: 2,
-      phase: 'DOGFIGHT',
+      stage: 'DOGFIGHT',
       isGameOver: false,
       player: null,
       entityManager: null,
@@ -201,48 +201,48 @@ describe('UIManager', () => {
     expect(overlay?.classList.contains('animate-damage-flash')).toBe(false);
   });
 
-  it('should display phase and instructions when phase changes', () => {
+  it('should display stage and instructions when stage changes', () => {
     // Initial update (DOGFIGHT)
     uiManager.update(mockState);
 
-    // We don't have IDs on phase/instruction elements, but we can find them by content or relative to HUD
+    // We don't have IDs on stage/instruction elements, but we can find them by content or relative to HUD
     const hud = document.getElementById('hud');
 
     // Check for DOGFIGHT instruction
     expect(hud?.textContent).toContain('CLEAR THE SECTOR OF TIE FIGHTERS');
-    expect(hud?.textContent).toContain('PHASE: DOGFIGHT');
+    expect(hud?.textContent).toContain('STAGE: DOGFIGHT');
 
     // Change to SURFACE
-    mockState.phase = 'SURFACE';
+    mockState.stage = 'SURFACE';
     uiManager.update(mockState);
     expect(hud?.textContent).toContain('APPROACH THE DEATH STAR');
-    expect(hud?.textContent).toContain('PHASE: SURFACE');
+    expect(hud?.textContent).toContain('STAGE: SURFACE');
 
     // Change to TRENCH
-    mockState.phase = 'TRENCH';
+    mockState.stage = 'TRENCH';
     uiManager.update(mockState);
     expect(hud?.textContent).toContain('STAY LOW AND FIRE TORPEDOES INTO THE PORT (SPACE/RIGHT-CLICK)');
-    expect(hud?.textContent).toContain('PHASE: TRENCH');
+    expect(hud?.textContent).toContain('STAGE: TRENCH');
   });
 
-  describe('Debug Panel - Phase Switcher', () => {
+  describe('Debug Panel - Stage Switcher', () => {
     beforeEach(() => {
       state.debug = true;
-      state.phase = 'DOGFIGHT';
+      state.stage = 'DOGFIGHT';
       uiManager.destroy(); // Clean up existing
       uiManager = new UIManager();
     });
 
-    it('should show phase buttons in debug panel', () => {
-      expect(document.getElementById('phase-dogfight')).not.toBeNull();
-      expect(document.getElementById('phase-surface')).not.toBeNull();
-      expect(document.getElementById('phase-trench')).not.toBeNull();
+    it('should show stage buttons in debug panel', () => {
+      expect(document.getElementById('stage-dogfight')).not.toBeNull();
+      expect(document.getElementById('stage-surface')).not.toBeNull();
+      expect(document.getElementById('stage-trench')).not.toBeNull();
     });
 
-    it('should highlight active phase button on initialization', () => {
-      const dogfightBtn = document.getElementById('phase-dogfight');
-      const surfaceBtn = document.getElementById('phase-surface');
-      const trenchBtn = document.getElementById('phase-trench');
+    it('should highlight active stage button on initialization', () => {
+      const dogfightBtn = document.getElementById('stage-dogfight');
+      const surfaceBtn = document.getElementById('stage-surface');
+      const trenchBtn = document.getElementById('stage-trench');
 
       expect(dogfightBtn?.classList.contains('bg-vector-green')).toBe(true);
       expect(dogfightBtn?.classList.contains('text-black')).toBe(true);
@@ -250,12 +250,12 @@ describe('UIManager', () => {
       expect(trenchBtn?.classList.contains('bg-vector-green')).toBe(false);
     });
 
-    it('should update button highlighting when phase changes via state', () => {
-      const dogfightBtn = document.getElementById('phase-dogfight');
-      const surfaceBtn = document.getElementById('phase-surface');
+    it('should update button highlighting when stage changes via state', () => {
+      const dogfightBtn = document.getElementById('stage-dogfight');
+      const surfaceBtn = document.getElementById('stage-surface');
 
       // Update state manually
-      mockState.phase = 'SURFACE';
+      mockState.stage = 'SURFACE';
       uiManager.update(mockState);
 
       expect(dogfightBtn?.classList.contains('bg-vector-green')).toBe(false);
@@ -264,22 +264,36 @@ describe('UIManager', () => {
     });
 
     it('should update button highlighting when clicking buttons', () => {
-      const dogfightBtn = document.getElementById('phase-dogfight');
-      const surfaceBtn = document.getElementById('phase-surface');
-      const trenchBtn = document.getElementById('phase-trench');
+      const dogfightBtn = document.getElementById('stage-dogfight');
+      const surfaceBtn = document.getElementById('stage-surface');
+      const trenchBtn = document.getElementById('stage-trench');
 
       // Click SURFACE button
       surfaceBtn?.click();
 
-      // We expect state.phase to have changed, and UI to reflect it on next update
-      expect(state.phase).toBe('SURFACE');
+      // We expect state.stage to have changed, and UI to reflect it on next update
+      expect(state.stage).toBe('SURFACE');
 
-      mockState.phase = state.phase;
+      mockState.stage = state.stage;
       uiManager.update(mockState);
 
       expect(dogfightBtn?.classList.contains('bg-vector-green')).toBe(false);
       expect(surfaceBtn?.classList.contains('bg-vector-green')).toBe(true);
       expect(trenchBtn?.classList.contains('bg-vector-green')).toBe(false);
+    });
+
+    it('should update stage and reset StageManager when clicking buttons', () => {
+      const surfaceBtn = document.getElementById('stage-surface');
+
+      // Mock StageManager
+      const mockReset = vi.fn();
+      state.stageManager = { reset: mockReset } as any;
+
+      // Click SURFACE button
+      surfaceBtn?.click();
+
+      expect(state.stage).toBe('SURFACE');
+      expect(mockReset).toHaveBeenCalled();
     });
   });
 });
