@@ -22,8 +22,8 @@ describe('TieFighter', () => {
   })
 
   test('update should move TieFighter ahead of the player', () => {
-    tieFighter.update(0, playerPosition, playerQuaternion);
-    
+    tieFighter.update(0, playerPosition, playerQuaternion, 100);
+
     const expectedZ = -GameConfig.tieFighter.distance;
     expect(tieFighter.position.z).toBeCloseTo(expectedZ, 1);
     expect(tieFighter.position.x).toBeCloseTo(0, 1);
@@ -31,8 +31,8 @@ describe('TieFighter', () => {
 
   test('update should follow player position', () => {
     playerPosition.set(10, 20, 30);
-    tieFighter.update(0, playerPosition, playerQuaternion);
-    
+    tieFighter.update(0, playerPosition, playerQuaternion, 100);
+
     const expectedZ = 30 - GameConfig.tieFighter.distance;
     expect(tieFighter.position.z).toBeCloseTo(expectedZ, 1);
     expect(tieFighter.position.x).toBeCloseTo(10, 1);
@@ -41,9 +41,9 @@ describe('TieFighter', () => {
 
   test('update should follow player rotation', () => {
     playerQuaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI / 2);
-    
-    tieFighter.update(0, playerPosition, playerQuaternion);
-    
+
+    tieFighter.update(0, playerPosition, playerQuaternion, 100);
+
     const expectedX = GameConfig.tieFighter.distance;
     expect(tieFighter.position.x).toBeCloseTo(expectedX, 1);
     expect(tieFighter.position.z).toBeCloseTo(0, 1);
@@ -54,7 +54,7 @@ describe('TieFighter', () => {
     const amp = GameConfig.tieFighter.oscillationAmplitude;
 
     // at t = 0.5, oscillation should be sin(0.5 * freq) * amp
-    tieFighter.update(0.5, playerPosition, playerQuaternion);
+    tieFighter.update(0.5, playerPosition, playerQuaternion, 100);
     const expectedX = Math.sin(0.5 * freq) * amp;
     expect(tieFighter.position.x).toBeCloseTo(expectedX, 1);
   })
@@ -62,7 +62,7 @@ describe('TieFighter', () => {
   test('should have a composite structure (body + 2 wings)', () => {
     // We expect the mesh (Group) to have 3 children: Body, Left Wing, Right Wing
     expect(tieFighter.mesh.children.length).toBe(3);
-    
+
     // Check for Sphere body
     const body = tieFighter.mesh.children.find(c => (c as THREE.Mesh).geometry instanceof THREE.SphereGeometry);
     expect(body).toBeDefined();
@@ -84,17 +84,17 @@ describe('TieFighter', () => {
     const initialPos = piece1.position.clone();
 
     tieFighter.explode();
-    
+
     // Update a few times
-    tieFighter.update(0.1, playerPosition, playerQuaternion);
-    
+    tieFighter.update(0.1, playerPosition, playerQuaternion, 100);
+
     // Pieces should have moved relative to the group
     expect(piece1.position.equals(initialPos)).toBe(false);
   })
 
   test('pieces should move according to GameConfig.tieFighter.explosionVelocity', () => {
     const configVelocity = GameConfig.tieFighter.explosionVelocity;
-    
+
     // We can't easily test the exact velocity due to Math.random(), 
     // but we can check if they moved at all, and then we will update the code to use the config.
     // For TDD, let's just assert that the config value exists.
@@ -109,7 +109,7 @@ describe('TieFighter', () => {
 
     const body1 = tf1.mesh.children.find(c => (c as THREE.Mesh).geometry instanceof THREE.SphereGeometry) as THREE.Mesh;
     const body2 = tf2.mesh.children.find(c => (c as THREE.Mesh).geometry instanceof THREE.SphereGeometry) as THREE.Mesh;
-    
+
     expect(body1.geometry).toBe(body2.geometry);
     // Materials are cloned for per-instance debug colors, so they won't be identical
     expect((body1.material as THREE.MeshBasicMaterial).type).toBe((body2.material as THREE.MeshBasicMaterial).type);
@@ -125,34 +125,33 @@ describe('TieFighter', () => {
   test('smart AI should spawn behind the player and overtake', () => {
     const playerPos = new THREE.Vector3(0, 0, 0);
     const playerQuat = new THREE.Quaternion(); // looking towards -Z
-    
+
     const smartTieFighter = new TieFighter(new SmartAIStrategy());
-    
-    smartTieFighter.update(0.01, playerPos, playerQuat); 
+
+    smartTieFighter.update(0.01, playerPos, playerQuat, 100);
     // It should be behind the player (Z > 0)
     expect(smartTieFighter.position.z).toBeGreaterThan(0);
-    
+
     const initialZ = smartTieFighter.position.z;
-    
+
     // Update after 1 second, it should have moved forward (towards negative Z)
-        smartTieFighter.update(1, playerPos, playerQuat);
-        expect(smartTieFighter.position.z).toBeLessThan(initialZ);
-      })
-    
-      test('dispose should call dispose on all materials', () => {
-        const materials: THREE.Material[] = [];
-            tieFighter.mesh.traverse(child => {
-              if (child instanceof THREE.Mesh) {
-                materials.push(child.material);
-                child.material.dispose = vi.fn();
-              }
-            });
-                expect(materials.length).toBeGreaterThan(0);
-        tieFighter.dispose();
-    
-        materials.forEach(mat => {
-          expect(mat.dispose).toHaveBeenCalled();
-        });
-      })
-    })
-    
+    smartTieFighter.update(1, playerPos, playerQuat, 100);
+    expect(smartTieFighter.position.z).toBeLessThan(initialZ);
+  })
+
+  test('dispose should call dispose on all materials', () => {
+    const materials: THREE.Material[] = [];
+    tieFighter.mesh.traverse(child => {
+      if (child instanceof THREE.Mesh) {
+        materials.push(child.material);
+        child.material.dispose = vi.fn();
+      }
+    });
+    expect(materials.length).toBeGreaterThan(0);
+    tieFighter.dispose();
+
+    materials.forEach(mat => {
+      expect(mat.dispose).toHaveBeenCalled();
+    });
+  })
+})

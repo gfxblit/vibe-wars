@@ -13,7 +13,10 @@ describe('GameConfig', () => {
   });
 
   test('should have player settings', () => {
-    expect(GameConfig.player.forwardSpeed).toBe(100);
+    expect(GameConfig.player.baseForwardSpeed).toBe(100);
+    expect(GameConfig.player.forwardSpeeds.DOGFIGHT).toBe(100);
+    expect(GameConfig.player.forwardSpeeds.SURFACE).toBe(150);
+    expect(GameConfig.player.forwardSpeeds.TRENCH).toBe(80);
     expect(GameConfig.player.turnSpeedYaw).toBeCloseTo(Math.PI / 1.5);
     expect(GameConfig.player.turnSpeedPitch).toBeCloseTo(Math.PI / 1.5);
     expect(GameConfig.player.maxBank).toBeCloseTo(Math.PI / 4);

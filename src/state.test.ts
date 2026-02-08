@@ -65,19 +65,17 @@ describe('Game State', () => {
 
     // Move player to 0,0,0
     state.player!.position.set(0, 0, 0);
-    
+
     // Place fireball very close to the camera (which is at 0,0,10)
     // Near plane is 0.1. So 10 - 0.1 = 9.9.
     // We place it at 9.95 to be safe (inside the frustum, near the near plane)
     // Note: Fireball moves! So we should check where it ends up after update?
     // Or just place it such that after update it is in the sweet spot.
-    // Let's place it at 9.8 and move it towards camera (+Z)? No, camera is at +10 looking at 0.
-    // So "forward" for fireball (coming from 0 to 10) is +Z.
-    // If we place it at 9.9 and velocity is +1, after 0.01s it is 9.91.
+    // Let's place it at 9.9 and velocity is +1, after 0.01s it is 9.91.
     // This is very close to 10.
     // Let's manually set collision by ensuring projectToNDC returns what we want?
     // We can spy on it.
-    
+
     // Start outside threshold (2.0) and move through it
     const fbPos = new THREE.Vector3(0, 0, -3.0); // 3.0 in front of camera
     const fbVel = new THREE.Vector3(0, 0, 40); // Move towards camera
@@ -90,7 +88,7 @@ describe('Game State', () => {
     mockCamera.updateProjectionMatrix();
 
     const initialShields = state.shields;
-    
+
     // We don't need to mock projectToNDC if it's already centered
     updateState(0.1, mockCamera);
 
@@ -133,6 +131,20 @@ describe('Game State', () => {
     updateState(0.1, mockCamera);
 
     expect(tieFighter.position.equals(initialPos)).toBe(false);
+  })
+
+  test('updateState uses stage-specific speed', () => {
+    state.stage = 'DOGFIGHT';
+    state.stageManager?.reset();
+    const dogfightSpeed = state.stageManager?.getStage()?.speed;
+    expect(dogfightSpeed).toBe(GameConfig.player.forwardSpeeds.DOGFIGHT);
+
+    state.stage = 'SURFACE';
+    state.stageManager?.reset();
+    const surfaceSpeed = state.stageManager?.getStage()?.speed;
+    expect(surfaceSpeed).toBe(GameConfig.player.forwardSpeeds.SURFACE);
+
+    expect(dogfightSpeed).not.toBe(surfaceSpeed);
   })
 
   test('updateState should not move player if game is over', () => {

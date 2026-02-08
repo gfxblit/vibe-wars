@@ -16,7 +16,7 @@ describe('EntityManager Tunneling Repro', () => {
     entityManager = new EntityManager(scene, hudScene);
     playerPosition = new THREE.Vector3(0, 0, 0);
     playerQuaternion = new THREE.Quaternion();
-    
+
     mockCamera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
     mockCamera.position.set(0, 0, 0);
     mockCamera.updateMatrixWorld();
@@ -24,19 +24,19 @@ describe('EntityManager Tunneling Repro', () => {
 
   test('should detect collision even when fireball tunnels over the detection zone', () => {
     const onPlayerHit = vi.fn();
-    
+
     // threshold = 2.0
     // Start at z = -3.0 (dist = 3.0)
     // Move to z = +2.0 (dist = -2.0)
     // dt = 0.05, velocity = 100
-    
+
     const fbPos = new THREE.Vector3(0, 0, -3.0);
-    const fbVel = new THREE.Vector3(0, 0, 100); 
+    const fbVel = new THREE.Vector3(0, 0, 100);
     const fireball = entityManager.spawnFireball(fbPos, fbVel);
 
     // This update will move fireball from -2.0 to 3.0.
     // Crossing the threshold at 1.5.
-    entityManager.update(0.05, playerPosition, playerQuaternion, false, mockCamera, onPlayerHit);
+    entityManager.update(0.05, playerPosition, playerQuaternion, false, mockCamera, 100, onPlayerHit);
 
     expect(onPlayerHit).toHaveBeenCalled();
     expect(fireball.isExploded).toBe(true);

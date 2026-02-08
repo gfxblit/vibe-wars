@@ -11,10 +11,11 @@ export class DumbAIStrategy implements AIStrategy {
     entityPosition: THREE.Vector3,
     entityQuaternion: THREE.Quaternion,
     playerPosition: THREE.Vector3,
-    playerQuaternion: THREE.Quaternion
+    playerQuaternion: THREE.Quaternion,
+    _playerSpeed: number
   ): void {
     this.elapsedTime += deltaTime;
-    
+
     // Calculate relative offset in front of player
     this.offset.set(0, 0, -GameConfig.tieFighter.distance);
 

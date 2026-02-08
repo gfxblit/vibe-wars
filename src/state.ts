@@ -87,7 +87,7 @@ export function initGame(worldScene: THREE.Scene, hudScene: THREE.Scene) {
 
   state.stageManager = new StageManager(worldScene);
 
-  console.log('Game initialized', { debug: state.debug });
+  console.log('Game initialized', { debug: state.debug, stage: state.stage });
 }
 
 export function updateState(deltaTime: number, camera: THREE.Camera, input: UserInput = { x: 0, y: 0, isFiring: false, isLaunchingTorpedo: false }) {
@@ -95,7 +95,8 @@ export function updateState(deltaTime: number, camera: THREE.Camera, input: User
     return;
   }
 
-  state.player.update(input, deltaTime, state.showChassis);
+  const currentSpeed = state.stageManager.getStage()?.speed ?? GameConfig.player.baseForwardSpeed;
+  state.player.update(input, deltaTime, currentSpeed, state.showChassis);
 
   // Ensure camera world matrix is updated after player moves but before collision check
   camera.updateMatrixWorld();
@@ -106,6 +107,7 @@ export function updateState(deltaTime: number, camera: THREE.Camera, input: User
     state.player.mesh.quaternion,
     state.isSmartAI,
     camera,
+    currentSpeed,
     (damage) => takeDamage(damage)
   );
 

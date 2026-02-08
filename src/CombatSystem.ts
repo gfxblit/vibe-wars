@@ -26,9 +26,9 @@ export class CombatSystem {
 
     // 2. Handle Torpedo (Trench Run)
     if (input.isLaunchingTorpedo && state.stage === 'TRENCH' && state.stageManager) {
-       // Ideally we'd have a cooldown or ammo check here, but for now 
-       // just check if the shot lands
-       if (state.stageManager.checkExhaustPortHit(input, this.camera)) {
+      // Ideally we'd have a cooldown or ammo check here, but for now 
+      // just check if the shot lands
+      if (state.stageManager.checkExhaustPortHit(input, this.camera)) {
         goToNextStage();
         state.stageManager.reset();
         addScore(10000); // Big bonus!
