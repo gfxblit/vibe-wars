@@ -25,12 +25,12 @@ describe('SmartAIStrategy', () => {
 
   test('should initialize behind player and move forward', () => {
     // First update initializes
-    strategy.update(0, entityPosition, entityQuaternion, playerPosition, playerQuaternion, 100);
+    strategy.update(0, entityPosition, entityQuaternion, playerPosition, playerQuaternion, GameConfig.player.baseForwardSpeed);
     // with 0.5, random offset is 0.
     expect(entityPosition.z).toBeCloseTo(GameConfig.tieFighter.spawnDistanceBehind + 0.5 * GameConfig.tieFighter.smartSpawnRandomZ, 1);
 
     const initialZ = entityPosition.z;
-    strategy.update(0.1, entityPosition, entityQuaternion, playerPosition, playerQuaternion, 100);
+    strategy.update(0.1, entityPosition, entityQuaternion, playerPosition, playerQuaternion, GameConfig.player.baseForwardSpeed);
     expect(entityPosition.z).toBeLessThan(initialZ);
   })
 
@@ -46,7 +46,7 @@ describe('SmartAIStrategy', () => {
 
     const rngStrategy = new SmartAIStrategy(mockRng);
     // elapsedTime will be 0 on first update
-    rngStrategy.update(0, entityPosition, entityQuaternion, playerPosition, playerQuaternion, 100);
+    rngStrategy.update(0, entityPosition, entityQuaternion, playerPosition, playerQuaternion, GameConfig.player.baseForwardSpeed);
 
     // offset.x = (0.6 - 0.5) * smartSpawnRandomX = 0.1 * 40 = 4
     // xOsc = sin(0) = 0
@@ -56,10 +56,10 @@ describe('SmartAIStrategy', () => {
   })
 
   test('should face direction of motion', () => {
-    strategy.update(0, entityPosition, entityQuaternion, playerPosition, playerQuaternion, 100);
+    strategy.update(0, entityPosition, entityQuaternion, playerPosition, playerQuaternion, GameConfig.player.baseForwardSpeed);
     const pos1 = entityPosition.clone();
 
-    strategy.update(0.1, entityPosition, entityQuaternion, playerPosition, playerQuaternion, 100);
+    strategy.update(0.1, entityPosition, entityQuaternion, playerPosition, playerQuaternion, GameConfig.player.baseForwardSpeed);
     const pos2 = entityPosition.clone();
 
     const velocity = pos2.clone().sub(pos1).normalize();
@@ -77,12 +77,12 @@ describe('SmartAIStrategy', () => {
     // Initial Z is around 100. relativeSpeed is smartSpeed (180) - playerSpeed (100) = 80.
     // Takes about 1.25s to reach Z=0.
 
-    strategy.update(0, entityPosition, entityQuaternion, playerPosition, playerQuaternion, 100);
+    strategy.update(0, entityPosition, entityQuaternion, playerPosition, playerQuaternion, GameConfig.player.baseForwardSpeed);
 
     // Check lateral movement near Z=0 and during shadow stage
     let maxLateralMovement = 0;
     for (let t = 0; t < 5; t += 0.1) {
-      strategy.update(0.1, entityPosition, entityQuaternion, playerPosition, playerQuaternion, 100);
+      strategy.update(0.1, entityPosition, entityQuaternion, playerPosition, playerQuaternion, GameConfig.player.baseForwardSpeed);
       const lateralDist = Math.sqrt(entityPosition.x * entityPosition.x + entityPosition.y * entityPosition.y);
       maxLateralMovement = Math.max(maxLateralMovement, lateralDist);
     }
@@ -92,32 +92,32 @@ describe('SmartAIStrategy', () => {
   })
 
   test('should maintain constant distance during shadowing stage', () => {
-    strategy.update(0, entityPosition, entityQuaternion, playerPosition, playerQuaternion, 100);
+    strategy.update(0, entityPosition, entityQuaternion, playerPosition, playerQuaternion, GameConfig.player.baseForwardSpeed);
 
     // Fast forward to shadowing stage
     // relative speed is 80, distance to -50 is 150-200. 
     // Braking zone is 60. 
     // We need enough time to decelerate smoothly to the 0.1 threshold.
     for (let t = 0; t < 8.0; t += 0.1) {
-      strategy.update(0.1, entityPosition, entityQuaternion, playerPosition, playerQuaternion, 100);
+      strategy.update(0.1, entityPosition, entityQuaternion, playerPosition, playerQuaternion, GameConfig.player.baseForwardSpeed);
     }
 
     // Now it should be shadowing at -50
     expect(entityPosition.z).toBeCloseTo(GameConfig.tieFighter.smartShadowDistance, 0);
 
     const zBefore = entityPosition.z;
-    strategy.update(0.5, entityPosition, entityQuaternion, playerPosition, playerQuaternion, 100);
+    strategy.update(0.5, entityPosition, entityQuaternion, playerPosition, playerQuaternion, GameConfig.player.baseForwardSpeed);
     // Should still be at -50
     expect(entityPosition.z).toBeCloseTo(zBefore, 0.1);
 
     // Wait for shadow duration (3s)
     for (let t = 0; t < 3.0; t += 0.5) {
-      strategy.update(0.5, entityPosition, entityQuaternion, playerPosition, playerQuaternion, 100);
+      strategy.update(0.5, entityPosition, entityQuaternion, playerPosition, playerQuaternion, GameConfig.player.baseForwardSpeed);
     }
 
     // Now it should be escaping
     const zShadow = entityPosition.z;
-    strategy.update(0.5, entityPosition, entityQuaternion, playerPosition, playerQuaternion, 100);
+    strategy.update(0.5, entityPosition, entityQuaternion, playerPosition, playerQuaternion, GameConfig.player.baseForwardSpeed);
     expect(entityPosition.z).toBeLessThan(zShadow);
   })
 })

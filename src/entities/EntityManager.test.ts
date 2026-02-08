@@ -42,7 +42,7 @@ describe('EntityManager', () => {
     // We need to make sure the strategy doesn't move it back during update
     vi.spyOn(actualTf, 'update').mockReturnValue(new THREE.Vector3());
 
-    entityManager.update(0.1, playerPosition, playerQuaternion, true, new THREE.PerspectiveCamera(), 100);
+    entityManager.update(0.1, playerPosition, playerQuaternion, true, new THREE.PerspectiveCamera(), GameConfig.player.baseForwardSpeed);
 
     expect(entityManager.getTieFighters().length).toBe(0);
     expect(scene.children.length).toBe(0);
@@ -88,14 +88,14 @@ describe('EntityManager', () => {
     // prevDist = dot(90-100, -1) = 10
     // currDist = dot(95-100, -1) = 5
     // Threshold=1.5. No hit.
-    entityManager.update(0.05, playerPosition, playerQuaternion, false, camera, 100, onHit);
+    entityManager.update(0.05, playerPosition, playerQuaternion, false, camera, GameConfig.player.baseForwardSpeed, onHit);
     expect(onHit).not.toHaveBeenCalled();
     expect(fb.isExploded).toBe(false);
 
     // Update 2: moves from 95 to 95 + (100 * 0.05) = 100
     // Player is at 100. fb is at 100.
     // currDist = dot(100-100, -1) = 0. HIT!
-    entityManager.update(0.05, playerPosition, playerQuaternion, false, camera, 100, onHit);
+    entityManager.update(0.05, playerPosition, playerQuaternion, false, camera, GameConfig.player.baseForwardSpeed, onHit);
     expect(onHit).toHaveBeenCalled();
     expect(fb.isExploded).toBe(true);
   })
