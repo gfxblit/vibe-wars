@@ -22,6 +22,9 @@ export class EntityManager {
   private readonly scratchFireballPos = new THREE.Vector3();
   private readonly scratchPlayerForward = new THREE.Vector3();
   private readonly scratchToFireball = new THREE.Vector3();
+  private readonly scratchToPrevFireball = new THREE.Vector3();
+  private readonly scratchCameraPos = new THREE.Vector3();
+  private readonly scratchCameraDir = new THREE.Vector3();
 
   constructor(worldScene: THREE.Scene, hudScene: THREE.Scene, strategyFactory: AIStrategyFactory = new AIStrategyFactory()) {
     this.worldScene = worldScene;
@@ -29,7 +32,7 @@ export class EntityManager {
     this.strategyFactory = strategyFactory;
   }
 
-  public update(deltaTime: number, playerPosition: THREE.Vector3, playerQuaternion: THREE.Quaternion, isSmartAI: boolean, onPlayerHit?: (damage: number) => void): void {
+  public update(deltaTime: number, playerPosition: THREE.Vector3, playerQuaternion: THREE.Quaternion, isSmartAI: boolean, camera: THREE.Camera, onPlayerHit?: (damage: number) => void): void {
     this.scratchPlayerForward.set(0, 0, -1).applyQuaternion(playerQuaternion);
 
     // 1. Update existing TIE fighters
@@ -59,30 +62,60 @@ export class EntityManager {
       const fb = this.fireballs[i];
       fb.update(deltaTime);
 
-      // Remove if expired (after explosion animation completes)
+      // Remove if exploded animation completes
       if (fb.isExpired()) {
         this.removeFireball(i);
         continue;
       }
 
-      // If fireball is far behind player, expire it
-      this.scratchToFireball.subVectors(fb.position, playerPosition);
-      const dot = this.scratchToFireball.dot(this.scratchPlayerForward);
-
-      // If it's more than configured units behind the player, it's missed
-      if (dot < -GameConfig.fireball.expirationDistance) {
+      // Cleanup distant fireballs (missed or far away)
+      const distToPlayer = fb.position.distanceTo(playerPosition);
+      if (distToPlayer > GameConfig.fireball.expirationDistance) {
         this.removeFireball(i);
         continue;
       }
 
-      // Basic collision check with player (only if not already exploded)
+      // Collision checks
       if (!fb.isExploded) {
-        const distance = fb.position.distanceTo(playerPosition);
-        if (distance < (GameConfig.fireball.collisionRadiusWorld + GameConfig.player.meshSize)) {
-          if (onPlayerHit) {
-            onPlayerHit(GameConfig.fireball.damage);
+        camera.getWorldPosition(this.scratchCameraPos);
+        camera.getWorldDirection(this.scratchCameraDir);
+
+        this.scratchToFireball.subVectors(fb.position, this.scratchCameraPos);
+        this.scratchToPrevFireball.subVectors(fb.previousPosition, this.scratchCameraPos);
+        
+        const currDist = this.scratchToFireball.dot(this.scratchCameraDir);
+        const prevDist = this.scratchToPrevFireball.dot(this.scratchCameraDir);
+        
+        const threshold = GameConfig.fireball.hitDistanceThreshold;
+        
+        // A. Camera Plane Collision (Frontal)
+        // Trigger if it crossed from front of threshold to behind threshold
+        if (prevDist > threshold && currDist <= threshold) {
+          // Use previous position for NDC check to avoid NaN/weirdness when too close to camera
+          this.scratchFireballPos.copy(fb.previousPosition).project(camera);
+          
+          const ndcX = this.scratchFireballPos.x;
+          const ndcY = this.scratchFireballPos.y;
+          const ndcThreshold = GameConfig.fireball.hitNDCThreshold;
+          
+          // Check if it's roughly on screen at the moment of impact
+          if (Math.abs(ndcX) <= ndcThreshold && Math.abs(ndcY) <= ndcThreshold) {
+             if (onPlayerHit) {
+               onPlayerHit(GameConfig.fireball.damage);
+             }
+             fb.explode();
           }
-          fb.explode();
+        }
+
+        // B. Body Collision Fallback (Radius-based)
+        // Handles hits from the side or back that don't cross the front camera plane
+        if (!fb.isExploded) {
+          if (distToPlayer < (GameConfig.fireball.collisionRadiusWorld + GameConfig.player.meshSize)) {
+            if (onPlayerHit) {
+              onPlayerHit(GameConfig.fireball.damage);
+            }
+            fb.explode();
+          }
         }
       }
     }

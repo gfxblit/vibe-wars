@@ -49,7 +49,7 @@ body { margin: 0; overflow: hidden; background-color: black; }
 
 @keyframes damage-flash {
   0% { opacity: 0; }
-  20% { opacity: 0.4; }
+  20% { opacity: 0.6; }
   100% { opacity: 0; }
 }
 

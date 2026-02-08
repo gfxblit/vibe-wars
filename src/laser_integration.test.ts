@@ -20,7 +20,7 @@ describe('Laser Integration', () => {
     expect(state.entityManager!.getLasers().length).toBeGreaterThanOrEqual(2);
     
     // Use EntityManager to update and expire lasers
-    state.entityManager!.update(2.1, new THREE.Vector3(), new THREE.Quaternion(), true);
+    state.entityManager!.update(2.1, new THREE.Vector3(), new THREE.Quaternion(), true, new THREE.PerspectiveCamera());
     
     expect(state.entityManager!.getLasers().length).toBe(0);
   });

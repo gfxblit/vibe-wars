@@ -35,6 +35,7 @@ export interface GameState {
   debug: boolean;
   isSmartAI: boolean;
   isModeColoring: boolean;
+  showChassis: boolean;
 }
 
 const initialWidth = typeof window !== 'undefined' ? window.innerWidth : 1024;
@@ -60,6 +61,7 @@ export const state: GameState = {
   debug: false,
   isSmartAI: true,
   isModeColoring: false,
+  showChassis: false,
 };
 
 export function initGame(worldScene: THREE.Scene, hudScene: THREE.Scene) {
@@ -88,18 +90,22 @@ export function initGame(worldScene: THREE.Scene, hudScene: THREE.Scene) {
   console.log('Game initialized', { debug: state.debug });
 }
 
-export function updateState(deltaTime: number, input: UserInput = { x: 0, y: 0, isFiring: false, isLaunchingTorpedo: false }) {
+export function updateState(deltaTime: number, camera: THREE.Camera, input: UserInput = { x: 0, y: 0, isFiring: false, isLaunchingTorpedo: false }) {
   if (state.isGameOver || !state.player || !state.entityManager || !state.stageManager) {
     return;
   }
 
-  state.player.update(input, deltaTime);
+  state.player.update(input, deltaTime, state.showChassis);
+
+  // Ensure camera world matrix is updated after player moves but before collision check
+  camera.updateMatrixWorld();
 
   state.entityManager.update(
     deltaTime,
     state.player.position,
     state.player.mesh.quaternion,
     state.isSmartAI,
+    camera,
     (damage) => takeDamage(damage)
   );
 

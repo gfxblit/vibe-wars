@@ -34,6 +34,7 @@ describe('UIManager', () => {
       debug: false,
       isSmartAI: true,
       isModeColoring: false,
+      showChassis: false,
     };
 
     // Clean up body
@@ -111,6 +112,33 @@ describe('UIManager', () => {
     expect(document.getElementById('debug-panel')).not.toBeNull();
     ui.destroy();
     expect(document.getElementById('debug-panel')).toBeNull();
+  });
+
+  it('should have working debug toggles', () => {
+    state.debug = true;
+    state.isSmartAI = true;
+    state.isModeColoring = false;
+    state.showChassis = false;
+    new UIManager();
+
+    const aiBtn = document.getElementById('ai-mode-toggle');
+    const colorBtn = document.getElementById('mode-coloring-toggle');
+    const chassisBtn = document.getElementById('chassis-toggle');
+
+    expect(aiBtn?.textContent).toContain('AI: SMART');
+    aiBtn?.click();
+    expect(state.isSmartAI).toBe(false);
+    expect(aiBtn?.textContent).toContain('AI: DUMB');
+
+    expect(colorBtn?.textContent).toContain('COLORS: OFF');
+    colorBtn?.click();
+    expect(state.isModeColoring).toBe(true);
+    expect(colorBtn?.textContent).toContain('COLORS: ON');
+
+    expect(chassisBtn?.textContent).toContain('CHASSIS: OFF');
+    chassisBtn?.click();
+    expect(state.showChassis).toBe(true);
+    expect(chassisBtn?.textContent).toContain('CHASSIS: ON');
   });
 
   it('should create damage-overlay on initialization', () => {

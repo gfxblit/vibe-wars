@@ -5,6 +5,7 @@ import { GameConfig } from '../config';
 export class Fireball extends Entity {
   mesh: THREE.Group;
   velocity: THREE.Vector3;
+  previousPosition: THREE.Vector3;
   isExploded: boolean = false;
   explosionTimer: number = 0;
   private sparkleVelocities: THREE.Vector3[] = [];
@@ -14,6 +15,7 @@ export class Fireball extends Entity {
     super();
     this.mesh = new THREE.Group();
     this.mesh.position.copy(position);
+    this.previousPosition = position.clone();
     this.velocity = velocity.clone();
 
     const size = GameConfig.fireball.sparkleSize;
@@ -102,6 +104,7 @@ export class Fireball extends Entity {
   }
 
   update(deltaTime: number): void {
+    this.previousPosition.copy(this.mesh.position);
     this.mesh.position.addScaledVector(this.velocity, deltaTime);
 
     // Track explosion timer

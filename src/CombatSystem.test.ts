@@ -23,6 +23,7 @@ describe('CombatSystem', () => {
     hudScene = new THREE.Scene();
     initGame(scene, hudScene);
     camera = new THREE.PerspectiveCamera();
+    camera.updateMatrixWorld();
     combatSystem = new CombatSystem(camera);
     vi.clearAllMocks();
   });
@@ -62,7 +63,7 @@ describe('CombatSystem', () => {
     expect(initialCount).toBeGreaterThan(0);
 
     // Update via EntityManager to expire lasers
-    state.entityManager!.update(2.1, new THREE.Vector3(), new THREE.Quaternion(), true, () => { });
+    state.entityManager!.update(2.1, new THREE.Vector3(), new THREE.Quaternion(), true, camera, () => { });
 
     expect(state.entityManager!.getLasers().length).toBe(0);
     expect(hudScene.children.length).toBe(0);

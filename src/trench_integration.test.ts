@@ -14,6 +14,7 @@ describe('Trench Integration', () => {
   });
 
   it('should transition from DOGFIGHT to SURFACE to TRENCH', () => {
+    const camera = new THREE.PerspectiveCamera();
     expect(state.phase).toBe('DOGFIGHT');
     expect(state.kills).toBe(0);
 
@@ -23,7 +24,7 @@ describe('Trench Integration', () => {
     }
     
     // Trigger update to process transition
-    updateState(0.1);
+    updateState(0.1, camera);
     
     expect(state.phase).toBe('SURFACE');
     // DeathStar should be in scene
@@ -37,7 +38,7 @@ describe('Trench Integration', () => {
     const dsPos = deathStarMesh.position.clone();
     state.player!.position.copy(dsPos).add(new THREE.Vector3(0, 0, GameConfig.stage.deathStarSize + GameConfig.stage.trenchTransitionDistance - 10));
     
-    updateState(0.1);
+    updateState(0.1, camera);
     
     expect(state.phase).toBe('TRENCH');
     // Trench should be in scene
@@ -47,7 +48,7 @@ describe('Trench Integration', () => {
     const halfWidth = GameConfig.stage.trenchWidth / 2;
     state.player!.position.x = halfWidth + 50;
     
-    updateState(0.1);
+    updateState(0.1, camera);
     expect(state.player!.position.x).toBeLessThanOrEqual(halfWidth);
   });
 });

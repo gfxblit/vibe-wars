@@ -55,7 +55,7 @@ describe('Fireball Explosion Integration', () => {
     fireball.explode();
 
     const initialShields = state.shields;
-    updateState(0.1);
+    updateState(0.1, camera);
 
     expect(state.shields).toBe(initialShields);
   });
@@ -69,7 +69,7 @@ describe('Fireball Explosion Integration', () => {
     fireball.explode();
 
     // Update for less than explosion duration (0.5s)
-    updateState(0.3);
+    updateState(0.3, camera);
 
     // Fireball should still in the array
     expect(state.entityManager!.getFireballs()).toContain(fireball);
@@ -85,7 +85,7 @@ describe('Fireball Explosion Integration', () => {
     fireball.explode();
 
     // Update for more than explosion duration (0.5s)
-    updateState(0.6);
+    updateState(0.6, camera);
 
     // Fireball should be removed
     expect(state.entityManager!.getFireballs()).not.toContain(fireball);
