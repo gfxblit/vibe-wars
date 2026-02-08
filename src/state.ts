@@ -9,6 +9,7 @@ import { Laser } from './entities/Laser';
 import { Fireball } from './entities/Fireball';
 import { GameConfig } from './config';
 import { EntityManager } from './entities/EntityManager';
+import { StageManager } from './StageManager';
 
 export type GamePhase = 'DOGFIGHT' | 'SURFACE' | 'TRENCH';
 
@@ -28,6 +29,7 @@ export interface GameState {
   isGameOver: boolean;
   player: Player | null;
   entityManager: EntityManager | null;
+  stageManager: StageManager | null;
   viewport: Viewport;
   gunColorToggles: boolean[];
   debug: boolean;
@@ -47,6 +49,7 @@ export const state: GameState = {
   isGameOver: false,
   player: null,
   entityManager: null,
+  stageManager: null,
   viewport: {
     width: initialWidth,
     height: initialHeight,
@@ -80,11 +83,13 @@ export function initGame(worldScene: THREE.Scene, hudScene: THREE.Scene) {
   state.entityManager = new EntityManager(worldScene, hudScene);
   state.entityManager.spawnTieFighter(state.isSmartAI);
 
+  state.stageManager = new StageManager(worldScene);
+
   console.log('Game initialized', { debug: state.debug });
 }
 
 export function updateState(deltaTime: number, input: UserInput = { x: 0, y: 0, isFiring: false }) {
-  if (state.isGameOver || !state.player || !state.entityManager) {
+  if (state.isGameOver || !state.player || !state.entityManager || !state.stageManager) {
     return;
   }
 
@@ -97,6 +102,8 @@ export function updateState(deltaTime: number, input: UserInput = { x: 0, y: 0, 
     state.isSmartAI,
     (damage) => takeDamage(damage)
   );
+
+  state.stageManager.update(deltaTime, state.player);
 }
 
 export function spawnLasers(input: Pick<UserInput, 'x' | 'y'>): Laser[] {

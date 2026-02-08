@@ -54,13 +54,5 @@ export class Player extends Entity {
 
     // Move position forward
     this.position.add(forward.multiplyScalar(GameConfig.player.forwardSpeed * deltaTime));
-
-    // Clamp position if in TRENCH phase
-    if (state.phase === 'TRENCH') {
-      const halfWidth = GameConfig.stage.trenchWidth / 2;
-      const halfHeight = GameConfig.stage.trenchHeight / 2;
-      this.position.x = THREE.MathUtils.clamp(this.position.x, -halfWidth, halfWidth);
-      this.position.y = THREE.MathUtils.clamp(this.position.y, -halfHeight, halfHeight);
-    }
   }
 }

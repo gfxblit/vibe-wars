@@ -109,51 +109,6 @@ describe('Player', () => {
         }
     
       })
-    
-    
-    
-      it('should clamp X and Y position when in TRENCH phase', () => {
-    
-        state.phase = 'TRENCH';
-    
-        const halfWidth = GameConfig.stage.trenchWidth / 2;
-    
-        const halfHeight = GameConfig.stage.trenchHeight / 2;
-    
-        
-    
-        // Force player out of bounds
-    
-        player.position.set(halfWidth + 10, halfHeight + 10, 0);
-    
-        
-    
-        player.update({ x: 0, y: 0, isFiring: false }, 0.1);
-    
-        
-    
-        expect(player.position.x).toBeLessThanOrEqual(halfWidth);
-    
-        expect(player.position.y).toBeLessThanOrEqual(halfHeight);
-    
-        
-    
-        player.position.set(-halfWidth - 10, -halfHeight - 10, 0);
-    
-        player.update({ x: 0, y: 0, isFiring: false }, 0.1);
-    
-        
-    
-        expect(player.position.x).toBeGreaterThanOrEqual(-halfWidth);
-    
-        expect(player.position.y).toBeGreaterThanOrEqual(-halfHeight);
-    
-        
-    
-        state.phase = 'DOGFIGHT'; // Reset for other tests
-    
-      })
-    
     })
     
     
