@@ -127,13 +127,13 @@ export const GameConfig = deepFreeze({
     collisionRadiusNDC: 0.05,
     points: 100,
     damage: 1,
-    expirationDistance: 20,
+    expirationDistance: 500,
     sparkleCount: 8,
     sparkleSize: 4.0,
     explosionVelocity: 30,
         explosionDuration: 0.5, // Seconds before removing exploded fireball
         hitZThreshold: -0.8,
-        hitDistanceThreshold: 1.5,
+        hitDistanceThreshold: 2.0,
         hitNDCThreshold: 1.2,
       },
     } as const);

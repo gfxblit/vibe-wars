@@ -23,12 +23,15 @@ export class Player extends Entity {
     const edges = new THREE.EdgesGeometry(geometry);
     const material = new THREE.LineBasicMaterial({ color: GameConfig.player.meshColor });
     this.visualMesh = new THREE.LineSegments(edges, material);
+    this.visualMesh.visible = false;
 
     this.mesh.add(this.visualMesh);
     this.position.set(0, 0, 0);
   }
 
-  public update(input: UserInput, deltaTime: number): void {
+  public update(input: UserInput, deltaTime: number, showChassis: boolean = false): void {
+    this.visualMesh.visible = showChassis;
+
     // Relative turning amounts
     const yawAmount = -input.x * GameConfig.player.turnSpeedYaw * deltaTime;
     const pitchAmount = input.y * GameConfig.player.turnSpeedPitch * deltaTime;

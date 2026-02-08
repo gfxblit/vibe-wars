@@ -35,6 +35,7 @@ export interface GameState {
   debug: boolean;
   isSmartAI: boolean;
   isModeColoring: boolean;
+  showChassis: boolean;
 }
 
 const initialWidth = typeof window !== 'undefined' ? window.innerWidth : 1024;
@@ -60,6 +61,7 @@ export const state: GameState = {
   debug: false,
   isSmartAI: true,
   isModeColoring: false,
+  showChassis: false,
 };
 
 export function initGame(worldScene: THREE.Scene, hudScene: THREE.Scene) {
@@ -93,7 +95,7 @@ export function updateState(deltaTime: number, camera: THREE.Camera, input: User
     return;
   }
 
-  state.player.update(input, deltaTime);
+  state.player.update(input, deltaTime, state.showChassis);
 
   // Ensure camera world matrix is updated after player moves but before collision check
   camera.updateMatrixWorld();

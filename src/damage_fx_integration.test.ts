@@ -47,9 +47,9 @@ describe('Damage FX Integration', () => {
     camera.updateMatrixWorld();
     camera.updateProjectionMatrix();
 
-    // Start outside threshold (1.5) and move through it
-    fireball!.position.set(0, 0, -2.0);
-    fireball!.velocity.set(0, 0, 40);
+    // Start outside threshold (now 2.0) and move through it
+    fireball!.position.set(0, 0, -5.0);
+    fireball!.velocity.set(0, 0, 80);
 
     // Update state to process collision
     updateState(0.1, camera);

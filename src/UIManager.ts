@@ -70,6 +70,13 @@ export class UIManager {
       () => { state.isModeColoring = !state.isModeColoring; },
       this.debugPanel
     );
+
+    this.createToggleButton(
+      'chassis-toggle',
+      () => `CHASSIS: ${state.showChassis ? 'ON' : 'OFF'}`,
+      () => { state.showChassis = !state.showChassis; },
+      this.debugPanel
+    );
   }
 
   private createToggleButton(id: string, getText: () => string, onClick: () => void, parent: HTMLElement) {

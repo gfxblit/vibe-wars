@@ -96,17 +96,26 @@ describe('Player', () => {
     const initialX = player.position.x;
     player.update({ x: 0, y: 0, isFiring: false, isLaunchingTorpedo: false }, 0.1);
     
-        if (GameConfig.player.forwardSpeed > 0) {
+    if (GameConfig.player.forwardSpeed > 0) {
+      expect(player.position.x).not.toBe(initialX);
+    } else {
+      expect(player.position.x).toBe(initialX);
+    }
+  })
+
+  it('should toggle chassis visibility', () => {
+    // @ts-ignore - access private visualMesh
+    const visualMesh = player.mesh.children[0];
     
-          expect(player.position.x).not.toBe(initialX);
-    
-        } else {
-    
-          expect(player.position.x).toBe(initialX);
-    
-        }
-    
-      })
-    })
-    
-    
+    // Default should be NOT visible
+    expect(visualMesh.visible).toBe(false);
+
+    // Toggle on
+    player.update({ x: 0, y: 0, isFiring: false, isLaunchingTorpedo: false }, 0.1, true);
+    expect(visualMesh.visible).toBe(true);
+
+    // Toggle off
+    player.update({ x: 0, y: 0, isFiring: false, isLaunchingTorpedo: false }, 0.1, false);
+    expect(visualMesh.visible).toBe(false);
+  })
+})

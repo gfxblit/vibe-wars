@@ -23,6 +23,8 @@ export class EntityManager {
   private readonly scratchPlayerForward = new THREE.Vector3();
   private readonly scratchToFireball = new THREE.Vector3();
   private readonly scratchToPrevFireball = new THREE.Vector3();
+  private readonly scratchCameraPos = new THREE.Vector3();
+  private readonly scratchCameraDir = new THREE.Vector3();
 
   constructor(worldScene: THREE.Scene, hudScene: THREE.Scene, strategyFactory: AIStrategyFactory = new AIStrategyFactory()) {
     this.worldScene = worldScene;
@@ -60,37 +62,37 @@ export class EntityManager {
       const fb = this.fireballs[i];
       fb.update(deltaTime);
 
-      // Remove if expired (after explosion animation completes)
+      // Remove if exploded animation completes
       if (fb.isExpired()) {
         this.removeFireball(i);
         continue;
       }
 
-      // If fireball is far behind player, expire it
-      this.scratchToFireball.subVectors(fb.position, playerPosition);
-      const dot = this.scratchToFireball.dot(this.scratchPlayerForward);
-
-      // If it's more than configured units behind the player, it's missed
-      if (dot < -GameConfig.fireball.expirationDistance) {
+      // Cleanup distant fireballs (missed or far away)
+      const distToPlayer = fb.position.distanceTo(playerPosition);
+      if (distToPlayer > GameConfig.fireball.expirationDistance) {
         this.removeFireball(i);
         continue;
       }
 
-      // Camera Plane Collision check
+      // Collision checks
       if (!fb.isExploded) {
-        // Continuous Collision Detection (CCD): 
-        // Check if fireball crossed the hit plane between previous and current frame.
-        this.scratchToFireball.subVectors(fb.position, camera.position);
-        this.scratchToPrevFireball.subVectors(fb.previousPosition, camera.position);
+        camera.getWorldPosition(this.scratchCameraPos);
+        camera.getWorldDirection(this.scratchCameraDir);
+
+        this.scratchToFireball.subVectors(fb.position, this.scratchCameraPos);
+        this.scratchToPrevFireball.subVectors(fb.previousPosition, this.scratchCameraPos);
         
-        const currDist = this.scratchToFireball.dot(this.scratchPlayerForward);
-        const prevDist = this.scratchToPrevFireball.dot(this.scratchPlayerForward);
+        const currDist = this.scratchToFireball.dot(this.scratchCameraDir);
+        const prevDist = this.scratchToPrevFireball.dot(this.scratchCameraDir);
         
         const threshold = GameConfig.fireball.hitDistanceThreshold;
         
+        // A. Camera Plane Collision (Frontal)
         // Trigger if it crossed from front of threshold to behind threshold
         if (prevDist > threshold && currDist <= threshold) {
-          fb.projectToNDC(camera, this.scratchFireballPos);
+          // Use previous position for NDC check to avoid NaN/weirdness when too close to camera
+          this.scratchFireballPos.copy(fb.previousPosition).project(camera);
           
           const ndcX = this.scratchFireballPos.x;
           const ndcY = this.scratchFireballPos.y;
@@ -102,6 +104,17 @@ export class EntityManager {
                onPlayerHit(GameConfig.fireball.damage);
              }
              fb.explode();
+          }
+        }
+
+        // B. Body Collision Fallback (Radius-based)
+        // Handles hits from the side or back that don't cross the front camera plane
+        if (!fb.isExploded) {
+          if (distToPlayer < (GameConfig.fireball.collisionRadiusWorld + GameConfig.player.meshSize)) {
+            if (onPlayerHit) {
+              onPlayerHit(GameConfig.fireball.damage);
+            }
+            fb.explode();
           }
         }
       }
