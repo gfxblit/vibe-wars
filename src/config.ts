@@ -25,8 +25,8 @@ export const GameConfig = deepFreeze({
     baseForwardSpeed: 100,
     forwardSpeeds: {
       DOGFIGHT: 100,
-      SURFACE: 150,
-      TRENCH: 80,
+      SURFACE: 200,
+      TRENCH: 500,
     },
     turnSpeedYaw: Math.PI / 1.5,
     turnSpeedPitch: Math.PI / 1.5,
