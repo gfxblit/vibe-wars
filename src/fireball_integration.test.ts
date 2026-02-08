@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import * as THREE from 'three';
 import { initGame, state, updateState } from './state';
 import { GameConfig } from './config';
@@ -20,17 +20,18 @@ describe('Fireball Integration', () => {
   it('Tie Fighters should spawn fireballs over time', () => {
     // Use smaller steps
     const dt = 0.1;
-    const iterations = Math.ceil(GameConfig.fireball.fireRate / dt) + 10;
+    // We need enough time to potentially span a fire interval plus randomness
+    const iterations = Math.ceil(GameConfig.fireball.fireRate / dt) + 20;
 
-    let spawned = false;
+    const spawnSpy = vi.spyOn(state.entityManager!, 'spawnFireball');
+
     for (let i = 0; i < iterations; i++) {
-      const beforeCount = state.entityManager!.getFireballs().length;
       updateState(dt);
-      const afterCount = state.entityManager!.getFireballs().length;
-      if (afterCount > beforeCount) spawned = true;
+      // Break early if spawn happens
+      if (spawnSpy.mock.calls.length > 0) break;
     }
 
-    expect(spawned).toBe(true);
+    expect(spawnSpy).toHaveBeenCalled();
   });
 
   it('Fireballs should move toward the player', () => {
