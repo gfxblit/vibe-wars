@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { state, spawnLasers, addScore, addKill } from './state';
+import { state, spawnLasers, addScore, addKill, nextPhase } from './state';
 import { checkAim } from './collision';
 import { GameConfig } from './config';
 import { UserInput } from './input';
@@ -35,6 +35,8 @@ export class CombatSystem {
 
   private checkHits(input: UserInput) {
     if (!state.entityManager) return;
+
+    // Check for TIE fighter hits
     state.entityManager.getTieFighters().forEach(tf => {
       if (!tf.isExploded && checkAim(tf.position, input, this.camera)) {
         tf.explode();
@@ -42,6 +44,19 @@ export class CombatSystem {
         addKill();
       }
     });
+
+    // Check for exhaust port hit if in TRENCH phase
+    if (state.phase === 'TRENCH' && state.stageManager) {
+      if (state.stageManager.checkExhaustPortHit(input, this.camera)) {
+        // Trigger win/next phase
+        // Actually, StageManager should probably handle the phase transition
+        // But we can call nextPhase() here or signal StageManager.
+        // Let's just use nextPhase() and reset StageManager for now.
+        nextPhase();
+        state.stageManager.reset();
+        addScore(10000); // Big bonus!
+      }
+    }
   }
 
   private updateLasers() {

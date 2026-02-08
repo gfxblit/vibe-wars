@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import { CombatSystem } from './CombatSystem';
 import { state, initGame } from './state';
 import * as StateModule from './state';
+import { GameConfig } from './config';
 
 vi.mock('./state', async (importOriginal) => {
   const actual = await importOriginal<typeof import('./state')>();
@@ -92,5 +93,28 @@ describe('CombatSystem', () => {
 
     expect(tf.isExploded).toBe(true);
     expect(state.kills).toBe(initialKills + 1);
+  });
+
+  it('completes level and awards bonus when hitting exhaust port', () => {
+    state.phase = 'TRENCH';
+    state.stageManager!.reset();
+    
+    // Position camera to look at the port
+    const { catwalkEndZ, exhaustPortZOffset, trenchHeight } = GameConfig.stage;
+    const portZ = catwalkEndZ - exhaustPortZOffset;
+    const portY = -trenchHeight / 2 + 10;
+    
+    // Camera is usually at (0, 0, 0) relative to player in this test setup
+    camera.position.set(0, 0, portZ + 100);
+    camera.lookAt(0, portY, portZ);
+    
+    // input pointing directly at it (0,0 in NDC)
+    const input = { x: 0, y: 0, isFiring: true };
+
+    const initialScore = state.score;
+    combatSystem.update(0.01, input);
+
+    expect(state.phase).not.toBe('TRENCH');
+    expect(state.score).toBeGreaterThan(initialScore + 9999);
   });
 });

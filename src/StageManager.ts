@@ -4,6 +4,8 @@ import { state, nextPhase, takeDamage } from './state';
 import { Player } from './entities/Player';
 import { DeathStar } from './entities/DeathStar';
 import { Trench } from './entities/Trench';
+import { checkAim } from './collision';
+import { UserInput } from './input';
 
 export interface Stage {
   update(deltaTime: number, player: Player): void;
@@ -167,6 +169,18 @@ export class StageManager {
     if (this.currentStage) {
       this.currentStage.update(deltaTime, player);
     }
+  }
+
+  public checkExhaustPortHit(input: UserInput, camera: THREE.Camera): boolean {
+    if (state.phase !== 'TRENCH' || !this.currentStage) return false;
+    
+    // The port position is fixed in world space based on config
+    const { catwalkEndZ, exhaustPortZOffset, trenchHeight } = GameConfig.stage;
+    const portZ = catwalkEndZ - exhaustPortZOffset;
+    const portY = -trenchHeight / 2 + 10;
+    const portPos = new THREE.Vector3(0, portY, portZ);
+
+    return checkAim(portPos, input, camera);
   }
 
   public reset(): void {
