@@ -18,7 +18,7 @@ export const GameConfig = deepFreeze({
     near: 0.1,
     far: 5000,
     position: { x: 0, y: 0.5, z: 0 },
-    lookAt: { x: 0, y: 0, z: 0 },
+    lookAt: { x: 0, y: 0.5, z: -1 },
     backgroundColor: 0x000000,
   },
   player: {

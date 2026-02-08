@@ -85,11 +85,8 @@ export class EntityManager {
         const ndcX = this.scratchFireballPos.x;
         const ndcY = this.scratchFireballPos.y;
         
-        console.log('Checking collision', { ndcZ, ndcX, ndcY, hitZThreshold });
-
         // Check if hit screen plane (approaching from front maps to Z approaching -1 in NDC)
         if (ndcZ < hitZThreshold && Math.abs(ndcX) <= 1 && Math.abs(ndcY) <= 1) {
-             console.log('Collision Detected!', { ndcZ, ndcX, ndcY, hitZThreshold });
              if (onPlayerHit) {
                onPlayerHit(GameConfig.fireball.damage);
              }

@@ -32,11 +32,10 @@ describe('Renderer Utils', () => {
     expect(camera.position.y).toBe(0.5);
     expect(camera.position.z).toBe(0);
     
-    // Check orientation (looking at player center)
-    const target = new THREE.Vector3(0, 0, 0);
+    // Check orientation (looking forward)
+    const forward = new THREE.Vector3(0, 0, -1);
     const cameraDir = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion);
-    const toPlayer = new THREE.Vector3().subVectors(target, camera.position).normalize();
-    expect(cameraDir.dot(toPlayer)).toBeGreaterThan(0.9);
+    expect(cameraDir.dot(forward)).toBeGreaterThan(0.9);
   })
 
   test('initRenderer should return scene, camera, renderer and a cleanup function', () => {

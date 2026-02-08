@@ -95,6 +95,9 @@ export function updateState(deltaTime: number, camera: THREE.Camera, input: User
 
   state.player.update(input, deltaTime);
 
+  // Ensure camera world matrix is updated after player moves but before collision check
+  camera.updateMatrixWorld();
+
   state.entityManager.update(
     deltaTime,
     state.player.position,
