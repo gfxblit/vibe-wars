@@ -61,6 +61,32 @@ export class UIManager {
       () => { state.isModeColoring = !state.isModeColoring; },
       this.debugPanel
     );
+
+    const phaseTitle = this.createEl('div', 'mb-1 mt-2 border-b border-vector-green pb-1', this.debugPanel);
+    phaseTitle.textContent = 'PHASE';
+
+    const phaseContainer = this.createEl('div', 'flex space-x-2', this.debugPanel);
+
+    this.createActionButton(
+      'phase-dogfight',
+      'DOGFIGHT',
+      () => { state.phase = 'DOGFIGHT'; },
+      phaseContainer
+    );
+
+    this.createActionButton(
+      'phase-surface',
+      'SURFACE',
+      () => { state.phase = 'SURFACE'; },
+      phaseContainer
+    );
+
+    this.createActionButton(
+      'phase-trench',
+      'TRENCH',
+      () => { state.phase = 'TRENCH'; },
+      phaseContainer
+    );
   }
 
   private createToggleButton(id: string, getText: () => string, onClick: () => void, parent: HTMLElement) {
@@ -71,6 +97,14 @@ export class UIManager {
       onClick();
       btn.textContent = getText();
     };
+    return btn;
+  }
+
+  private createActionButton(id: string, text: string, onClick: () => void, parent: HTMLElement) {
+    const btn = this.createEl('button', 'px-2 py-1 border border-vector-green hover:bg-vector-green hover:text-black transition-colors text-[10px]', parent);
+    btn.id = id;
+    btn.textContent = text;
+    btn.onclick = onClick;
     return btn;
   }
 
