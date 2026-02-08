@@ -33,7 +33,7 @@ describe('EntityManager Collision', () => {
     const fireball = entityManager.spawnFireball(fbPos, fbVel);
 
     // Moves to z = +2.0 (behind camera). Crossing 1.5, 0, etc.
-    entityManager.update(0.1, playerPosition, playerQuaternion, false, mockCamera, 100, onPlayerHit);
+    entityManager.update(0.1, playerPosition, playerQuaternion, false, mockCamera, GameConfig.player.baseForwardSpeed, onPlayerHit);
 
     expect(onPlayerHit).toHaveBeenCalledWith(GameConfig.fireball.damage);
     expect(fireball.isExploded).toBe(true);
@@ -46,7 +46,7 @@ describe('EntityManager Collision', () => {
     const fbVel = new THREE.Vector3(0, 0, 40);
     const fireball = entityManager.spawnFireball(fbPos, fbVel);
 
-    entityManager.update(0.1, playerPosition, playerQuaternion, false, mockCamera, 100, onPlayerHit);
+    entityManager.update(0.1, playerPosition, playerQuaternion, false, mockCamera, GameConfig.player.baseForwardSpeed, onPlayerHit);
 
     expect(onPlayerHit).not.toHaveBeenCalled();
     expect(fireball.isExploded).toBe(false);
@@ -59,7 +59,7 @@ describe('EntityManager Collision', () => {
     const fbVel = new THREE.Vector3(0, 0, 20); // Moves to -8.0
     const fireball = entityManager.spawnFireball(fbPos, fbVel);
 
-    entityManager.update(0.1, playerPosition, playerQuaternion, false, mockCamera, 100, onPlayerHit);
+    entityManager.update(0.1, playerPosition, playerQuaternion, false, mockCamera, GameConfig.player.baseForwardSpeed, onPlayerHit);
 
     expect(onPlayerHit).not.toHaveBeenCalled();
     expect(fireball.isExploded).toBe(false);
@@ -72,7 +72,7 @@ describe('EntityManager Collision', () => {
     const fbVel = new THREE.Vector3(0, 0, 40);
     const fireball = entityManager.spawnFireball(fbPos, fbVel);
 
-    entityManager.update(0.1, playerPosition, playerQuaternion, false, mockCamera, 100, onPlayerHit);
+    entityManager.update(0.1, playerPosition, playerQuaternion, false, mockCamera, GameConfig.player.baseForwardSpeed, onPlayerHit);
 
     expect(onPlayerHit).not.toHaveBeenCalled();
     expect(fireball.isExploded).toBe(false);

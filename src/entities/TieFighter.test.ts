@@ -22,7 +22,7 @@ describe('TieFighter', () => {
   })
 
   test('update should move TieFighter ahead of the player', () => {
-    tieFighter.update(0, playerPosition, playerQuaternion, 100);
+    tieFighter.update(0, playerPosition, playerQuaternion, GameConfig.player.baseForwardSpeed);
 
     const expectedZ = -GameConfig.tieFighter.distance;
     expect(tieFighter.position.z).toBeCloseTo(expectedZ, 1);
@@ -31,7 +31,7 @@ describe('TieFighter', () => {
 
   test('update should follow player position', () => {
     playerPosition.set(10, 20, 30);
-    tieFighter.update(0, playerPosition, playerQuaternion, 100);
+    tieFighter.update(0, playerPosition, playerQuaternion, GameConfig.player.baseForwardSpeed);
 
     const expectedZ = 30 - GameConfig.tieFighter.distance;
     expect(tieFighter.position.z).toBeCloseTo(expectedZ, 1);
@@ -42,7 +42,7 @@ describe('TieFighter', () => {
   test('update should follow player rotation', () => {
     playerQuaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI / 2);
 
-    tieFighter.update(0, playerPosition, playerQuaternion, 100);
+    tieFighter.update(0, playerPosition, playerQuaternion, GameConfig.player.baseForwardSpeed);
 
     const expectedX = GameConfig.tieFighter.distance;
     expect(tieFighter.position.x).toBeCloseTo(expectedX, 1);
@@ -54,7 +54,7 @@ describe('TieFighter', () => {
     const amp = GameConfig.tieFighter.oscillationAmplitude;
 
     // at t = 0.5, oscillation should be sin(0.5 * freq) * amp
-    tieFighter.update(0.5, playerPosition, playerQuaternion, 100);
+    tieFighter.update(0.5, playerPosition, playerQuaternion, GameConfig.player.baseForwardSpeed);
     const expectedX = Math.sin(0.5 * freq) * amp;
     expect(tieFighter.position.x).toBeCloseTo(expectedX, 1);
   })
@@ -86,7 +86,7 @@ describe('TieFighter', () => {
     tieFighter.explode();
 
     // Update a few times
-    tieFighter.update(0.1, playerPosition, playerQuaternion, 100);
+    tieFighter.update(0.1, playerPosition, playerQuaternion, GameConfig.player.baseForwardSpeed);
 
     // Pieces should have moved relative to the group
     expect(piece1.position.equals(initialPos)).toBe(false);
@@ -128,14 +128,14 @@ describe('TieFighter', () => {
 
     const smartTieFighter = new TieFighter(new SmartAIStrategy());
 
-    smartTieFighter.update(0.01, playerPos, playerQuat, 100);
+    smartTieFighter.update(0.01, playerPos, playerQuat, GameConfig.player.baseForwardSpeed);
     // It should be behind the player (Z > 0)
     expect(smartTieFighter.position.z).toBeGreaterThan(0);
 
     const initialZ = smartTieFighter.position.z;
 
     // Update after 1 second, it should have moved forward (towards negative Z)
-    smartTieFighter.update(1, playerPos, playerQuat, 100);
+    smartTieFighter.update(1, playerPos, playerQuat, GameConfig.player.baseForwardSpeed);
     expect(smartTieFighter.position.z).toBeLessThan(initialZ);
   })
 

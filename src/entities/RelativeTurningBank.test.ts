@@ -1,6 +1,7 @@
 import { expect, test, describe } from 'vitest'
 import { Player } from './Player'
 import * as THREE from 'three'
+import { GameConfig } from '../config'
 
 describe('Player Relative Turning with Bank', () => {
   test('turning while banked should be relative to the banked orientation', () => {
@@ -14,7 +15,7 @@ describe('Player Relative Turning with Bank', () => {
     // Initial state: Forward = -Z, Up = +Y, Right = +X.
     // Bank right 45 deg: New Up = (+0.707, +0.707, 0) approx, New Right = (+0.707, -0.707, 0) approx.
     
-    player.update({ x: 1, y: 0, isFiring: false, isLaunchingTorpedo: false }, 0.1, 100);
+    player.update({ x: 1, y: 0, isFiring: false, isLaunchingTorpedo: false }, 0.1, GameConfig.player.baseForwardSpeed);
     
     const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(player.mesh.quaternion);
     

@@ -68,26 +68,26 @@ describe('Player', () => {
   })
 
   it('update should bank the visual mesh based on input x', () => {
-    player.update({ x: 1, y: 0, isFiring: false, isLaunchingTorpedo: false }, 0.1, 100);
+    player.update({ x: 1, y: 0, isFiring: false, isLaunchingTorpedo: false }, 0.1, GameConfig.player.baseForwardSpeed);
     // @ts-ignore - access private visualMesh via property if needed or check rotation.z
     expect(player.mesh.children[0].rotation.z).toBeLessThan(0);
   })
 
   it('update should rotate the player mesh based on input y', () => {
     const initialQuat = player.mesh.quaternion.clone();
-    player.update({ x: 0, y: 1, isFiring: false, isLaunchingTorpedo: false }, 0.1, 100);
+    player.update({ x: 0, y: 1, isFiring: false, isLaunchingTorpedo: false }, 0.1, GameConfig.player.baseForwardSpeed);
     expect(player.mesh.quaternion.equals(initialQuat)).toBe(false);
   })
 
   it('should rotate over time with horizontal input', () => {
     const startQuat = player.mesh.quaternion.clone();
-    player.update({ x: 1, y: 0, isFiring: false, isLaunchingTorpedo: false }, 0.5, 100);
+    player.update({ x: 1, y: 0, isFiring: false, isLaunchingTorpedo: false }, 0.5, GameConfig.player.baseForwardSpeed);
     expect(player.mesh.quaternion.equals(startQuat)).toBe(false);
   })
 
   it('should rotate over time with vertical input', () => {
     const startQuat = player.mesh.quaternion.clone();
-    player.update({ x: 0, y: 1, isFiring: false, isLaunchingTorpedo: false }, 0.5, 100);
+    player.update({ x: 0, y: 1, isFiring: false, isLaunchingTorpedo: false }, 0.5, GameConfig.player.baseForwardSpeed);
     expect(player.mesh.quaternion.equals(startQuat)).toBe(false);
   })
 
@@ -115,11 +115,11 @@ describe('Player', () => {
     expect(visualMesh.visible).toBe(false);
 
     // Toggle on
-    player.update({ x: 0, y: 0, isFiring: false, isLaunchingTorpedo: false }, 0.1, 100, true);
+    player.update({ x: 0, y: 0, isFiring: false, isLaunchingTorpedo: false }, 0.1, GameConfig.player.baseForwardSpeed, true);
     expect(visualMesh.visible).toBe(true);
 
     // Toggle off
-    player.update({ x: 0, y: 0, isFiring: false, isLaunchingTorpedo: false }, 0.1, 100, false);
+    player.update({ x: 0, y: 0, isFiring: false, isLaunchingTorpedo: false }, 0.1, GameConfig.player.baseForwardSpeed, false);
     expect(visualMesh.visible).toBe(false);
   })
 })

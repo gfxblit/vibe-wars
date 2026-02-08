@@ -1,6 +1,7 @@
 import { expect, test, describe, beforeEach, vi } from 'vitest'
 import * as THREE from 'three'
 import { EntityManager } from './EntityManager'
+import { GameConfig } from '../config'
 
 describe('EntityManager Tunneling Repro', () => {
   let scene: THREE.Scene;
@@ -36,7 +37,7 @@ describe('EntityManager Tunneling Repro', () => {
 
     // This update will move fireball from -2.0 to 3.0.
     // Crossing the threshold at 1.5.
-    entityManager.update(0.05, playerPosition, playerQuaternion, false, mockCamera, 100, onPlayerHit);
+    entityManager.update(0.05, playerPosition, playerQuaternion, false, mockCamera, GameConfig.player.baseForwardSpeed, onPlayerHit);
 
     expect(onPlayerHit).toHaveBeenCalled();
     expect(fireball.isExploded).toBe(true);
