@@ -9,19 +9,18 @@ export class DeathStar extends Entity {
     return this.mesh.position;
   }
 
-  constructor() {
+  constructor(position: THREE.Vector3) {
     super();
     // Death Star is a large wireframe sphere
-    const geometry = new THREE.SphereGeometry(500, 32, 32);
+    const geometry = new THREE.SphereGeometry(GameConfig.stage.deathStarSize, 32, 32);
     const material = new THREE.MeshBasicMaterial({
-      color: 0xaaaaaa,
+      color: GameConfig.stage.deathStarColor,
       wireframe: true,
       transparent: true,
       opacity: 0.5,
     });
     this.mesh = new THREE.Mesh(geometry, material);
-    // Position it far away
-    this.mesh.position.set(0, 0, -GameConfig.stage.deathStarDistance);
+    this.mesh.position.copy(position);
   }
 
   update(deltaTime: number) {

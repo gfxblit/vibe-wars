@@ -30,9 +30,12 @@ describe('Trench Integration', () => {
     expect(worldScene.children.some(child => child.type === 'Mesh' && (child as THREE.Mesh).geometry.type === 'SphereGeometry')).toBe(true);
 
     // 2. Reaching DeathStar
-    // DeathStar is at (0, 0, -2000)
-    // Move player close to it
-    state.player!.position.set(0, 0, -2000 + GameConfig.stage.trenchTransitionDistance - 10);
+    const deathStarMesh = worldScene.children.find(child => child.type === 'Mesh' && (child as THREE.Mesh).geometry.type === 'SphereGeometry') as THREE.Mesh;
+    expect(deathStarMesh).toBeDefined();
+
+    // Move player close to the DeathStar's surface
+    const dsPos = deathStarMesh.position.clone();
+    state.player!.position.copy(dsPos).add(new THREE.Vector3(0, 0, GameConfig.stage.deathStarSize + GameConfig.stage.trenchTransitionDistance - 10));
     
     updateState(0.1);
     

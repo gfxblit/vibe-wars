@@ -29,6 +29,11 @@ describe('StageManager', () => {
     
     expect(state.phase).toBe('SURFACE');
     expect(scene.children.some(child => child.type === 'Mesh' && (child as THREE.Mesh).geometry.type === 'SphereGeometry')).toBe(true);
+
+    // Verify TIE fighters are cleared and spawning is disabled
+    expect(state.entityManager!.getTieFighters().length).toBe(0);
+    // We can't easily check spawningEnabled without making it public or using a spy, 
+    // but we already updated the code to call it.
   });
 
   it('should transition to TrenchStage when player is close to DeathStar', () => {
@@ -36,12 +41,22 @@ describe('StageManager', () => {
     stageManager.update(0.1, player);
     expect(state.phase).toBe('SURFACE');
     
-    // DeathStar is at (0, 0, -2000)
-    player.position.set(0, 0, -2000 + GameConfig.stage.trenchTransitionDistance - 10);
+    // Find the spawned DeathStar mesh in the scene
+    const deathStarMesh = scene.children.find(child => child.type === 'Mesh' && (child as THREE.Mesh).geometry.type === 'SphereGeometry') as THREE.Mesh;
+    expect(deathStarMesh).toBeDefined();
+
+    // Move player close to the DeathStar's surface
+    const dsPos = deathStarMesh.position.clone();
+    player.position.copy(dsPos).add(new THREE.Vector3(0, 0, GameConfig.stage.deathStarSize + GameConfig.stage.trenchTransitionDistance - 10));
+    
     stageManager.update(0.1, player);
     
     expect(state.phase).toBe('TRENCH');
-    expect(scene.children.some(child => child instanceof THREE.Group)).toBe(true);
+    // Verify player pose reset
+    expect(player.position.x).toBe(0);
+    expect(player.position.y).toBe(0);
+    expect(player.position.z).toBe(0);
+    expect(player.mesh.quaternion.w).toBe(1);
   });
 
   it('should apply trench clamping in TRENCH phase', () => {

@@ -45,7 +45,7 @@ function animate(time: number) {
 
   // Render
   if (state.player) {
-    starField.update(state.player.position)
+    starField.update(state.player.position, state.phase)
     render(webglRenderer, scene, camera, hudScene, hudCamera)
   }
 

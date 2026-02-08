@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { Entity } from './Entity';
 import { GameConfig } from '../config';
+import { GamePhase } from '../state';
 
 export class StarField extends Entity {
   public readonly points: THREE.Points;
@@ -28,7 +29,10 @@ export class StarField extends Entity {
     this.points.frustumCulled = false;
   }
 
-  public update(playerPosition: THREE.Vector3) {
+  public update(playerPosition: THREE.Vector3, phase: GamePhase = 'DOGFIGHT') {
+    this.points.visible = phase !== 'TRENCH';
+    if (!this.points.visible) return;
+
     const positions = this.geometry.attributes.position.array as Float32Array;
     const halfSize = GameConfig.starField.fieldSize / 2;
 

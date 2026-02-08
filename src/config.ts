@@ -16,7 +16,7 @@ export const GameConfig = deepFreeze({
   camera: {
     fov: 75,
     near: 0.1,
-    far: 1000,
+    far: 5000,
     position: { x: 0, y: 2, z: 10 },
     lookAt: { x: 0, y: 0, z: 0 },
     backgroundColor: 0x000000,
@@ -47,10 +47,12 @@ export const GameConfig = deepFreeze({
   },
   stage: {
     trenchKillsThreshold: 10,
-    deathStarDistance: 2000,
+    deathStarDistance: 1000,
     trenchTransitionDistance: 100,
     trenchWidth: 100,
     trenchHeight: 100,
+    deathStarSize: 100,
+    deathStarColor: 0x00ff00,
   },
   tieFighter: {
     speed: 50,
