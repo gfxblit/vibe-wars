@@ -59,13 +59,16 @@ export class CombatSystem {
       // Check for collision with fireballs
       for (let j = fireballs.length - 1; j >= 0; j--) {
         const fb = fireballs[j];
+        // Skip if already exploded
+        if (fb.isExploded) continue;
+
         fb.projectToNDC(this.camera, this.tempVector3);
         this.fbPos2D.set(this.tempVector3.x, this.tempVector3.y);
 
         const distSq = this.laserPos2D.distanceToSquared(this.fbPos2D);
         if (distSq < collisionRadiusSq) {
           addScore(GameConfig.fireball.points);
-          state.entityManager!.removeFireball(j);
+          fb.explode();
           // Laser continues for visual effect
         }
       }

@@ -70,13 +70,13 @@ export function initGame(worldScene: THREE.Scene, hudScene: THREE.Scene) {
   state.gunColorToggles = GameConfig.laser.offsets.map(() => false);
 
   state.player = new Player();
-  
+
   if (state.entityManager) {
     state.entityManager.clear();
   }
   state.entityManager = new EntityManager(worldScene, hudScene);
   state.entityManager.spawnTieFighter(state.isSmartAI);
-  
+
   console.log('Game initialized', { debug: state.debug });
 }
 
@@ -88,9 +88,9 @@ export function updateState(deltaTime: number, input: UserInput = { x: 0, y: 0, 
   state.player.update(input, deltaTime);
 
   state.entityManager.update(
-    deltaTime, 
-    state.player.position, 
-    state.player.mesh.quaternion, 
+    deltaTime,
+    state.player.position,
+    state.player.mesh.quaternion,
     state.isSmartAI,
     (damage) => takeDamage(damage)
   );
@@ -98,7 +98,7 @@ export function updateState(deltaTime: number, input: UserInput = { x: 0, y: 0, 
 
 export function spawnLasers(input: Pick<UserInput, 'x' | 'y'>): Laser[] {
   if (!state.entityManager) return [];
-  
+
   const newLasers: Laser[] = [];
 
   // Randomize which guns fire (at least 2)
@@ -107,7 +107,7 @@ export function spawnLasers(input: Pick<UserInput, 'x' | 'y'>): Laser[] {
     const j = Math.floor(Math.random() * (i + 1));
     [allIndices[i], allIndices[j]] = [allIndices[j], allIndices[i]];
   }
-  
+
   const minGuns = Math.min(2, allIndices.length);
   const numGuns = Math.floor(Math.random() * (allIndices.length - minGuns + 1)) + minGuns;
   const selectedIndices = allIndices.slice(0, numGuns);
@@ -121,7 +121,7 @@ export function spawnLasers(input: Pick<UserInput, 'x' | 'y'>): Laser[] {
     const offset = GameConfig.laser.offsets[index];
     const origin2D = new THREE.Vector2(offset.x, offset.y);
     const target2D = new THREE.Vector2(input.x, input.y);
-    
+
     const laser = state.entityManager!.spawnLaser(origin2D, target2D, color);
     newLasers.push(laser);
   });

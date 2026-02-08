@@ -20,7 +20,7 @@ describe('Fireball', () => {
   it('should update position based on velocity and deltaTime', () => {
     const deltaTime = 1.0;
     fireball.update(deltaTime);
-    
+
     const expectedPosition = initialPosition.clone().add(velocity.clone().multiplyScalar(deltaTime));
     expect(fireball.position.x).toBe(expectedPosition.x);
     expect(fireball.position.y).toBe(expectedPosition.y);
@@ -36,7 +36,61 @@ describe('Fireball', () => {
     expect(fb.velocity.z).toBe(3);
   });
 
-  it('should have a mesh of type LineSegments', () => {
-    expect(fireball.mesh).toBeInstanceOf(THREE.LineSegments);
+  it('should have a mesh of type Group', () => {
+    expect(fireball.mesh).toBeInstanceOf(THREE.Group);
+  });
+
+  it('should initialize as not exploded', () => {
+    expect(fireball.isExploded).toBe(false);
+  });
+
+  it('should set isExploded to true when explode() is called', () => {
+    fireball.explode();
+    expect(fireball.isExploded).toBe(true);
+  });
+
+  it('should move sparkles outward when exploded', () => {
+    const dt = 1.0;
+    fireball.explode();
+
+    // Capture initial positions of sparkles relative to the group
+    const initialSparklePositions = fireball.mesh.children.map(c => c.position.clone());
+
+    fireball.update(dt);
+
+    fireball.mesh.children.forEach((child, i) => {
+      const initialPos = initialSparklePositions[i];
+      // The child should have moved away from the origin (0,0,0) of the group
+      expect(child.position.length()).toBeGreaterThan(initialPos.length());
+    });
+  });
+
+  it('should not be expired immediately after explosion', () => {
+    fireball.explode();
+    expect(fireball.isExpired()).toBe(false);
+  });
+
+  it('should be expired after explosionDuration seconds', () => {
+    fireball.explode();
+
+    // Update for exactly the explosion duration
+    fireball.update(0.5);
+
+    expect(fireball.isExpired()).toBe(true);
+  });
+
+  it('should track explosion timer while exploded', () => {
+    fireball.explode();
+
+    fireball.update(0.1);
+    expect(fireball.explosionTimer).toBeCloseTo(0.1);
+
+    fireball.update(0.2);
+    expect(fireball.explosionTimer).toBeCloseTo(0.3);
+  });
+
+  it('should not increment explosion timer when not exploded', () => {
+    fireball.update(0.5);
+    expect(fireball.explosionTimer).toBe(0);
   });
 });

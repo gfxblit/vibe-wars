@@ -28,11 +28,11 @@ describe('Game State', () => {
 
   test('spawnLasers creates at least 2 lasers and alternates colors', () => {
     const crosshairPos = { x: 0, y: 0 };
-    
+
     // First volley
     const volley1 = spawnLasers(crosshairPos);
     expect(volley1.length).toBeGreaterThanOrEqual(2);
-    
+
     // Check that some toggles have been flipped (from false to true)
     const someFlipped = state.gunColorToggles.some(t => t === true);
     expect(someFlipped).toBe(true);
@@ -51,15 +51,27 @@ describe('Game State', () => {
   })
 
   test('updateState handles player-fireball collision', () => {
+    // Clear TieFighters to prevent them from spawning new fireballs during the test
+    while (state.entityManager!.getTieFighters().length > 0) {
+      state.entityManager!.removeTieFighter(0);
+    }
+
     // Move player to 0,0,0
     state.player!.position.set(0, 0, 0);
     // Spawn fireball right on top of player
-    spawnFireball(new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, 0));
-    
+    const fireball = spawnFireball(new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, 0));
+
     const initialShields = state.shields;
     updateState(0.01);
-    
+
     expect(state.shields).toBeLessThan(initialShields);
+    // Fireball should now be exploded but still in array
+    expect(state.entityManager!.getFireballs().length).toBe(1);
+    expect(fireball!.isExploded).toBe(true);
+
+    // After explosion duration, it should be removed
+    // Use 0.6s to be well over the 0.5s threshold and avoid floating point precision issues
+    updateState(0.6);
     expect(state.entityManager!.getFireballs().length).toBe(0);
   })
 
@@ -67,11 +79,11 @@ describe('Game State', () => {
     // Player at origin, facing forward (-Z)
     state.player!.position.set(0, 0, 0);
     state.player!.mesh.quaternion.set(0, 0, 0, 1);
-    
+
     // Spawn fireball 11 units behind (+Z)
     // forward is (0,0,-1). subVectors(fb, player) is (0,0,11). dot is -11.
     spawnFireball(new THREE.Vector3(0, 0, 11), new THREE.Vector3(0, 0, 0));
-    
+
     expect(state.entityManager!.getFireballs().length).toBe(1);
     updateState(0.01);
     expect(state.entityManager!.getFireballs().length).toBe(0);
@@ -87,9 +99,9 @@ describe('Game State', () => {
   test('updateState updates TIE fighters', () => {
     const tieFighter = state.entityManager!.getTieFighters()[0];
     const initialPos = tieFighter.position.clone();
-    
+
     updateState(0.1);
-    
+
     expect(tieFighter.position.equals(initialPos)).toBe(false);
   })
 
@@ -132,7 +144,7 @@ describe('Game State', () => {
     // Advance time by a small amount to initialize existing TIE fighter
     updateState(0.01);
     // Advance time by spawn interval
-    updateState(GameConfig.tieFighter.spawnInterval); 
+    updateState(GameConfig.tieFighter.spawnInterval);
     // We expect at least one to remain or a new one to have spawned.
     expect(state.entityManager!.getTieFighters().length).toBeGreaterThanOrEqual(1);
   })
@@ -141,7 +153,7 @@ describe('Game State', () => {
     const tf = state.entityManager!.getTieFighters()[0];
     // Advance time enough for it to overtake and go beyond cleanup distance
     // Relative speed is 80 units/sec, cleanup is 600. 10s should be plenty.
-    updateState(10); 
+    updateState(10);
     expect(state.entityManager!.getTieFighters()).not.toContain(tf);
   })
 });
