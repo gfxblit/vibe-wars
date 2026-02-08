@@ -113,5 +113,6 @@ export const GameConfig = deepFreeze({
     sparkleSize: 2.0,
     explosionVelocity: 30,
     explosionDuration: 0.5, // Seconds before removing exploded fireball
+    trackingStrength: 2.0, // radians per second
   },
 } as const);

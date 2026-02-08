@@ -56,7 +56,7 @@ export class EntityManager {
     // 2. Update fireballs and check for player collision
     for (let i = this.fireballs.length - 1; i >= 0; i--) {
       const fb = this.fireballs[i];
-      fb.update(deltaTime);
+      fb.update(deltaTime, playerPosition);
 
       // Remove if expired (after explosion animation completes)
       if (fb.isExpired()) {

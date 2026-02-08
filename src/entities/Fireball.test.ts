@@ -93,4 +93,18 @@ describe('Fireball', () => {
     fireball.update(0.5);
     expect(fireball.explosionTimer).toBe(0);
   });
+
+  it('should rotate velocity towards targetPosition', () => {
+    const initialVelocity = new THREE.Vector3(0, 0, 10);
+    const fb = new Fireball(new THREE.Vector3(0, 0, 0), initialVelocity.clone());
+    const targetPosition = new THREE.Vector3(100, 0, 100); // Far target
+    const deltaTime = 0.1;
+
+    fb.update(deltaTime, targetPosition);
+
+    // Velocity should have rotated towards the target (positive X direction)
+    expect(fb.velocity.x).toBeGreaterThan(0);
+    // Speed should remain constant
+    expect(fb.velocity.length()).toBeCloseTo(10);
+  });
 });
