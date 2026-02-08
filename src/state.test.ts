@@ -16,6 +16,7 @@ describe('Game State', () => {
   test('initial state', () => {
     expect(state.score).toBe(0)
     expect(state.shields).toBe(6)
+    expect(state.kills).toBe(0)
     expect(state.phase).toBe('DOGFIGHT')
     expect(state.player).toBeInstanceOf(Player)
     expect(state.entityManager!.getTieFighters()[0]).toBeInstanceOf(TieFighter)

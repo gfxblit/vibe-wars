@@ -4,11 +4,16 @@ import { AIStrategyFactory } from './AIStrategyFactory';
 import { GameConfig } from '../config';
 import { Fireball } from './Fireball';
 import { Laser } from './Laser';
+import { DeathStar } from './DeathStar';
+import { Trench } from './Trench';
+import { state, nextPhase } from '../state';
 
 export class EntityManager {
   private tieFighters: TieFighter[] = [];
   private fireballs: Fireball[] = [];
   private lasers: Laser[] = [];
+  private deathStar: DeathStar | null = null;
+  private trench: Trench | null = null;
   private spawnTimer: number = 0;
   private worldScene: THREE.Scene;
   private hudScene: THREE.Scene;
@@ -101,6 +106,40 @@ export class EntityManager {
       this.spawnTieFighter(isSmartAI);
       this.spawnTimer = 0;
     }
+
+    // 5. Handle Stage Transitions
+    this.updateStage(playerPosition);
+  }
+
+  private updateStage(playerPosition: THREE.Vector3): void {
+    if (state.phase === 'DOGFIGHT' && state.kills >= GameConfig.stage.trenchKillsThreshold) {
+      nextPhase(); // Move to SURFACE
+      this.spawnDeathStar();
+    } else if (state.phase === 'SURFACE' && this.deathStar) {
+      const dist = playerPosition.distanceTo(this.deathStar.position);
+      if (dist < GameConfig.stage.trenchTransitionDistance) {
+        nextPhase(); // Move to TRENCH
+        this.spawnTrench();
+      }
+    }
+
+    if (this.deathStar) {
+      // Small optimization: only update if it's "active" but it's just rotation
+      // Actually we don't have a list for stage entities, so we update them manually
+      // We might want to add them to an 'entities' list later.
+    }
+  }
+
+  private spawnDeathStar(): void {
+    if (this.deathStar) return;
+    this.deathStar = new DeathStar();
+    this.worldScene.add(this.deathStar.mesh);
+  }
+
+  private spawnTrench(): void {
+    if (this.trench) return;
+    this.trench = new Trench();
+    this.worldScene.add(this.trench.mesh);
   }
 
   public spawnTieFighter(isSmartAI: boolean): void {
@@ -177,12 +216,46 @@ export class EntityManager {
     });
     this.fireballs = [];
 
-    this.lasers.forEach(laser => {
-      this.hudScene.remove(laser.mesh);
-      laser.dispose();
-    });
-    this.lasers = [];
+        this.lasers.forEach(laser => {
 
-    this.spawnTimer = 0;
-  }
-}
+          this.hudScene.remove(laser.mesh);
+
+          laser.dispose();
+
+        });
+
+        this.lasers = [];
+
+    
+
+        if (this.deathStar) {
+
+          this.worldScene.remove(this.deathStar.mesh);
+
+          this.deathStar.dispose();
+
+          this.deathStar = null;
+
+        }
+
+    
+
+        if (this.trench) {
+
+          this.worldScene.remove(this.trench.mesh);
+
+          this.trench.dispose();
+
+          this.trench = null;
+
+        }
+
+    
+
+        this.spawnTimer = 0;
+
+      }
+
+    }
+
+    

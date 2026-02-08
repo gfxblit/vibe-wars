@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { state, spawnLasers, addScore } from './state';
+import { state, spawnLasers, addScore, addKill } from './state';
 import { checkAim } from './collision';
 import { GameConfig } from './config';
 import { UserInput } from './input';
@@ -39,6 +39,7 @@ export class CombatSystem {
       if (!tf.isExploded && checkAim(tf.position, input, this.camera)) {
         tf.explode();
         addScore(100);
+        addKill();
       }
     });
   }

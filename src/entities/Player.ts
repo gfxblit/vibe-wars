@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { Entity } from './Entity';
 import { GameConfig } from '../config';
 import { UserInput } from '../input';
+import { state } from '../state';
 
 export class Player extends Entity {
   public readonly mesh: THREE.Group;
@@ -53,5 +54,13 @@ export class Player extends Entity {
 
     // Move position forward
     this.position.add(forward.multiplyScalar(GameConfig.player.forwardSpeed * deltaTime));
+
+    // Clamp position if in TRENCH phase
+    if (state.phase === 'TRENCH') {
+      const halfWidth = GameConfig.stage.trenchWidth / 2;
+      const halfHeight = GameConfig.stage.trenchHeight / 2;
+      this.position.x = THREE.MathUtils.clamp(this.position.x, -halfWidth, halfWidth);
+      this.position.y = THREE.MathUtils.clamp(this.position.y, -halfHeight, halfHeight);
+    }
   }
 }

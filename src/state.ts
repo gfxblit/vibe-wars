@@ -22,6 +22,7 @@ export interface Viewport {
 export interface GameState {
   score: number;
   shields: number;
+  kills: number;
   wave: number;
   phase: GamePhase;
   isGameOver: boolean;
@@ -40,6 +41,7 @@ const initialHeight = typeof window !== 'undefined' ? window.innerHeight : 768;
 export const state: GameState = {
   score: 0,
   shields: GameConfig.player.maxShields,
+  kills: 0,
   wave: 1,
   phase: 'DOGFIGHT',
   isGameOver: false,
@@ -64,6 +66,7 @@ export function initGame(worldScene: THREE.Scene, hudScene: THREE.Scene) {
   // Reset core game values
   state.score = 0;
   state.shields = GameConfig.player.maxShields;
+  state.kills = 0;
   state.wave = 1;
   state.phase = 'DOGFIGHT';
   state.isGameOver = false;
@@ -136,6 +139,10 @@ export function spawnFireball(position: THREE.Vector3, velocity: THREE.Vector3):
 
 export function addScore(points: number) {
   state.score += points;
+}
+
+export function addKill() {
+  state.kills++;
 }
 
 export function takeDamage(amount: number = 1) {

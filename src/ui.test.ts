@@ -17,6 +17,7 @@ describe('UIManager', () => {
     mockState = {
       score: 1234,
       shields: GameConfig.player.maxShields,
+      kills: 0,
       wave: 2,
       phase: 'DOGFIGHT',
       isGameOver: false,

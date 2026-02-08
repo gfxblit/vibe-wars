@@ -81,4 +81,16 @@ describe('CombatSystem', () => {
     expect(tf.isExploded).toBe(true);
     expect(state.score).toBeGreaterThan(initialScore);
   });
+
+  it('increments kills when a TIE fighter is hit', () => {
+    const tf = state.entityManager!.getTieFighters()[0];
+    tf.position.set(0, 0, -50);
+    const input = { x: 0, y: 0, isFiring: true };
+
+    const initialKills = state.kills;
+    combatSystem.update(0.01, input);
+
+    expect(tf.isExploded).toBe(true);
+    expect(state.kills).toBe(initialKills + 1);
+  });
 });

@@ -45,6 +45,13 @@ export const GameConfig = deepFreeze({
     highScore: 10000,
     damageFlashDuration: 150,
   },
+  stage: {
+    trenchKillsThreshold: 10,
+    deathStarDistance: 2000,
+    trenchTransitionDistance: 100,
+    trenchWidth: 100,
+    trenchHeight: 100,
+  },
   tieFighter: {
     speed: 50,
     oscillationFrequency: 1.0,
