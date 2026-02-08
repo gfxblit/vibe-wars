@@ -14,6 +14,8 @@ export class UIManager {
   private damageOverlay!: HTMLElement;
   private lastShields: number;
   private lastPhase: string = '';
+  private damageTimeout: any = null;
+  private shieldTimeout: any = null;
 
   private firstUpdate = true;
 
@@ -27,9 +29,6 @@ export class UIManager {
     this.hud = this.createEl('div', 'fixed inset-0 pointer-events-none z-10 font-retro flex flex-col justify-between p-4');
     this.hud.id = 'hud';
 
-    this.damageOverlay = this.createEl('div', 'fixed inset-0 bg-vector-red opacity-0 pointer-events-none z-0', this.hud);
-    this.damageOverlay.id = 'damage-overlay';
-
     const topBar = this.createEl('div', 'flex justify-between items-start w-full relative z-10', this.hud);
 
     this.createScoreSection(topBar);
@@ -42,6 +41,10 @@ export class UIManager {
     this.instructionValue = this.createEl('div', 'text-vector-green text-xl text-center hidden', centerArea);
 
     this.createGameOverOverlay();
+
+    // Damage overlay should be on top of other HUD elements for maximum impact
+    this.damageOverlay = this.createEl('div', 'fixed inset-0 bg-vector-red opacity-0 pointer-events-none z-50', this.hud);
+    this.damageOverlay.id = 'damage-overlay';
 
     if (state.debug) {
       this.createDebugPanel();
@@ -209,21 +212,72 @@ export class UIManager {
     this.firstUpdate = false;
   }
 
-  private retriggerAnimation(element: HTMLElement, className: string) {
-    element.classList.remove(className);
-    // Force a reflow to allow the animation to be re-triggered if it was already running
-    void element.offsetWidth; 
-    element.classList.add(className);
+    private retriggerAnimation(element: HTMLElement, className: string, existingTimeout?: any, onComplete?: (timeout: any) => void) {
 
-    // Robust cleanup: ensure classes are removed even if the animation is throttled
-    // or the browser environment doesn't trigger animationend consistently.
-    setTimeout(() => {
+      if (existingTimeout) {
+
+        clearTimeout(existingTimeout);
+
+      }
+
+  
+
       element.classList.remove(className);
-    }, GameConfig.ui.damageFlashDuration + 100);
+
+      // Force a reflow
+
+      void element.offsetWidth; 
+
+      element.classList.add(className);
+
+  
+
+      const newTimeout = setTimeout(() => {
+
+        element.classList.remove(className);
+
+      }, GameConfig.ui.damageFlashDuration + 100);
+
+  
+
+      if (onComplete) {
+
+        onComplete(newTimeout);
+
+      }
+
+    }
+
+  
+
+    private triggerDamageFX() {
+
+      this.retriggerAnimation(
+
+        this.damageOverlay, 
+
+        'animate-damage-flash', 
+
+        this.damageTimeout,
+
+        (t) => this.damageTimeout = t
+
+      );
+
+      this.retriggerAnimation(
+
+        this.shieldBar, 
+
+        'animate-shield-impact', 
+
+        this.shieldTimeout,
+
+        (t) => this.shieldTimeout = t
+
+      );
+
+    }
+
   }
 
-  private triggerDamageFX() {
-    this.retriggerAnimation(this.damageOverlay, 'animate-damage-flash');
-    this.retriggerAnimation(this.shieldBar, 'animate-shield-impact');
-  }
-}
+  
