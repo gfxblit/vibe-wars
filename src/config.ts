@@ -54,6 +54,15 @@ export const GameConfig = deepFreeze({
     deathStarSize: 100,
     deathStarColor: 0x00ff00,
     steeringStrength: 0.5,
+    trenchLength: 5000,
+    catwalkStartZ: -500,
+    catwalkEndZ: -4500,
+    catwalkSpacing: 500,
+    catwalkYOffset: 20,
+    catwalkDepth: 20,
+    catwalkCollisionThreshold: 15, // Tolerance for Z-axis hit detection
+    catwalkHeightThreshold: 15,    // Tolerance for Y-axis hit detection
+    exhaustPortZOffset: 400,
   },
   tieFighter: {
     speed: 50,

@@ -110,26 +110,20 @@ class TrenchStage implements Stage {
     player.position.y = THREE.MathUtils.clamp(player.position.y, -halfHeight, halfHeight);
 
     // Catwalk collisions
-    const pZ = player.position.z;
-    const pY = player.position.y;
-    
-    // Check if we are passing a catwalk (every 500 units from -500 to -4500)
-    if (pZ < -400 && pZ > -4600) {
-      const catwalkZ = Math.round(pZ / 500) * 500;
-      if (Math.abs(pZ - catwalkZ) < 15 && catwalkZ !== this.lastCatwalkHitZ) {
-        const y = (Math.abs(catwalkZ) % 1000 === 0) ? 20 : -20;
-        if (Math.abs(pY - y) < 15) {
-          takeDamage(1);
-          this.lastCatwalkHitZ = catwalkZ; // Prevent multiple hits for same catwalk
-        }
+    const hitZ = this.trench.checkObstacleCollision(player.position);
+    if (hitZ !== null) {
+      if (hitZ !== this.lastCatwalkHitZ) {
+        takeDamage(1);
+        this.lastCatwalkHitZ = hitZ;
       }
     }
 
     // Trench update logic (procedural generation etc) could go here
     this.trench.update(deltaTime);
 
-    // If player reaches the end of the trench, they win the stage
-    if (player.position.z <= -5000) {
+    // If player reaches the end of the trench or hits the port, they win the stage
+    const hitPort = this.trench.checkPortCollision(player.position);
+    if (hitPort || player.position.z <= -GameConfig.stage.trenchLength) {
       nextPhase();
       this.manager.reset();
     }
