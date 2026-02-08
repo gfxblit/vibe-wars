@@ -61,7 +61,7 @@ describe('GameConfig', () => {
     expect(GameConfig.fireball.relativeSpeed).toBe(40);
     expect(GameConfig.fireball.fireRate).toBe(2.0);
     expect(GameConfig.fireball.damage).toBe(1);
-    expect(GameConfig.fireball.expirationDistance).toBe(20);
+    expect(GameConfig.fireball.expirationDistance).toBe(500);
     expect(GameConfig.fireball.sparkleCount).toBe(8);
     expect(GameConfig.fireball.sparkleSize).toBe(4.0);
     expect(GameConfig.fireball.explosionVelocity).toBe(30);

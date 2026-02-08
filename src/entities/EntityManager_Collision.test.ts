@@ -27,8 +27,8 @@ describe('EntityManager Collision', () => {
   test('should detect collision when fireball hits near plane (screen)', () => {
     const onPlayerHit = vi.fn();
     
-    // threshold is 1.5. Start at 2.0.
-    const fbPos = new THREE.Vector3(0, 0, -2.0); 
+    // threshold is 2.0. Start at 3.0.
+    const fbPos = new THREE.Vector3(0, 0, -3.0); 
     const fbVel = new THREE.Vector3(0, 0, 40); // Moves 4.0 in 0.1s
     const fireball = entityManager.spawnFireball(fbPos, fbVel);
 

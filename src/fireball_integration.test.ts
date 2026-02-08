@@ -80,9 +80,9 @@ describe('Fireball Integration', () => {
          camera.position.set(0, 0, 0);
          camera.updateMatrixWorld();
          
-         // Start outside threshold (1.5) and move through it
-         fb.mesh.position.set(0, 0, -2.0);
-         fb.velocity.set(0, 0, 40); // Will move 4.0 in 0.1s, reaching +2.0
+         // Start outside threshold (2.0) and move through it
+         fb.mesh.position.set(0, 0, -3.0);
+         fb.velocity.set(0, 0, 40); // Will move 4.0 in 0.1s, reaching +1.0
     }
 
     updateState(0.1, camera);

@@ -25,12 +25,12 @@ describe('EntityManager Tunneling Repro', () => {
   test('should detect collision even when fireball tunnels over the detection zone', () => {
     const onPlayerHit = vi.fn();
     
-    // threshold = 1.5
-    // Start at z = -2.0 (dist = 2.0)
-    // Move to z = +3.0 (dist = -3.0)
+    // threshold = 2.0
+    // Start at z = -3.0 (dist = 3.0)
+    // Move to z = +2.0 (dist = -2.0)
     // dt = 0.05, velocity = 100
     
-    const fbPos = new THREE.Vector3(0, 0, -2.0);
+    const fbPos = new THREE.Vector3(0, 0, -3.0);
     const fbVel = new THREE.Vector3(0, 0, 100); 
     const fireball = entityManager.spawnFireball(fbPos, fbVel);
 

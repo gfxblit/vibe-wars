@@ -78,8 +78,8 @@ describe('Game State', () => {
     // Let's manually set collision by ensuring projectToNDC returns what we want?
     // We can spy on it.
     
-    // Start outside threshold (1.5) and move through it
-    const fbPos = new THREE.Vector3(0, 0, -2.0); // 2.0 in front of camera
+    // Start outside threshold (2.0) and move through it
+    const fbPos = new THREE.Vector3(0, 0, -3.0); // 3.0 in front of camera
     const fbVel = new THREE.Vector3(0, 0, 40); // Move towards camera
     const fireball = spawnFireball(fbPos, fbVel);
 
@@ -110,9 +110,9 @@ describe('Game State', () => {
     state.player!.position.set(0, 0, 0);
     state.player!.mesh.quaternion.set(0, 0, 0, 1);
 
-    // Spawn fireball 21 units behind (+Z)
-    // forward is (0,0,-1). subVectors(fb, player) is (0,0,21). dot is -21.
-    spawnFireball(new THREE.Vector3(0, 0, 21), new THREE.Vector3(0, 0, 0));
+    // Spawn fireball 501 units behind (+Z)
+    // forward is (0,0,-1). subVectors(fb, player) is (0,0,501). dot is -501.
+    spawnFireball(new THREE.Vector3(0, 0, 501), new THREE.Vector3(0, 0, 0));
 
     expect(state.entityManager!.getFireballs().length).toBe(1);
     updateState(0.01, mockCamera);
