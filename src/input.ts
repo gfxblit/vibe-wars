@@ -33,21 +33,15 @@ export class InputManager {
   };
 
   private handleMouseDown = (event: MouseEvent) => {
-    // Clicks on the fire button should set firing state
-    if (event.target === this.fireButton) {
-      this.isFiring = true;
-      // Continue to drag logic
-    } else {
-        // Clicks on other UI elements should be ignored for game input.
-        const target = event.target as HTMLElement;
-        if (target.tagName !== 'CANVAS' && target !== document.body && target !== document.documentElement) {
-            return;
-        }
+    const target = event.target as HTMLElement;
+
+    // Clicks on other UI elements should be ignored for game input.
+    if (target !== this.fireButton && target.tagName !== 'CANVAS' && target !== document.body && target !== document.documentElement) {
+      return;
     }
 
-    this.isDragging = true;
     this.isFiring = true;
-    this.useRelativeInput = false;
+    this.startDrag(event.clientX, event.clientY, null, target === this.fireButton, false);
   };
 
   private handlePointerUp = () => {
@@ -63,45 +57,24 @@ export class InputManager {
   private handleTouchStart = (event: TouchEvent) => {
     for (let i = 0; i < event.changedTouches.length; i++) {
       const touch = event.changedTouches[i];
-      
-      if (touch.target === this.fireButton) {
-        this.isFiring = true;
-        
-        // Fire button can initiate drag if we aren't dragging yet
-        if (!this.isDragging) {
-            this.isDragging = true;
-            this.dragTouchId = touch.identifier;
-            this.dragStartedOnFireButton = true;
-            this.useRelativeInput = true;
-            this.pointerAnchor.set(touch.clientX, touch.clientY);
-            this.pointerInput.set(0, 0);
-        }
-        
-        event.preventDefault();
-        continue;
-      }
-
-      // Check if it's a valid drag target
       const target = touch.target as HTMLElement;
-      if (target.tagName !== 'CANVAS' && target !== document.body && target !== document.documentElement) {
+      const isFireButton = target === this.fireButton;
+
+      if (isFireButton) {
+        this.isFiring = true;
+        event.preventDefault();
+      }
+
+      // Valid targets: fire button, canvas, body, documentElement
+      if (!isFireButton && target.tagName !== 'CANVAS' && target !== document.body && target !== document.documentElement) {
         continue;
       }
 
-      // If we're not already dragging, start a new drag with this touch
       if (!this.isDragging) {
-        this.isDragging = true;
-        this.dragTouchId = touch.identifier;
-        this.dragStartedOnFireButton = false;
-        this.useRelativeInput = true;
-        this.pointerAnchor.set(touch.clientX, touch.clientY);
-        this.pointerInput.set(0, 0);
-      } 
-      // HIJACK: If we ARE dragging, but it started on the fire button, allow this new canvas touch to take over
-      else if (this.isDragging && this.dragStartedOnFireButton) {
-          this.dragTouchId = touch.identifier;
-          this.dragStartedOnFireButton = false; // Transferred to canvas
-          this.pointerAnchor.set(touch.clientX, touch.clientY);
-          this.pointerInput.set(0, 0);
+        this.startDrag(touch.clientX, touch.clientY, touch.identifier, isFireButton, true);
+      } else if (this.dragStartedOnFireButton && !isFireButton) {
+        // HIJACK: Canvas touch takes over if drag started on fire button
+        this.startDrag(touch.clientX, touch.clientY, touch.identifier, false, true);
       }
     }
   };
@@ -167,6 +140,19 @@ export class InputManager {
     if (this.keys.has('ArrowDown') || this.keys.has('KeyS')) y -= 1;
 
     this.keyboardTarget.set(x, y);
+  }
+
+  private startDrag(clientX: number, clientY: number, identifier: number | null, startedOnFireButton: boolean, useRelative: boolean) {
+    this.isDragging = true;
+    this.dragTouchId = identifier;
+    this.dragStartedOnFireButton = startedOnFireButton;
+    this.useRelativeInput = useRelative;
+    if (useRelative) {
+      this.pointerAnchor.set(clientX, clientY);
+      this.pointerInput.set(0, 0);
+    } else {
+      this.updatePointerInput(clientX, clientY);
+    }
   }
 
   public setup(): void {

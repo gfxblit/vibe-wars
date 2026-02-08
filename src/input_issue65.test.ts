@@ -178,4 +178,40 @@ describe('InputManager (Issue #65: Tap and Drag Fire)', () => {
      expect(inputManager.getInput().x).toBeCloseTo(expectedVal);
      expect(inputManager.getInput().y).toBeCloseTo(expectedVal);
   });
+
+  it('allows canvas touch to hijack control from a mouse drag on the fire button', () => {
+    // 1. Mouse down on fire button
+    const event = new MouseEvent('mousedown', { clientX: 500, clientY: 500 });
+    Object.defineProperty(event, 'target', { value: fireButton });
+    listeners['mousedown'](event);
+
+    // Should be firing
+    expect(inputManager.getInput().isFiring).toBe(true);
+
+    // 2. Touch start on canvas (HIJACK)
+    const touch = { identifier: 1, clientX: 200, clientY: 200, target: document.body };
+    const touchStart = {
+        touches: [touch],
+        changedTouches: [touch],
+        target: document.body,
+        preventDefault: vi.fn()
+    };
+    listeners['touchstart'](touchStart);
+
+    // Touch should now be the anchor. Move it.
+    const touchMoved = { identifier: 1, clientX: 300, clientY: 100, target: document.body }; // +100, +100
+    listeners['touchmove']({ touches: [touchMoved], changedTouches: [touchMoved], preventDefault: vi.fn() });
+    inputManager.update(0);
+
+    const expectedVal = 100 / GameConfig.input.touchRadius;
+    expect(inputManager.getInput().x).toBeCloseTo(expectedVal);
+    expect(inputManager.getInput().y).toBeCloseTo(expectedVal);
+
+    // Verify mouse no longer controls input
+    listeners['mousemove'](new MouseEvent('mousemove', { clientX: 600, clientY: 400 }));
+    inputManager.update(0);
+
+    // Should still be based on touch's position
+    expect(inputManager.getInput().x).toBeCloseTo(expectedVal);
+  });
 });
