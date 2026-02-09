@@ -88,11 +88,11 @@ describe('EntityManager', () => {
     const vel = new THREE.Vector3(0, 0, -100);
     const torpedo = entityManager.spawnTorpedo(pos, vel);
     
-    entityManager.update(0.1, playerPosition, playerQuaternion, false, new THREE.PerspectiveCamera());
+    entityManager.update(0.1, playerPosition, playerQuaternion, false, new THREE.PerspectiveCamera(), GameConfig.player.baseForwardSpeed);
     expect(torpedo.position.z).toBeCloseTo(-10);
 
     torpedo.explode();
-    entityManager.update(GameConfig.fireball.explosionDuration + 0.1, playerPosition, playerQuaternion, false, new THREE.PerspectiveCamera());
+    entityManager.update(GameConfig.fireball.explosionDuration + 0.1, playerPosition, playerQuaternion, false, new THREE.PerspectiveCamera(), GameConfig.player.baseForwardSpeed);
     expect(entityManager.getTorpedoes().length).toBe(0);
   });
 })
