@@ -58,4 +58,8 @@ describe('Trench Entity', () => {
     const missPos = new THREE.Vector3(0, portY + 100, portZ);
     expect(trench.checkPortCollision(missPos)).toBe(false);
   });
+
+  it('should have turrets', () => {
+    expect(trench.getTurrets().length).toBeGreaterThan(0);
+  });
 });

@@ -1,9 +1,11 @@
 import * as THREE from 'three';
 import { Entity } from './Entity';
 import { GameConfig } from '../config';
+import { Turret } from './Turret';
 
 export class Trench extends Entity {
   public mesh: THREE.Group;
+  private turrets: Turret[] = [];
 
   constructor() {
     super();
@@ -108,6 +110,22 @@ export class Trench extends Entity {
       this.mesh.add(catwalk);
     }
 
+    // Add Turrets along the walls
+    const { spacing: turretSpacing } = GameConfig.turret;
+    const halfWidth = trenchWidth / 2;
+
+    for (let z = catwalkStartZ; z > catwalkEndZ; z -= turretSpacing) {
+      // Alternate sides
+      const isLeft = Math.floor(Math.abs(z) / turretSpacing) % 2 === 0;
+      const x = isLeft ? -halfWidth : halfWidth;
+      // Random height within trench walls
+      const y = (Math.random() - 0.5) * trenchHeight * 0.5;
+      
+      const turret = new Turret(new THREE.Vector3(x, y, z));
+      this.turrets.push(turret);
+      this.mesh.add(turret.mesh);
+    }
+
     boxGeometry.dispose();
 
     // Add Exhaust Port at the end
@@ -180,6 +198,10 @@ export class Trench extends Entity {
     );
   }
 
+  public getTurrets(): Turret[] {
+    return this.turrets;
+  }
+
   update(_deltaTime: number) {
     // Keep the trench centered on Z but far enough to cover the run
     // For now it's static at origin, we might want to move it with the player or tile it.
@@ -187,6 +209,7 @@ export class Trench extends Entity {
   }
 
   dispose() {
+    this.turrets.forEach(t => t.dispose());
     this.mesh.traverse(child => {
       if (child instanceof THREE.Mesh || child instanceof THREE.LineSegments || child instanceof THREE.Line) {
         child.geometry.dispose();
