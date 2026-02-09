@@ -60,9 +60,9 @@ describe('Trench Integration', () => {
     
     const euler = new THREE.Euler().setFromQuaternion(state.player!.mesh.quaternion, 'YXZ');
     // Pitch (x) should be clamped to GameConfig.stage.trenchMaxPitch (30 degrees ~ 0.52 rad)
-    expect(Math.abs(euler.x)).toBeLessThanOrEqual(GameConfig.stage.trenchMaxPitch + 0.01);
-    // Yaw (y) should be clamped to GameConfig.stage.trenchMaxYaw (30 degrees ~ 0.52 rad)
-    expect(Math.abs(euler.y)).toBeLessThanOrEqual(GameConfig.stage.trenchMaxYaw + 0.01);
+    expect(euler.x).toBeCloseTo(GameConfig.stage.trenchMaxPitch);
+    // Yaw (y) should be clamped to -GameConfig.stage.trenchMaxYaw (30 degrees ~ 0.52 rad)
+    expect(euler.y).toBeCloseTo(-GameConfig.stage.trenchMaxYaw);
     // Roll (z) should be exactly 0
     expect(euler.z).toBeCloseTo(0);
   });

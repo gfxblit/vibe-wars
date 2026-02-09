@@ -58,10 +58,10 @@ export class Player extends Entity {
 
       // Apply clamping if options provided
       if (options.maxPitch !== undefined) {
-        targetPitch = Math.max(-options.maxPitch, Math.min(options.maxPitch, targetPitch));
+        targetPitch = THREE.MathUtils.clamp(targetPitch, -options.maxPitch, options.maxPitch);
       }
       if (options.maxYaw !== undefined) {
-        targetYaw = Math.max(-options.maxYaw, Math.min(options.maxYaw, targetYaw));
+        targetYaw = THREE.MathUtils.clamp(targetYaw, -options.maxYaw, options.maxYaw);
       }
 
       // Set new orientation, forcing Roll to 0
