@@ -122,4 +122,55 @@ describe('Player', () => {
     player.update({ x: 0, y: 0, isFiring: false, isLaunchingTorpedo: false }, 0.1, GameConfig.player.baseForwardSpeed, false);
     expect(visualMesh.visible).toBe(false);
   })
+
+  describe('orientation constraints', () => {
+    it('should lock roll to zero when lockUpright is enabled', () => {
+      // Give some horizontal input that would normally cause rotation (yaw/pitch)
+      // and potentially roll if using relative quaternions without care.
+      // But the requirement is specifically about world roll being 0.
+      player.update({ x: 1, y: 0.5, isFiring: false, isLaunchingTorpedo: false }, 0.1, 100, false, { lockUpright: true });
+      
+      const euler = new THREE.Euler().setFromQuaternion(player.mesh.quaternion, 'YXZ');
+      expect(euler.z).toBeCloseTo(0);
+    });
+
+    it('should clamp pitch to provided limits', () => {
+      const maxPitch = Math.PI / 6; // 30 degrees
+      // Extreme up input
+      player.update({ x: 0, y: 10, isFiring: false, isLaunchingTorpedo: false }, 1.0, 100, false, { lockUpright: true, maxPitch });
+      
+      const euler = new THREE.Euler().setFromQuaternion(player.mesh.quaternion, 'YXZ');
+      expect(euler.x).toBeLessThanOrEqual(maxPitch + 0.001);
+      
+      // Extreme down input
+      player.update({ x: 0, y: -10, isFiring: false, isLaunchingTorpedo: false }, 1.0, 100, false, { lockUpright: true, maxPitch });
+      const euler2 = new THREE.Euler().setFromQuaternion(player.mesh.quaternion, 'YXZ');
+      expect(euler2.x).toBeGreaterThanOrEqual(-maxPitch - 0.001);
+    });
+
+    it('should clamp yaw to provided limits', () => {
+      const maxYaw = Math.PI / 6; // 30 degrees
+      // Extreme right input
+      player.update({ x: 10, y: 0, isFiring: false, isLaunchingTorpedo: false }, 1.0, 100, false, { lockUpright: true, maxYaw });
+      
+      const euler = new THREE.Euler().setFromQuaternion(player.mesh.quaternion, 'YXZ');
+      expect(euler.y).toBeLessThanOrEqual(maxYaw + 0.001);
+      
+      // Extreme left input
+      player.update({ x: -10, y: 0, isFiring: false, isLaunchingTorpedo: false }, 1.0, 100, false, { lockUpright: true, maxYaw });
+      const euler2 = new THREE.Euler().setFromQuaternion(player.mesh.quaternion, 'YXZ');
+      expect(euler2.y).toBeGreaterThanOrEqual(-maxYaw - 0.001);
+    });
+
+    it('should maintain 6DOF behavior when no options are provided', () => {
+      // In 6DOF, we should be able to loop.
+      // 10 seconds of full pitch up should result in a loop (more than 30 degrees)
+      player.update({ x: 0, y: 1, isFiring: false, isLaunchingTorpedo: false }, 10.0, 100);
+      
+      const euler = new THREE.Euler().setFromQuaternion(player.mesh.quaternion, 'YXZ');
+      // If it's not clamped to 30 degrees (Math.PI/6 ~ 0.52), it should be much larger or have wrapped.
+      // Basically, it shouldn't be clamped to 0.52.
+      expect(Math.abs(euler.x)).toBeGreaterThan(Math.PI / 6);
+    });
+  });
 })

@@ -96,7 +96,17 @@ export function updateState(deltaTime: number, camera: THREE.Camera, input: User
   }
 
   const currentSpeed = state.stageManager.getStage()?.speed ?? GameConfig.player.baseForwardSpeed;
-  state.player.update(input, deltaTime, currentSpeed, state.showChassis);
+
+  let playerOptions = undefined;
+  if (state.stage === 'TRENCH') {
+    playerOptions = {
+      lockUpright: true,
+      maxPitch: GameConfig.stage.trenchMaxPitch,
+      maxYaw: GameConfig.stage.trenchMaxYaw,
+    };
+  }
+
+  state.player.update(input, deltaTime, currentSpeed, state.showChassis, playerOptions);
 
   // Ensure camera world matrix is updated after player moves but before collision check
   camera.updateMatrixWorld();

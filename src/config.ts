@@ -68,6 +68,8 @@ export const GameConfig = deepFreeze({
     catwalkCollisionThreshold: 15, // Tolerance for Z-axis hit detection
     catwalkHeightThreshold: 15,    // Tolerance for Y-axis hit detection
     exhaustPortZOffset: 400,
+    trenchMaxPitch: Math.PI / 6, // 30 degrees
+    trenchMaxYaw: Math.PI / 6,   // 30 degrees
   },
   tieFighter: {
     speed: 50,
