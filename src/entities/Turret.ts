@@ -4,7 +4,7 @@ import { GameConfig } from '../config';
 
 export class Turret extends Entity implements Targetable {
   public readonly mesh: THREE.Group;
-  private fireCooldown: number = Math.random() * GameConfig.turret.fireRate;
+  private fireCooldown: number = Math.random() * 1.0; // Fire soon after encounter
   public isExploded: boolean = false;
   private pieceVelocities: THREE.Vector3[] = [];
 
@@ -75,7 +75,13 @@ export class Turret extends Entity implements Targetable {
     this.mesh.lookAt(playerPosition);
 
     const dist = this.mesh.position.distanceTo(playerPosition);
-    if (dist < GameConfig.turret.range && this.fireCooldown <= 0) {
+    
+    // Only fire if in range AND player is "ahead" of the turret (player.z > turret.z since moving towards -Z)
+    // Actually, in the trench, player moves from 0 to -5000. 
+    // Turret at -500 is ahead if player.z > -500.
+    const isPlayerAhead = playerPosition.z > this.mesh.position.z;
+
+    if (isPlayerAhead && dist < GameConfig.turret.range && this.fireCooldown <= 0) {
       this.fireCooldown = GameConfig.turret.fireRate;
       // Return direction towards player
       return new THREE.Vector3().subVectors(playerPosition, this.mesh.position).normalize();
@@ -86,6 +92,10 @@ export class Turret extends Entity implements Targetable {
 
   public getScore(): number {
     return 200;
+  }
+
+  public getVelocity(_playerForward: THREE.Vector3, _playerSpeed: number): THREE.Vector3 {
+    return new THREE.Vector3(0, 0, 0);
   }
 
   public dispose(): void {

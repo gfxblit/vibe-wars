@@ -116,6 +116,10 @@ export class TieFighter extends Entity implements Targetable {
     return 100;
   }
 
+  public getVelocity(playerForward: THREE.Vector3, playerSpeed: number): THREE.Vector3 {
+    return playerForward.clone().multiplyScalar(playerSpeed);
+  }
+
   public setStrategy(strategy: AIStrategy): void {
     this.strategy = strategy;
   }

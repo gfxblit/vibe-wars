@@ -158,7 +158,15 @@ export class EntityManager {
 
   private spawnFireballFromTarget(target: Targetable, fireDirection: THREE.Vector3, playerQuaternion: THREE.Quaternion, playerSpeed: number) {
     this.scratchPlayerForward.set(0, 0, -1).applyQuaternion(playerQuaternion);
-    this.scratchPlayerVelocity.copy(this.scratchPlayerForward).multiplyScalar(playerSpeed);
+    
+    // Get target's base velocity (e.g. TIE fighters move with player, turrets are static)
+    if (target.getVelocity) {
+      this.scratchPlayerVelocity.copy(target.getVelocity(this.scratchPlayerForward, playerSpeed));
+    } else {
+      // Default fallback (previous behavior)
+      this.scratchPlayerVelocity.copy(this.scratchPlayerForward).multiplyScalar(playerSpeed);
+    }
+
     this.scratchRelativeVelocity.copy(fireDirection).multiplyScalar(GameConfig.fireball.relativeSpeed);
     this.scratchTotalVelocity.copy(this.scratchPlayerVelocity).add(this.scratchRelativeVelocity);
 
