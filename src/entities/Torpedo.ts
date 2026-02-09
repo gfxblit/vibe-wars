@@ -20,9 +20,9 @@ export class Torpedo extends Entity {
 
     // Use cyan/blue for proton torpedoes
     const color = new THREE.Color(0x00ffff);
-    const size = GameConfig.fireball.sparkleSize * 1.5;
+    const size = GameConfig.torpedo.sparkleSize * 1.5;
 
-    for (let i = 0; i < GameConfig.fireball.sparkleCount; i++) {
+    for (let i = 0; i < GameConfig.torpedo.sparkleCount; i++) {
       const material = new THREE.SpriteMaterial({
         map: this.createSparkleTexture(),
         color: color,
@@ -90,7 +90,7 @@ export class Torpedo extends Entity {
         Math.random() - 0.5,
         Math.random() - 0.5
       ).normalize();
-      this.sparkleVelocities[i].copy(direction).multiplyScalar(GameConfig.fireball.explosionVelocity * 1.5);
+      this.sparkleVelocities[i].copy(direction).multiplyScalar(GameConfig.torpedo.explosionVelocity * 1.5);
       this.sparkleRotationSpeeds[i] *= 3;
     });
   }
@@ -114,7 +114,7 @@ export class Torpedo extends Entity {
   }
 
   isExpired(): boolean {
-    return this.isExploded && this.explosionTimer >= GameConfig.fireball.explosionDuration;
+    return this.isExploded && this.explosionTimer >= GameConfig.torpedo.explosionDuration;
   }
 
   dispose(): void {

@@ -53,7 +53,8 @@ export class CombatSystem {
     const targetPoint = new THREE.Vector3(input.x, input.y, 0.5);
     targetPoint.unproject(this.camera);
     
-    const direction = new THREE.Vector3().subVectors(targetPoint, this.camera.position).normalize();
+    this.camera.getWorldPosition(this.tempVector3);
+    const direction = new THREE.Vector3().subVectors(targetPoint, this.tempVector3).normalize();
     const stageSpeed = state.stageManager?.getStage()?.speed ?? GameConfig.player.baseForwardSpeed;
     const velocity = direction.multiplyScalar(stageSpeed * GameConfig.torpedo.speedMultiplier);
 

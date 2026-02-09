@@ -4,10 +4,12 @@ import { GameConfig } from './config';
 const scratchTargetDir = new THREE.Vector3();
 const scratchCameraDir = new THREE.Vector3();
 const scratchProjected = new THREE.Vector3();
+const scratchCameraWorldPos = new THREE.Vector3();
 
 export function checkAim(target: THREE.Vector3, input: { x: number, y: number }, camera: THREE.Camera): boolean {
   // 1. Check if target is behind camera
-  scratchTargetDir.subVectors(target, camera.position).normalize();
+  camera.getWorldPosition(scratchCameraWorldPos);
+  scratchTargetDir.subVectors(target, scratchCameraWorldPos).normalize();
   camera.getWorldDirection(scratchCameraDir);
 
   // If dot product is negative, it's behind the camera (angle > 90 degrees)
