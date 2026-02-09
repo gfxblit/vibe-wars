@@ -57,10 +57,10 @@ describe('InputManager', () => {
     expect(inputManager.getInput().isLaunchingTorpedo).toBe(false);
   });
 
-  it('reports isLaunchingTorpedo when right clicked', () => {
+  it('does not report isLaunchingTorpedo when right clicked', () => {
     const event = createMouseEvent('mousedown', { button: 2 });
     listeners['mousedown'](event);
-    expect(inputManager.getInput().isLaunchingTorpedo).toBe(true);
+    expect(inputManager.getInput().isLaunchingTorpedo).toBe(false);
 
     const upEvent = createMouseEvent('mouseup', { button: 2 });
     listeners['mouseup'](upEvent);
@@ -314,6 +314,32 @@ describe('InputManager', () => {
 
     listeners['mouseup'](new MouseEvent('mouseup'));
     expect(inputManager.getInput().isFiring).toBe(false);
+  });
+
+  it('updates input coordinates but not isFiring or isLaunchingTorpedo when right-clicked and dragged', () => {
+    // Right mouse down (button 2)
+    const downEvent = createMouseEvent('mousedown', { button: 2 });
+    listeners['mousedown'](downEvent);
+    
+    expect(inputManager.getInput().isFiring).toBe(false);
+    expect(inputManager.getInput().isLaunchingTorpedo).toBe(false);
+
+    // Move mouse while right-clicking
+    listeners['mousemove'](new MouseEvent('mousemove', { clientX: 0, clientY: 0 }));
+    inputManager.update(0);
+    
+    expect(inputManager.getInput().x).toBe(-1);
+    expect(inputManager.getInput().y).toBe(1);
+    expect(inputManager.getInput().isFiring).toBe(false);
+    expect(inputManager.getInput().isLaunchingTorpedo).toBe(false);
+
+    // Mouse up
+    const upEvent = createMouseEvent('mouseup', { button: 2 });
+    listeners['mouseup'](upEvent);
+    
+    // Should start decaying
+    inputManager.update(0.1);
+    expect(inputManager.getInput().x).toBeGreaterThan(-1);
   });
 
   it('reports isFiring only when touch is on fire button', () => {

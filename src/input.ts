@@ -49,7 +49,7 @@ export class InputManager {
     }
 
     if (event.button === 2) { // Right click
-      this.isLaunchingTorpedo = true;
+      this.startDrag(event.clientX, event.clientY, null, false, false);
     } else {
       this.isFiring = true;
       this.startDrag(event.clientX, event.clientY, null, target === this.fireButton, false);
@@ -58,7 +58,7 @@ export class InputManager {
 
   private handlePointerUp = (event: MouseEvent) => {
     if (event.button === 2) { // Right click
-      this.isLaunchingTorpedo = false;
+      this.isDragging = false;
     } else {
       this.isDragging = false;
       this.isFiring = false;
