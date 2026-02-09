@@ -5,12 +5,14 @@ import { GameConfig } from '../config';
 import { Fireball } from './Fireball';
 import { Laser } from './Laser';
 import { Torpedo } from './Torpedo';
+import { Targetable } from './Entity';
 
 export class EntityManager {
   private tieFighters: TieFighter[] = [];
   private fireballs: Fireball[] = [];
   private lasers: Laser[] = [];
   private torpedoes: Torpedo[] = [];
+  private additionalTargets: Targetable[] = [];
   private spawnTimer: number = 0;
   private worldScene: THREE.Scene;
   private hudScene: THREE.Scene;
@@ -43,13 +45,7 @@ export class EntityManager {
       const fireDirection = tf.update(deltaTime, playerPosition, playerQuaternion, playerSpeed);
 
       if (fireDirection && !tf.isExploded) {
-        // Inherit player's forward velocity so the fireball closure rate is exactly relativeSpeed
-        this.scratchPlayerVelocity.copy(this.scratchPlayerForward).multiplyScalar(playerSpeed);
-        this.scratchRelativeVelocity.copy(fireDirection).multiplyScalar(GameConfig.fireball.relativeSpeed);
-        this.scratchTotalVelocity.copy(this.scratchPlayerVelocity).add(this.scratchRelativeVelocity);
-
-        this.scratchFireballPos.copy(tf.position);
-        this.spawnFireball(this.scratchFireballPos, this.scratchTotalVelocity);
+        this.spawnFireballFromTarget(tf, fireDirection, playerQuaternion, playerSpeed);
       }
 
       // Cleanup distant TIE fighters
@@ -148,6 +144,26 @@ export class EntityManager {
         this.spawnTimer = 0;
       }
     }
+
+    // 5. Update additional targets (like turrets)
+    for (const target of this.additionalTargets) {
+      if (target.update) {
+        const fireDirection = target.update(deltaTime, playerPosition, playerQuaternion, playerSpeed);
+        if (fireDirection && !target.isExploded) {
+          this.spawnFireballFromTarget(target, fireDirection, playerQuaternion, playerSpeed);
+        }
+      }
+    }
+  }
+
+  private spawnFireballFromTarget(target: Targetable, fireDirection: THREE.Vector3, playerQuaternion: THREE.Quaternion, playerSpeed: number) {
+    this.scratchPlayerForward.set(0, 0, -1).applyQuaternion(playerQuaternion);
+    this.scratchPlayerVelocity.copy(this.scratchPlayerForward).multiplyScalar(playerSpeed);
+    this.scratchRelativeVelocity.copy(fireDirection).multiplyScalar(GameConfig.fireball.relativeSpeed);
+    this.scratchTotalVelocity.copy(this.scratchPlayerVelocity).add(this.scratchRelativeVelocity);
+
+    this.scratchFireballPos.copy(target.position);
+    this.spawnFireball(this.scratchFireballPos, this.scratchTotalVelocity);
   }
 
   public setSpawningEnabled(enabled: boolean): void {
@@ -233,12 +249,29 @@ export class EntityManager {
     return this.torpedoes;
   }
 
+  public addTarget(target: Targetable): void {
+    this.additionalTargets.push(target);
+  }
+
+  public getTargets(): Targetable[] {
+    return [...this.tieFighters, ...this.additionalTargets];
+  }
+
+  public removeTarget(target: Targetable): void {
+    const index = this.additionalTargets.indexOf(target);
+    if (index !== -1) {
+      this.additionalTargets.splice(index, 1);
+    }
+  }
+
   public clear(): void {
     this.tieFighters.forEach(tf => {
       this.worldScene.remove(tf.mesh);
       tf.dispose();
     });
     this.tieFighters = [];
+
+    this.additionalTargets = [];
 
     this.fireballs.forEach(fb => {
       this.worldScene.remove(fb.mesh);

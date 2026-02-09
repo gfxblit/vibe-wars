@@ -1,12 +1,16 @@
 import * as THREE from 'three';
-import { Entity } from './Entity';
+import { Entity, Targetable } from './Entity';
 import { GameConfig } from '../config';
 
-export class Turret extends Entity {
+export class Turret extends Entity implements Targetable {
   public readonly mesh: THREE.Group;
   private fireCooldown: number = Math.random() * GameConfig.turret.fireRate;
   public isExploded: boolean = false;
   private pieceVelocities: THREE.Vector3[] = [];
+
+  public get position(): THREE.Vector3 {
+    return this.mesh.position;
+  }
 
   constructor(position: THREE.Vector3) {
     super();
@@ -52,7 +56,7 @@ export class Turret extends Entity {
     });
   }
 
-  public update(deltaTime: number, playerPosition: THREE.Vector3): THREE.Vector3 | null {
+  public update(deltaTime: number, playerPosition: THREE.Vector3, _playerQuaternion: THREE.Quaternion, _playerSpeed: number): THREE.Vector3 | null {
     if (this.isExploded) {
       // Move pieces
       this.mesh.children.forEach((child, index) => {
@@ -78,6 +82,10 @@ export class Turret extends Entity {
     }
 
     return null;
+  }
+
+  public getScore(): number {
+    return 200;
   }
 
   public dispose(): void {

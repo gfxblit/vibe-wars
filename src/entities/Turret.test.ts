@@ -20,7 +20,7 @@ describe('Turret Entity', () => {
     // Force cooldown to 0
     (turret as any).fireCooldown = 0;
     
-    const fireDir = turret.update(0.1, playerPos);
+    const fireDir = turret.update(0.1, playerPos, new THREE.Quaternion(), 0);
     expect(fireDir).not.toBeNull();
     if (fireDir) {
       const expectedDir = new THREE.Vector3().subVectors(playerPos, initialPosition).normalize();
@@ -33,11 +33,11 @@ describe('Turret Entity', () => {
     // Force cooldown to 0
     (turret as any).fireCooldown = 0;
     
-    let fireDir = turret.update(0.1, playerPos);
+    let fireDir = turret.update(0.1, playerPos, new THREE.Quaternion(), 0);
     expect(fireDir).not.toBeNull();
     
     // Immediately updating again should not fire
-    fireDir = turret.update(0.1, playerPos);
+    fireDir = turret.update(0.1, playerPos, new THREE.Quaternion(), 0);
     expect(fireDir).toBeNull();
   });
 
@@ -45,13 +45,13 @@ describe('Turret Entity', () => {
     const playerPos = new THREE.Vector3(0, 0, 10000); // Very far away
     (turret as any).fireCooldown = 0;
     
-    const fireDir = turret.update(0.1, playerPos);
+    const fireDir = turret.update(0.1, playerPos, new THREE.Quaternion(), 0);
     expect(fireDir).toBeNull();
   });
 
   it('should aim at the player', () => {
     const playerPos = new THREE.Vector3(100, 100, 0);
-    turret.update(0.1, playerPos);
+    turret.update(0.1, playerPos, new THREE.Quaternion(), 0);
     
     // Turret should look at the player (roughly)
     // We check if the forward vector of the mesh points towards the player

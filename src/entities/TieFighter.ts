@@ -1,10 +1,10 @@
 import * as THREE from 'three';
-import { Entity } from './Entity';
+import { Entity, Targetable } from './Entity';
 import { GameConfig } from '../config';
 import { AIStrategy } from './AIStrategy';
 import { state } from '../state';
 
-export class TieFighter extends Entity {
+export class TieFighter extends Entity implements Targetable {
   public readonly mesh: THREE.Group;
   private strategy: AIStrategy;
 
@@ -110,6 +110,10 @@ export class TieFighter extends Entity {
     }
 
     return null;
+  }
+
+  public getScore(): number {
+    return 100;
   }
 
   public setStrategy(strategy: AIStrategy): void {

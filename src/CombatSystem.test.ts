@@ -176,11 +176,14 @@ describe('CombatSystem', () => {
     // Clear TIE fighters to avoid interference
     state.entityManager!.clear();
 
-    const turrets = state.stageManager!.getTurrets();
-    expect(turrets.length).toBeGreaterThan(0);
+    // Re-register turrets since we cleared
+    state.stageManager!.reset();
 
-    const turret = turrets[0];
-    const turretPos = turret.mesh.position.clone();
+    const targets = state.entityManager!.getTargets();
+    const turret = targets.find(t => t.getScore() === 200);
+    expect(turret).toBeDefined();
+
+    const turretPos = turret!.position.clone();
 
     // Position player and camera to look at the turret
     state.player!.position.set(turretPos.x, turretPos.y, turretPos.z + 50);
@@ -194,7 +197,7 @@ describe('CombatSystem', () => {
 
     combatSystem.update(0.01, input);
 
-    expect(turret.isExploded).toBe(true);
+    expect(turret!.isExploded).toBe(true);
     expect(state.score).toBe(initialScore + 200);
     expect(state.kills).toBe(initialKills + 1);
   });
