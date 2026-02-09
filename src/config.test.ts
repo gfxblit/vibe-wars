@@ -82,23 +82,25 @@ describe('GameConfig', () => {
     expect(GameConfig.tieFighter.meshSize).toBe(1);
     expect(GameConfig.tieFighter.spawnInterval).toBe(3.0);
     expect(GameConfig.tieFighter.cleanupDistance).toBe(600);
-    expect(GameConfig.tieFighter.smartSpeed).toBe(180);
-    expect(GameConfig.tieFighter.smartSpawnRandomZ).toBe(50);
-    expect(GameConfig.tieFighter.smartSpawnRandomX).toBe(40);
-    expect(GameConfig.tieFighter.smartSpawnRandomY).toBe(30);
-    expect(GameConfig.tieFighter.smartBrakingZone).toBe(60);
-    expect(GameConfig.tieFighter.smartIntensityMax).toBe(0.8);
-    expect(GameConfig.tieFighter.smartStageThreshold).toBe(0.1);
-    expect(GameConfig.tieFighter.smartEscapeAccelerationDuration).toBe(6.0);
-    expect(GameConfig.tieFighter.smartEscapeFadeDuration).toBe(3.0);
-    expect(GameConfig.tieFighter.smartArcFalloff).toBe(60);
-    expect(GameConfig.tieFighter.smartRotationSpeed).toBe(10.0);
-    expect(GameConfig.tieFighter.smartEscapeFarRandomX).toBe(0.4);
-    expect(GameConfig.tieFighter.smartEscapeFarRandomY).toBe(0.4);
-    expect(GameConfig.tieFighter.smartEscapeFarZ).toBe(-1.0);
-    expect(GameConfig.tieFighter.smartEscapeQuickRandomX).toBe(2.5);
-    expect(GameConfig.tieFighter.smartEscapeQuickRandomY).toBe(2.0);
-    expect(GameConfig.tieFighter.smartEscapeQuickZ).toBe(-0.5);
+    
+    const smart = GameConfig.tieFighter.smartAI;
+    expect(smart.speed).toBe(180);
+    expect(smart.spawnRandomZ).toBe(50);
+    expect(smart.spawnRandomX).toBe(40);
+    expect(smart.spawnRandomY).toBe(30);
+    expect(smart.brakingZone).toBe(60);
+    expect(smart.arcIntensity).toBe(0.8);
+    expect(smart.stageThreshold).toBe(0.1);
+    expect(smart.escapeAccelerationDuration).toBe(6.0);
+    expect(smart.escapeFadeDuration).toBe(3.0);
+    expect(smart.arcFalloff).toBe(60);
+    expect(smart.rotationSpeed).toBe(10.0);
+    expect(smart.escapeFarRandomX).toBe(0.4);
+    expect(smart.escapeFarRandomY).toBe(0.4);
+    expect(smart.escapeFarZ).toBe(-1.0);
+    expect(smart.escapeQuickRandomX).toBe(2.5);
+    expect(smart.escapeQuickRandomY).toBe(2.0);
+    expect(smart.escapeQuickZ).toBe(-0.5);
   });
 
   test('should be immutable at the type level', () => {
