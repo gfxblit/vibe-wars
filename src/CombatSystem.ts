@@ -1,108 +1,45 @@
 import * as THREE from 'three';
-import { state, spawnLasers, addScore, addKill, spawnTorpedo } from './state';
-import { checkAim } from './collision';
-import { GameConfig } from './config';
+import { state } from './state';
 import { UserInput } from './input';
+import { CombatStrategy } from './CombatStrategy';
+import { DogfightCombatStrategy, SurfaceCombatStrategy, TrenchCombatStrategy } from './CombatStrategies';
+import { GameStage } from './state';
 
 export class CombatSystem {
   private camera: THREE.Camera;
-  private fireCooldown: number = 0;
-  private readonly laserPos2D = new THREE.Vector2();
-  private readonly fbPos2D = new THREE.Vector2();
-  private readonly tempVector3 = new THREE.Vector3();
+  private currentStrategy: CombatStrategy | null = null;
+  private currentStage: GameStage | null = null;
 
   constructor(camera: THREE.Camera) {
     this.camera = camera;
+    this.updateStrategy();
   }
 
   public update(deltaTime: number, input: UserInput) {
-    this.fireCooldown -= deltaTime;
+    this.updateStrategy();
+    if (this.currentStrategy) {
+      this.currentStrategy.update(deltaTime, input, this.camera);
+    }
+  }
 
-    // 1. Handle Firing (Lasers)
-    if (input.isFiring && this.fireCooldown <= 0) {
-      this.fire(input);
-      this.fireCooldown = GameConfig.laser.cooldown;
+  private updateStrategy() {
+    if (this.currentStage === state.stage && this.currentStrategy) {
+      return;
     }
 
-    // 2. Handle Torpedo (Trench Run)
-    if (state.stage === 'TRENCH' && state.stageManager) {
-      state.stageManager.canFireTorpedo = state.stageManager.checkExhaustPortHit(input, this.camera);
-      
-      if (input.isFiring && state.stageManager.canFireTorpedo && !state.stageManager.hasFiredTorpedo) {
-        this.launchTorpedo(input);
-        state.stageManager.hasFiredTorpedo = true;
-      }
+    this.currentStage = state.stage;
+    switch (this.currentStage) {
+      case 'DOGFIGHT':
+        this.currentStrategy = new DogfightCombatStrategy();
+        break;
+      case 'SURFACE':
+        this.currentStrategy = new SurfaceCombatStrategy();
+        break;
+      case 'TRENCH':
+        this.currentStrategy = new TrenchCombatStrategy();
+        break;
+      default:
+        this.currentStrategy = null;
     }
-
-    // 3. Update existing lasers and check collisions
-    this.updateLasers();
-  }
-
-  private fire(input: UserInput) {
-    spawnLasers(input);
-    this.checkHits(input);
-  }
-
-  private launchTorpedo(input: UserInput) {
-    if (!state.player) return;
-
-    // Launch from player position
-    const position = state.player.position.clone();
-    
-    // Direction: towards where the player is aiming
-    const targetPoint = new THREE.Vector3(input.x, input.y, 0.5);
-    targetPoint.unproject(this.camera);
-    
-    this.camera.getWorldPosition(this.tempVector3);
-    const direction = new THREE.Vector3().subVectors(targetPoint, this.tempVector3).normalize();
-    const stageSpeed = state.stageManager?.getStage()?.speed ?? GameConfig.player.baseForwardSpeed;
-    const velocity = direction.multiplyScalar(stageSpeed * GameConfig.torpedo.speedMultiplier);
-
-    spawnTorpedo(position, velocity);
-  }
-
-  private checkHits(input: UserInput) {
-    if (!state.entityManager) return;
-
-    // Check for TIE fighter hits
-    state.entityManager.getTieFighters().forEach(tf => {
-      if (!tf.isExploded && checkAim(tf.position, input, this.camera)) {
-        tf.explode();
-        addScore(100);
-        addKill();
-      }
-    });
-  }
-
-  private updateLasers() {
-    if (!state.entityManager) return;
-
-    const lasers = state.entityManager.getLasers();
-    const fireballs = state.entityManager.getFireballs();
-
-    const collisionRadiusSq = GameConfig.fireball.collisionRadiusNDC * GameConfig.fireball.collisionRadiusNDC;
-
-    // We don't iterate lasers and remove them here because EntityManager.update handles their lifecycle (expiration).
-    // However, we DO check collisions between current lasers and fireballs.
-    lasers.forEach(laser => {
-      this.laserPos2D.set(laser.mesh.position.x, laser.mesh.position.y);
-
-      // Check for collision with fireballs
-      for (let j = fireballs.length - 1; j >= 0; j--) {
-        const fb = fireballs[j];
-        // Skip if already exploded
-        if (fb.isExploded) continue;
-
-        fb.projectToNDC(this.camera, this.tempVector3);
-        this.fbPos2D.set(this.tempVector3.x, this.tempVector3.y);
-
-        const distSq = this.laserPos2D.distanceToSquared(this.fbPos2D);
-        if (distSq < collisionRadiusSq) {
-          addScore(GameConfig.fireball.points);
-          fb.explode();
-          // Laser continues for visual effect
-        }
-      }
-    });
   }
 }

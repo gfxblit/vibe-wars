@@ -277,7 +277,7 @@ export class UIManager {
     }
 
     // Torpedo Ready indicator
-    if (state.stage === 'TRENCH' && state.stageManager?.canFireTorpedo) {
+    if (state.stage === 'TRENCH' && state.canFireTorpedo) {
       this.torpedoReadyValue.classList.remove('hidden');
     } else {
       this.torpedoReadyValue.classList.add('hidden');

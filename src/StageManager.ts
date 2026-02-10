@@ -11,15 +11,14 @@ import { TrenchStage } from './stages/TrenchStage';
 
 export class StageManager {
   private currentStage: Stage | null = null;
-  public canFireTorpedo: boolean = false;
-  public hasFiredTorpedo: boolean = false;
 
   constructor(public worldScene: THREE.Scene) {
     this.initStage();
   }
 
   private initStage(): void {
-    this.hasFiredTorpedo = false;
+    state.hasFiredTorpedo = false;
+    state.canFireTorpedo = false;
     switch (state.stage) {
       case 'DOGFIGHT':
         this.currentStage = new DogfightStage();
@@ -51,16 +50,13 @@ export class StageManager {
   }
 
   public checkExhaustPortHit(input: UserInput, camera: THREE.Camera): boolean {
-    if (state.stage !== 'TRENCH' || !this.currentStage) return false;
     if (!state.player) return false;
 
-    // The port position is fixed in world space based on config
     const { catwalkEndZ, exhaustPortZOffset, trenchHeight } = GameConfig.stage;
     const portZ = catwalkEndZ - exhaustPortZOffset;
     const portY = -trenchHeight / 2 + 10;
     const portPos = new THREE.Vector3(0, portY, portZ);
 
-    // Range Check: Can only hit when close enough
     const distanceToPort = Math.abs(state.player.position.z - portZ);
     if (distanceToPort > GameConfig.torpedo.range) return false;
 

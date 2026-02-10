@@ -36,6 +36,8 @@ export interface GameState {
   isSmartAI: boolean;
   isModeColoring: boolean;
   showChassis: boolean;
+  canFireTorpedo: boolean;
+  hasFiredTorpedo: boolean;
 }
 
 const initialWidth = typeof window !== 'undefined' ? window.innerWidth : 1024;
@@ -62,6 +64,8 @@ export const state: GameState = {
   isSmartAI: true,
   isModeColoring: false,
   showChassis: false,
+  canFireTorpedo: false,
+  hasFiredTorpedo: false,
 };
 
 export function initGame(worldScene: THREE.Scene, hudScene: THREE.Scene) {
@@ -76,6 +80,8 @@ export function initGame(worldScene: THREE.Scene, hudScene: THREE.Scene) {
   state.stage = 'DOGFIGHT';
   state.isGameOver = false;
   state.gunColorToggles = GameConfig.laser.offsets.map(() => false);
+  state.canFireTorpedo = false;
+  state.hasFiredTorpedo = false;
 
   state.player = new Player();
 
