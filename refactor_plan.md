@@ -4,7 +4,7 @@
 Refactor the existing `StageManager.ts` by extracting the inner stage classes (`DogfightStage`, `SurfaceStage`, `TrenchStage`) into separate files within a new `src/stages/` directory. This improves code organization, maintainability, and reduces file size. Additionally, we will decouple the stages from the concrete `StageManager` class by passing the `THREE.Scene` directly where needed.
 
 ## Requirements
-- Extract `Stage` interface to `src/stages/IStage.ts`
+- Extract `Stage` interface to `src/stages/Stage.ts`
 - Extract `DogfightStage` to `src/stages/DogfightStage.ts`
 - Extract `SurfaceStage` to `src/stages/SurfaceStage.ts`
 - Extract `TrenchStage` to `src/stages/TrenchStage.ts`
@@ -15,7 +15,7 @@ Refactor the existing `StageManager.ts` by extracting the inner stage classes (`
 ## Architecture Changes
 - **New Directory:** `src/stages/`
 - **New Files:**
-  - `src/stages/IStage.ts`
+  - `src/stages/Stage.ts`
   - `src/stages/DogfightStage.ts`
   - `src/stages/SurfaceStage.ts`
   - `src/stages/TrenchStage.ts`
@@ -28,7 +28,7 @@ Refactor the existing `StageManager.ts` by extracting the inner stage classes (`
    - Action: Create the folder.
    - Why: To house the new files.
 
-2. **Extract Interface** (File: `src/stages/IStage.ts`)
+2. **Extract Interface** (File: `src/stages/Stage.ts`)
    - Action: Create file with `Stage` interface.
    - Why: Common interface for all stages.
 
