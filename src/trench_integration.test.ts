@@ -26,12 +26,12 @@ describe('Trench Integration', () => {
     // Trigger update to process transition
     updateState(0.1, camera);
     
-    expect(state.stage).toBe('SURFACE');
+    expect(state.stage).toBe('DOGFIGHT'); // Still in Dogfight (Approach Phase)
     // DeathStar should be in scene
     const deathStar = worldScene.getObjectByName('DeathStar');
     expect(deathStar).toBeTruthy();
 
-    // 2. Reaching DeathStar
+    // 2. Reaching DeathStar (Approach Phase -> Surface Stage)
     expect(deathStar).toBeDefined();
 
     // Move player close to the DeathStar's surface
@@ -40,18 +40,23 @@ describe('Trench Integration', () => {
     
     updateState(0.1, camera);
     
+    expect(state.stage).toBe('SURFACE'); // Now in Surface Stage
+
+    // 3. Wait for Surface Stage Timer (Surface -> Trench)
+    updateState(GameConfig.stage.surfaceDuration + 1, camera);
+
     expect(state.stage).toBe('TRENCH');
     // Trench should be in scene
     expect(worldScene.children.some(child => child instanceof THREE.Group)).toBe(true);
 
-    // 3. Movement clamping in TRENCH
+    // 4. Movement clamping in TRENCH
     const halfWidth = GameConfig.stage.trenchWidth / 2;
     state.player!.position.x = halfWidth + 50;
     
     updateState(0.1, camera);
     expect(state.player!.position.x).toBeLessThanOrEqual(halfWidth);
 
-    // 4. Orientation clamping in TRENCH
+    // 5. Orientation clamping in TRENCH
     // In TRENCH mode, orientation should be clamped.
     // Give extreme input for several frames
     for (let i = 0; i < 10; i++) {
