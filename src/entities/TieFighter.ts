@@ -17,6 +17,10 @@ export class TieFighter extends Entity implements Targetable {
 
   private fireCooldown: number = Math.random() * GameConfig.fireball.fireRate;
 
+  public getWorldPosition(target: THREE.Vector3): THREE.Vector3 {
+    return this.mesh.getWorldPosition(target);
+  }
+
   public get position(): THREE.Vector3 {
     return this.mesh.position;
   }

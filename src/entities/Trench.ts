@@ -203,9 +203,7 @@ export class Trench extends Entity {
   }
 
   update(_deltaTime: number) {
-    // Keep the trench centered on Z but far enough to cover the run
-    // For now it's static at origin, we might want to move it with the player or tile it.
-    // The plan says "procedural valley of walls".
+    // Turrets are updated by the EntityManager as registered targets.
   }
 
   dispose() {

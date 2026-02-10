@@ -180,10 +180,11 @@ describe('CombatSystem', () => {
     state.stageManager!.reset();
 
     const targets = state.entityManager!.getTargets();
-    const turret = targets.find(t => t.getScore() === 200);
+    const turret = targets.find(t => t.getScore() === 200)!;
     expect(turret).toBeDefined();
 
-    const turretPos = turret!.position.clone();
+    const turretPos = new THREE.Vector3();
+    turret.getWorldPosition(turretPos);
 
     // Position player and camera to look at the turret
     state.player!.position.set(turretPos.x, turretPos.y, turretPos.z + 50);

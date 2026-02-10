@@ -29,19 +29,21 @@ describe('Turret Destruction', () => {
 
     // Get a turret from the entityManager
     const targets = state.entityManager!.getTargets();
-    const turret = targets.find(t => t.constructor.name === 'Turret');
+    const turret = targets.find(t => t.constructor.name === 'Turret')!;
     
     expect(turret).toBeDefined();
-    expect(turret!.isExploded).toBe(false);
+    expect(turret.isExploded).toBe(false);
 
     // Position camera to look at the turret
-    camera.position.copy(turret!.position).add(new THREE.Vector3(0, 0, 100));
-    camera.lookAt(turret!.position);
+    const turretPos = new THREE.Vector3();
+    turret.getWorldPosition(turretPos);
+    camera.position.copy(turretPos).add(new THREE.Vector3(0, 0, 100));
+    camera.lookAt(turretPos);
     camera.updateMatrixWorld();
 
     // Simulate firing at the turret
     // We need to calculate the NDC coordinates of the turret
-    const projected = turret!.position.clone().project(camera);
+    const projected = turretPos.clone().project(camera);
     const input = { x: projected.x, y: projected.y, isFiring: true, isLaunchingTorpedo: false };
 
     combatSystem.update(0.1, input);

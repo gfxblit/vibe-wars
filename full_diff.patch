@@ -1,0 +1,2821 @@
+diff --git a/GAME_DESIGN.md b/GAME_DESIGN.md
+index 0e19989..0562fd4 100644
+--- a/GAME_DESIGN.md
++++ b/GAME_DESIGN.md
+@@ -17,7 +17,7 @@ A first-person space combat simulator that puts the player in the role of Luke S
+ 1.  **Pilot:** Steer the X-Wing through space and trench environments.
+ 2.  **Combat:** Aim the crosshairs to shoot down TIE Fighters, fireballs, and towers.
+ 3.  **Survive:** Avoid incoming fire and collisions (Shield Management).
+-4.  **Destroy:** Fire proton torpedoes into the Death Star exhaust port.
++4.  **Destroy:** Aim at the Death Star exhaust port while firing to auto-launch a proton torpedo.
+ 5.  **Repeat:** Game difficulty increases with each successful Death Star destruction.
+ 
+ ### 2.2 Controls
+@@ -29,8 +29,7 @@ The control scheme simulates the original flight yoke using modern input methods
+     * Moving the mouse moves the targeting crosshair.
+     * Moving the crosshair to the edges of the screen banks and pitches the X-Wing.
+ * **Combat:**
+-    * **Left Click:** Fire Laser Cannons (Quad-link fire).
+-    * **Right Click / Spacebar:** Fire Proton Torpedo (Only active during the final Trench Run moment).
++    * **Left Click / Spacebar:** Fire Laser Cannons (Quad-link fire). Torpedoes auto-fire when aiming at the exhaust port during the trench run.
+ * **Inverted Option:** Toggle available in settings to invert Y-Axis (Mouse Up = Ship Down) to mimic real flight controls.
+ 
+ **B. Mobile (Touch Screen)**
+@@ -38,9 +37,8 @@ The control scheme simulates the original flight yoke using modern input methods
+     * A floating virtual joystick on the left side of the screen controls Pitch and Yaw.
+     * Dragging up/down controls the ship's vertical movement.
+     * Dragging left/right controls the ship's horizontal movement.
+-* **Combat (Action Buttons - Right Side):**
+-    * **Large Button:** Fire Laser Cannons (Hold for continuous fire).
+-    * **Context Button:** "Launch Torpedo" button appears only when the exhaust port is in range.
++* **Combat (Action Button - Right Side):**
++    * **Large Button:** Fire Laser Cannons (Hold for continuous fire). Torpedoes auto-fire when aiming at the exhaust port during the trench run.
+ 
+ ### 2.3 Health System (Shields)
+ * The player starts with **6 Shields**.
+@@ -70,7 +68,7 @@ The game loops through three distinct stages of increasing difficulty.
+ * **Objective:** Navigate the narrow trench and fire a proton torpedo into the exhaust port.
+ * **Mechanics:**
+     * **Obstacles:** Catwalks and wall turrets appear in the trench. The player must weave over and under catwalks.
+-    * **The Shot:** As the exhaust port approaches, a distance countdown begins. At the correct moment, the player must fire.
++    * **The Shot:** As the exhaust port approaches, a distance countdown begins. To succeed, the player must be firing as they aim at the port, which will automatically launch the proton torpedo.
+     * **Success:** A cutscene of the Death Star exploding plays.
+     * **Failure:** If the player misses the port or hits the wall, they lose a shield and must restart the Trench Run stage.
+ 
+diff --git a/README.md b/README.md
+index 094df7e..e175d44 100644
+--- a/README.md
++++ b/README.md
+@@ -11,20 +11,20 @@ A first-person space combat simulator that puts the player in the role of Luke S
+ 1.  **Pilot:** Steer the X-Wing through space and trench environments.
+ 2.  **Combat:** Aim the crosshairs to shoot down TIE Fighters, fireballs, and towers.
+ 3.  **Survive:** Avoid incoming fire and collisions (Shield Management).
+-4.  **Destroy:** Fire proton torpedoes into the Death Star exhaust port.
++4.  **Destroy:** Aim at the Death Star exhaust port while firing to auto-launch a proton torpedo.
+ 5.  **Repeat:** Game difficulty increases with each successful Death Star destruction.
+ 
+ ### Controls
+ The control scheme simulates the original flight yoke. The ship's nose "chases" the crosshair.
+ 
+-*   **PC (Mouse):** Mouse moves crosshair; edges pitch/yaw ship. Left Click for Laser, Right Click/Space for Torpedo.
++*   **PC (Mouse):** Mouse moves crosshair; edges pitch/yaw ship. Left Click/Space for Laser. Torpedoes auto-fire when aiming at the exhaust port while firing.
+     *   **Inverted Option:** Toggle available in settings to invert Y-Axis (Mouse Up = Ship Down) to mimic real flight controls.
+-*   **Mobile (Touch):** Virtual yoke (left) for steering, Action buttons (right) for fire.
++*   **Mobile (Touch):** Virtual yoke (left) for steering, Action button (right) for fire. Torpedoes auto-fire when aiming at the exhaust port while firing.
+ 
+ ### Level Stages
+ 1.  **Dogfight:** Destroy TIE Fighters and avoid fireballs.
+ 2.  **Surface:** Destroy bunkers and towers on the Death Star surface.
+-3.  **Trench Run:** Navigate obstacles and fire the proton torpedo into the exhaust port.
++3.  **Trench Run:** Navigate obstacles and auto-fire the proton torpedo into the exhaust port by aiming while firing.
+ 
+ ### Scoring System
+ | Action | Points Awarded |
+diff --git a/src/CombatSystem.test.ts b/src/CombatSystem.test.ts
+index 24e89c7..dfe7f71 100644
+--- a/src/CombatSystem.test.ts
++++ b/src/CombatSystem.test.ts
+@@ -3,13 +3,13 @@ import * as THREE from 'three';
+ import { CombatSystem } from './CombatSystem';
+ import { state, initGame } from './state';
+ import * as StateModule from './state';
+-import { GameConfig } from './config';
+ 
+ vi.mock('./state', async (importOriginal) => {
+   const actual = await importOriginal<typeof import('./state')>();
+   return {
+     ...actual,
+     spawnLasers: vi.fn(actual.spawnLasers),
++    spawnTorpedo: vi.fn(actual.spawnTorpedo),
+   };
+ });
+ 
+@@ -29,7 +29,7 @@ describe('CombatSystem', () => {
+   });
+ 
+   it('spawns lasers when firing and cooldown is 0', () => {
+-    const input = { x: 0, y: 0, isFiring: true, isLaunchingTorpedo: false };
++    const input = { x: 0, y: 0, isFiring: true };
+     combatSystem.update(0.01, input);
+ 
+     expect(StateModule.spawnLasers).toHaveBeenCalled();
+@@ -37,7 +37,7 @@ describe('CombatSystem', () => {
+   });
+ 
+   it('respects firing cooldown using spy', () => {
+-    const input = { x: 0, y: 0, isFiring: true, isLaunchingTorpedo: false };
++    const input = { x: 0, y: 0, isFiring: true };
+ 
+     // First shot
+     combatSystem.update(0.01, input);
+@@ -56,7 +56,7 @@ describe('CombatSystem', () => {
+   });
+ 
+   it('updates and removes expired lasers', () => {
+-    const input = { x: 0, y: 0, isFiring: true, isLaunchingTorpedo: false };
++    const input = { x: 0, y: 0, isFiring: true };
+     combatSystem.update(0.01, input);
+ 
+     const initialCount = state.entityManager!.getLasers().length;
+@@ -75,7 +75,7 @@ describe('CombatSystem', () => {
+     tf.position.set(0, 0, -50);
+ 
+     // input pointing directly at it (0,0 in NDC)
+-    const input = { x: 0, y: 0, isFiring: true, isLaunchingTorpedo: false };
++    const input = { x: 0, y: 0, isFiring: true };
+ 
+     const initialScore = state.score;
+     combatSystem.update(0.01, input);
+@@ -87,7 +87,7 @@ describe('CombatSystem', () => {
+   it('increments kills when a TIE fighter is hit', () => {
+     const tf = state.entityManager!.getTieFighters()[0];
+     tf.position.set(0, 0, -50);
+-    const input = { x: 0, y: 0, isFiring: true, isLaunchingTorpedo: false };
++    const input = { x: 0, y: 0, isFiring: true };
+ 
+     const initialKills = state.kills;
+     combatSystem.update(0.01, input);
+@@ -96,29 +96,109 @@ describe('CombatSystem', () => {
+     expect(state.kills).toBe(initialKills + 1);
+   });
+ 
+-  it('completes level and awards bonus when hitting exhaust port', () => {
++  it('spawns a torpedo when firing and over port in TRENCH stage', () => {
+     state.stage = 'TRENCH';
+     state.stageManager!.reset();
++    vi.spyOn(state.stageManager!, 'checkExhaustPortHit').mockReturnValue(true);
++    
++    const input = { x: 0, y: 0, isFiring: true };
+ 
+-    // Position camera to look at the port
+-    const { catwalkEndZ, exhaustPortZOffset, trenchHeight } = GameConfig.stage;
+-    const portZ = catwalkEndZ - exhaustPortZOffset;
+-    const portY = -trenchHeight / 2 + 10;
++    combatSystem.update(0.01, input);
+ 
+-    // Set player position so it's within range
+-    state.player!.position.set(0, 0, portZ + 100);
++    expect(StateModule.spawnTorpedo).toHaveBeenCalled();
++    expect(state.stage).toBe('TRENCH'); // Should still be in TRENCH until torpedo hits
++  });
+ 
+-    // Camera is usually at (0, 0, 0) relative to player in this test setup
+-    camera.position.set(0, 0, portZ + 100);
+-    camera.lookAt(0, portY, portZ);
++  it('does not fire torpedo when firing but NOT over exhaust port', () => {
++    state.stage = 'TRENCH';
++    state.stageManager!.reset();
++    vi.spyOn(state.stageManager!, 'checkExhaustPortHit').mockReturnValue(false);
+ 
+-    // input pointing directly at it (0,0 in NDC)
+-    const input = { x: 0, y: 0, isFiring: false, isLaunchingTorpedo: true };
++    const input = { x: 0, y: 0, isFiring: true };
++    combatSystem.update(0.01, input);
++
++    expect(StateModule.spawnTorpedo).not.toHaveBeenCalled();
++  });
++
++  it('only fires one torpedo per trench stage', () => {
++    state.stage = 'TRENCH';
++    state.stageManager!.reset();
++    vi.spyOn(state.stageManager!, 'checkExhaustPortHit').mockReturnValue(true);
++
++    const input = { x: 0, y: 0, isFiring: true };
++    
++    combatSystem.update(0.01, input);
++    expect(StateModule.spawnTorpedo).toHaveBeenCalledTimes(1);
++
++    combatSystem.update(0.01, input);
++    expect(StateModule.spawnTorpedo).toHaveBeenCalledTimes(1);
++  });
++
++  it('resets torpedo quota when resetting TRENCH stage', () => {
++    state.stage = 'TRENCH';
++    state.stageManager!.reset();
++    vi.spyOn(state.stageManager!, 'checkExhaustPortHit').mockReturnValue(true);
++
++    const input = { x: 0, y: 0, isFiring: true };
++    
++    combatSystem.update(0.01, input);
++    expect(StateModule.spawnTorpedo).toHaveBeenCalledTimes(1);
+ 
++    state.stageManager!.reset();
++    
++    combatSystem.update(0.01, input);
++    expect(StateModule.spawnTorpedo).toHaveBeenCalledTimes(2);
++  });
++
++  it('launches torpedo towards aim point when auto-firing', () => {
++    state.stage = 'TRENCH';
++    state.stageManager!.reset();
++    vi.spyOn(state.stageManager!, 'checkExhaustPortHit').mockReturnValue(true);
++    
++    // Reset camera orientation
++    camera.position.set(0, 0, 0);
++    camera.lookAt(0, 0, -1);
++    camera.updateMatrixWorld();
++    
++    // Aim to the right
++    const input = { x: 0.5, y: 0, isFiring: true };
++    combatSystem.update(0.1, input);
++
++    expect(StateModule.spawnTorpedo).toHaveBeenCalled();
++    const velocity = (StateModule.spawnTorpedo as any).mock.calls[0][1];
++    expect(velocity.x).toBeGreaterThan(0);
++  });
++
++  it('detects turret hits in TRENCH stage', () => {
++    state.stage = 'TRENCH';
++    state.stageManager!.reset();
++    
++    // Clear TIE fighters to avoid interference
++    state.entityManager!.clear();
++
++    // Re-register turrets since we cleared
++    state.stageManager!.reset();
++
++    const targets = state.entityManager!.getTargets();
++    const turret = targets.find(t => t.getScore() === 200);
++    expect(turret).toBeDefined();
++
++    const turretPos = turret!.position.clone();
++
++    // Position player and camera to look at the turret
++    state.player!.position.set(turretPos.x, turretPos.y, turretPos.z + 50);
++    camera.position.copy(state.player!.position);
++    camera.lookAt(turretPos);
++    camera.updateMatrixWorld();
++
++    const input = { x: 0, y: 0, isFiring: true };
+     const initialScore = state.score;
++    const initialKills = state.kills;
++
+     combatSystem.update(0.01, input);
+ 
+-    expect(state.stage).not.toBe('TRENCH');
+-    expect(state.score).toBeGreaterThan(initialScore + 9999);
++    expect(turret!.isExploded).toBe(true);
++    expect(state.score).toBe(initialScore + 200);
++    expect(state.kills).toBe(initialKills + 1);
+   });
+ });
+diff --git a/src/CombatSystem.ts b/src/CombatSystem.ts
+index a0c4f5a..78e5355 100644
+--- a/src/CombatSystem.ts
++++ b/src/CombatSystem.ts
+@@ -1,5 +1,5 @@
+ import * as THREE from 'three';
+-import { state, spawnLasers, addScore, addKill, goToNextStage } from './state';
++import { state, spawnLasers, addScore, addKill, spawnTorpedo } from './state';
+ import { checkAim } from './collision';
+ import { GameConfig } from './config';
+ import { UserInput } from './input';
+@@ -25,13 +25,12 @@ export class CombatSystem {
+     }
+ 
+     // 2. Handle Torpedo (Trench Run)
+-    if (input.isLaunchingTorpedo && state.stage === 'TRENCH' && state.stageManager) {
+-      // Ideally we'd have a cooldown or ammo check here, but for now 
+-      // just check if the shot lands
+-      if (state.stageManager.checkExhaustPortHit(input, this.camera)) {
+-        goToNextStage();
+-        state.stageManager.reset();
+-        addScore(10000); // Big bonus!
++    if (state.stage === 'TRENCH' && state.stageManager) {
++      state.stageManager.canFireTorpedo = state.stageManager.checkExhaustPortHit(input, this.camera);
++      
++      if (input.isFiring && state.stageManager.canFireTorpedo && !state.stageManager.hasFiredTorpedo) {
++        this.launchTorpedo(input);
++        state.stageManager.hasFiredTorpedo = true;
+       }
+     }
+ 
+@@ -44,17 +43,54 @@ export class CombatSystem {
+     this.checkHits(input);
+   }
+ 
++  private launchTorpedo(input: UserInput) {
++    if (!state.player) return;
++
++    // Launch from player position
++    const position = state.player.position.clone();
++    
++    // Direction: towards where the player is aiming
++    const targetPoint = new THREE.Vector3(input.x, input.y, 0.5);
++    targetPoint.unproject(this.camera);
++    
++    this.camera.getWorldPosition(this.tempVector3);
++    const direction = new THREE.Vector3().subVectors(targetPoint, this.tempVector3).normalize();
++    const stageSpeed = state.stageManager?.getStage()?.speed ?? GameConfig.player.baseForwardSpeed;
++    const velocity = direction.multiplyScalar(stageSpeed * GameConfig.torpedo.speedMultiplier);
++
++    spawnTorpedo(position, velocity);
++  }
++
+   private checkHits(input: UserInput) {
+     if (!state.entityManager) return;
+ 
+-    // Check for TIE fighter hits
+-    state.entityManager.getTieFighters().forEach(tf => {
+-      if (!tf.isExploded && checkAim(tf.position, input, this.camera)) {
+-        tf.explode();
+-        addScore(100);
+-        addKill();
++    interface HitResult {
++      target: any;
++      distance: number;
++    }
++
++    let closestHit: HitResult | null = null;
++
++    // Check all targetable entities
++    const targets = state.entityManager.getTargets();
++    for (const target of targets) {
++      if (!target.isExploded && checkAim(target.position, input, this.camera)) {
++        const dist = target.position.distanceTo(this.camera.position);
++        if (!closestHit || dist < closestHit.distance) {
++          closestHit = {
++            target,
++            distance: dist
++          };
++        }
+       }
+-    });
++    }
++
++    if (closestHit) {
++      const target = closestHit.target;
++      target.explode();
++      addScore(target.getScore());
++      addKill();
++    }
+   }
+ 
+   private updateLasers() {
+diff --git a/src/CombatSystem_Aiming.test.ts b/src/CombatSystem_Aiming.test.ts
+new file mode 100644
+index 0000000..d65efb3
+--- /dev/null
++++ b/src/CombatSystem_Aiming.test.ts
+@@ -0,0 +1,69 @@
++import { describe, it, expect, beforeEach, vi } from 'vitest';
++import * as THREE from 'three';
++import { CombatSystem } from './CombatSystem';
++import { state, initGame } from './state';
++import * as StateModule from './state';
++
++vi.mock('./state', async (importOriginal) => {
++  const actual = await importOriginal<typeof import('./state')>();
++  return {
++    ...actual,
++    spawnLasers: vi.fn(actual.spawnLasers),
++    spawnTorpedo: vi.fn(actual.spawnTorpedo),
++  };
++});
++
++describe('CombatSystem Aiming', () => {
++  let camera: THREE.PerspectiveCamera;
++  let combatSystem: CombatSystem;
++  let parent: THREE.Group;
++
++  beforeEach(() => {
++    const scene = new THREE.Scene();
++    const hudScene = new THREE.Scene();
++    initGame(scene, hudScene);
++    
++    camera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
++    parent = new THREE.Group();
++    parent.add(camera);
++    scene.add(parent);
++    
++    // Move parent
++    parent.position.set(100, 0, 0);
++    parent.updateMatrixWorld();
++    
++    // Camera is at (0,0,0) locally, but (100,0,0) in world
++    expect(camera.position.x).toBe(0);
++    const worldPos = new THREE.Vector3();
++    camera.getWorldPosition(worldPos);
++    expect(worldPos.x).toBe(100);
++
++    combatSystem = new CombatSystem(camera);
++    vi.clearAllMocks();
++  });
++
++  it('launches torpedo correctly when camera is parented and moved', () => {
++    state.stage = 'TRENCH';
++    state.stageManager!.reset();
++    vi.spyOn(state.stageManager!, 'checkExhaustPortHit').mockReturnValue(true);
++    
++    // Aim straight ahead in NDC (0,0)
++    // In world, this should be (100, 0, -something)
++    const input = { x: 0, y: 0, isFiring: true };
++    combatSystem.update(0.01, input);
++
++    expect(StateModule.spawnTorpedo).toHaveBeenCalled();
++    const velocity = (StateModule.spawnTorpedo as any).mock.calls[0][1];
++    
++    // If it uses camera.position (0,0,0), it will aim from (0,0,0) towards targetPoint.
++    // targetPoint = (0,0,0.5).unproject(camera)
++    // unproject uses camera.matrixWorld, so targetPoint WILL be in front of world camera.
++    // targetPoint should be roughly (100, 0, -some_z)
++    
++    // If direction = targetPoint - (0,0,0), then direction.x will be around 100.
++    // If direction = targetPoint - (100,0,0), then direction.x should be 0.
++    
++    // We expect the torpedo to go straight ahead (along -Z), so velocity.x should be near 0.
++    expect(Math.abs(velocity.x)).toBeLessThan(0.01);
++  });
++});
+diff --git a/src/StageManager.test.ts b/src/StageManager.test.ts
+index d1350fa..a21f1f3 100644
+--- a/src/StageManager.test.ts
++++ b/src/StageManager.test.ts
+@@ -32,8 +32,6 @@ describe('StageManager', () => {
+ 
+     // Verify TIE fighters are cleared and spawning is disabled
+     expect(state.entityManager!.getTieFighters().length).toBe(0);
+-    // We can't easily check spawningEnabled without making it public or using a spy, 
+-    // but we already updated the code to call it.
+   });
+ 
+   it('should transition to TrenchStage when player is close to DeathStar', () => {
+@@ -41,18 +39,15 @@ describe('StageManager', () => {
+     stageManager.update(0.1, player);
+     expect(state.stage).toBe('SURFACE');
+ 
+-    // Find the spawned DeathStar mesh in the scene
+     const deathStarMesh = scene.children.find(child => child.type === 'Mesh' && (child as THREE.Mesh).geometry.type === 'SphereGeometry') as THREE.Mesh;
+     expect(deathStarMesh).toBeDefined();
+ 
+-    // Move player close to the DeathStar's surface
+     const dsPos = deathStarMesh.position.clone();
+     player.position.copy(dsPos).add(new THREE.Vector3(0, 0, GameConfig.stage.deathStarSize + GameConfig.stage.trenchTransitionDistance - 10));
+ 
+     stageManager.update(0.1, player);
+ 
+     expect(state.stage).toBe('TRENCH');
+-    // Verify player pose reset
+     expect(player.position.x).toBe(0);
+     expect(player.position.y).toBe(0);
+     expect(player.position.z).toBe(0);
+@@ -61,7 +56,6 @@ describe('StageManager', () => {
+ 
+   it('should apply trench clamping in TRENCH stage', () => {
+     state.stage = 'TRENCH';
+-    // We need to manually set the stage to TrenchStage because state.stage change alone doesn't do it if we don't call update with transition
+     stageManager.reset();
+ 
+     const halfWidth = GameConfig.stage.trenchWidth / 2;
+@@ -85,26 +79,14 @@ describe('StageManager', () => {
+     stageManager.reset();
+     const initialShields = state.shields;
+ 
+-    // Catwalk at -500 is low (Y = -20)
+-    // See Trench.ts: (abs(-500) % 1000 === 0) ? 20 : -20 -> 500 % 1000 != 0 -> -20
+-
+-    // Test Hit
+     player.position.set(0, -20, -500);
+     stageManager.update(0.1, player);
+     expect(state.shields).toBe(initialShields - 1);
+ 
+-    // Test Debounce (staying in same spot shouldn't damage again)
+     stageManager.update(0.1, player);
+     expect(state.shields).toBe(initialShields - 1);
+ 
+-    // Move to safe spot at same Z (Y = 20 should be safe for this one)
+-    // Note: Once we hit, we are "safe" from that specific obstacle ID until we leave it
+-    // But let's test a clean run for the next obstacle (-1000, Y = 20)
+-
+-    // Reset shields or account for previous damage
+     const currentShields = state.shields;
+-
+-    // Move to -1000, Y = 20 (High catwalk)
+     player.position.set(0, 20, -1000);
+     stageManager.update(0.1, player);
+     expect(state.shields).toBe(currentShields - 1);
+@@ -115,40 +97,32 @@ describe('StageManager', () => {
+     stageManager.reset();
+     const initialShields = state.shields;
+ 
+-    // Catwalk at -500 is low (-20). Passing high (+20) should be safe.
+     player.position.set(0, 20, -500);
+     stageManager.update(0.1, player);
+     expect(state.shields).toBe(initialShields);
+ 
+-    // Catwalk at -1000 is high (+20). Passing low (-20) should be safe.
+     player.position.set(0, -20, -1000);
+     stageManager.update(0.1, player);
+     expect(state.shields).toBe(initialShields);
+   });
+ 
+-  it('should complete level when reaching end of trench', () => {
++  it('should restart trench stage and take damage when reaching end of trench', () => {
+     state.stage = 'TRENCH';
+     stageManager.reset();
++    const initialShields = state.shields;
+ 
+     player.position.set(0, 0, -GameConfig.stage.trenchLength - 100);
+     stageManager.update(0.1, player);
+ 
+-    // Should loop back to DOGFIGHT (or whatever next stage logic is)
+-    // based on StageManager reset() calling initStage() which reads state.stage.
+-    // Wait, StageManager.ts sets goToNextStage() which cycles the enum?
+-    // Let's check goToNextStage() behavior or what happens after Trench.
+-    // The code says: goToNextStage(); manager.reset();
+-    // We assume goToNextStage cycles back to DOGFIGHT if it's the end.
+-
+-    // Actually, looking at previous tests, goToNextStage updates state.stage.
+-    // If TRENCH is the last, it might cycle or stop. 
+-    // Let's just check that it changed from TRENCH.
+-    expect(state.stage).not.toBe('TRENCH');
++    expect(state.stage).toBe('TRENCH');
++    expect(state.shields).toBe(initialShields - 1);
++    expect(player.position.z).toBe(0);
+   });
+ 
+-  it('should complete level when hitting the exhaust port', () => {
++  it('should restart trench stage and take damage when hitting the exhaust port structure', () => {
+     state.stage = 'TRENCH';
+     stageManager.reset();
++    const initialShields = state.shields;
+ 
+     const { catwalkEndZ, exhaustPortZOffset, trenchHeight } = GameConfig.stage;
+     const portZ = catwalkEndZ - exhaustPortZOffset;
+@@ -157,6 +131,64 @@ describe('StageManager', () => {
+     player.position.set(0, portY, portZ);
+     stageManager.update(0.1, player);
+ 
++    expect(state.stage).toBe('TRENCH');
++    expect(state.shields).toBe(initialShields - 1);
++    expect(player.position.z).toBe(0);
++  });
++
++  it('should complete level when a torpedo hits the exhaust port', () => {
++    state.stage = 'TRENCH';
++    stageManager.reset();
++    
++    const { catwalkEndZ, exhaustPortZOffset, trenchHeight } = GameConfig.stage;
++    const portZ = catwalkEndZ - exhaustPortZOffset;
++    const portY = -trenchHeight / 2 + 10;
++    
++    state.entityManager!.spawnTorpedo(
++      new THREE.Vector3(0, portY, portZ),
++      new THREE.Vector3(0, 0, 0)
++    );
++    
++    stageManager.update(0.1, player);
++    
+     expect(state.stage).not.toBe('TRENCH');
+   });
++
++  it('should explode torpedo when it hits a catwalk', () => {
++    state.stage = 'TRENCH';
++    stageManager.reset();
++    
++    const torpedo = state.entityManager!.spawnTorpedo(
++      new THREE.Vector3(0, -20, -500),
++      new THREE.Vector3(0, 0, 0)
++    );
++    
++    stageManager.update(0.1, player);
++    
++    expect(torpedo.isExploded).toBe(true);
++  });
++
++  it('should spawn fireballs from turrets in TRENCH stage', () => {
++    state.stage = 'TRENCH';
++    stageManager.reset();
++    
++    // Clear any existing fireballs
++    state.entityManager!.clear();
++    
++    // Re-register turrets after clear()
++    const trench = (stageManager.getStage() as any).trench;
++    trench.getTurrets().forEach((t: any) => {
++      state.entityManager!.addTarget(t);
++      t.fireCooldown = 0; // Set fire cooldown of all turrets to 0
++    });
++
++    // Player position near some turrets (turrets are at -500, -1500, etc. based on 1000 spacing)
++    player.position.set(0, 0, -400);
++    
++    state.entityManager!.update(0.1, player.position, player.mesh.quaternion, true, new THREE.Camera(), 100);
++    stageManager.update(0.1, player);
++    
++    const fireballs = state.entityManager!.getFireballs();
++    expect(fireballs.length).toBeGreaterThan(0);
++  });
+ });
+\ No newline at end of file
+diff --git a/src/StageManager.ts b/src/StageManager.ts
+index 17baad6..8c36c37 100644
+--- a/src/StageManager.ts
++++ b/src/StageManager.ts
+@@ -1,6 +1,6 @@
+ import * as THREE from 'three';
+ import { GameConfig } from './config';
+-import { state, goToNextStage, takeDamage } from './state';
++import { state, goToNextStage, takeDamage, addScore } from './state';
+ import { Player } from './entities/Player';
+ import { DeathStar } from './entities/DeathStar';
+ import { Trench } from './entities/Trench';
+@@ -95,6 +95,7 @@ class TrenchStage implements Stage {
+ 
+   constructor(private manager: StageManager) {
+     if (state.entityManager) {
++      state.entityManager.clear();
+       state.entityManager.setSpawningEnabled(false);
+     }
+ 
+@@ -105,6 +106,12 @@ class TrenchStage implements Stage {
+ 
+     this.trench = new Trench();
+     this.manager.worldScene.add(this.trench.mesh);
++
++    if (state.entityManager) {
++      this.trench.getTurrets().forEach(turret => {
++        state.entityManager!.addTarget(turret);
++      });
++    }
+   }
+ 
+   update(deltaTime: number, player: Player): void {
+@@ -130,12 +137,42 @@ class TrenchStage implements Stage {
+ 
+     // If player reaches the end of the trench or hits the port, they win the stage
+     const hitPort = this.trench.checkPortCollision(player.position);
+-    if (hitPort || player.position.z <= -GameConfig.stage.trenchLength) {
++    
++    // Check if any torpedoes hit the port or obstacles
++    let torpedoHitPort = false;
++    let torpedoMissed = false;
++    if (state.entityManager) {
++      state.entityManager.getTorpedoes().forEach(torpedo => {
++        if (!torpedo.isExploded) {
++          if (this.trench.checkPortCollision(torpedo.position)) {
++            torpedoHitPort = true;
++            torpedo.explode();
++          } else if (this.trench.checkObstacleCollision(torpedo.position) !== null) {
++            torpedo.explode();
++            torpedoMissed = true;
++          } else if (torpedo.position.z <= -GameConfig.stage.trenchLength) {
++            torpedo.explode();
++            torpedoMissed = true;
++          }
++        }
++      });
++    }
++
++    if (torpedoHitPort) {
++      addScore(GameConfig.torpedo.bonusPoints);
+       goToNextStage();
++    } else if (torpedoMissed || hitPort || player.position.z <= -GameConfig.stage.trenchLength) {
++      takeDamage(1);
++      this.manager.reset();
+     }
+   }
+ 
+   cleanup(): void {
++    if (state.entityManager) {
++      this.trench.getTurrets().forEach(turret => {
++        state.entityManager!.removeTarget(turret);
++      });
++    }
+     this.manager.worldScene.remove(this.trench.mesh);
+     this.trench.dispose();
+   }
+@@ -143,12 +180,15 @@ class TrenchStage implements Stage {
+ 
+ export class StageManager {
+   private currentStage: Stage | null = null;
++  public canFireTorpedo: boolean = false;
++  public hasFiredTorpedo: boolean = false;
+ 
+   constructor(public worldScene: THREE.Scene) {
+     this.initStage();
+   }
+ 
+   private initStage(): void {
++    this.hasFiredTorpedo = false;
+     switch (state.stage) {
+       case 'DOGFIGHT':
+         this.currentStage = new DogfightStage();
+@@ -191,7 +231,7 @@ export class StageManager {
+ 
+     // Range Check: Can only hit when close enough
+     const distanceToPort = Math.abs(state.player.position.z - portZ);
+-    if (distanceToPort > 2000) return false;
++    if (distanceToPort > GameConfig.torpedo.range) return false;
+ 
+     return checkAim(portPos, input, camera);
+   }
+diff --git a/src/UIManager.ts b/src/UIManager.ts
+index d4b553a..1558df5 100644
+--- a/src/UIManager.ts
++++ b/src/UIManager.ts
+@@ -9,19 +9,24 @@ export class UIManager {
+   private waveValue!: HTMLElement;
+   private stageValue!: HTMLElement;
+   private instructionValue!: HTMLElement;
++  private destructionValue!: HTMLElement;
++  private torpedoReadyValue!: HTMLElement;
+   private gameOver!: HTMLElement;
+   private debugPanel?: HTMLElement;
+   private damageOverlay!: HTMLElement;
+   private stageButtons?: Map<string, HTMLElement>;
+   private lastShields: number;
+   private lastStage: string = '';
++  private lastWave: number = 1;
+   private damageTimeout: any = null;
+   private shieldTimeout: any = null;
++  private destructionTimeout: any = null;
+ 
+   private firstUpdate = true;
+ 
+   constructor() {
+     this.lastShields = GameConfig.player.maxShields;
++    this.lastWave = state.wave;
+ 
+     // Set CSS variables from config (convert ms to s)
+     document.documentElement.style.setProperty('--ui-damage-flash-duration', `${GameConfig.ui.damageFlashDuration / 1000}s`);
+@@ -39,7 +44,12 @@ export class UIManager {
+     // Central info area
+     const centerArea = this.createEl('div', 'fixed top-1/4 left-1/2 -translate-x-1/2 flex flex-col items-center space-y-4 pointer-events-none', this.hud);
+     this.stageValue = this.createEl('div', 'text-vector-yellow text-4xl animate-pulse hidden', centerArea);
++    this.destructionValue = this.createEl('div', 'text-vector-red text-3xl font-bold text-center hidden animate-pulse', centerArea);
++    this.destructionValue.id = 'destruction-value';
++    this.destructionValue.textContent = 'DEATH STAR DESTROYED';
+     this.instructionValue = this.createEl('div', 'text-vector-green text-xl text-center hidden', centerArea);
++    this.torpedoReadyValue = this.createEl('div', 'text-vector-red text-2xl font-bold hidden animate-pulse', centerArea);
++    this.torpedoReadyValue.textContent = 'TORPEDO READY';
+ 
+     this.createGameOverOverlay();
+ 
+@@ -211,6 +221,16 @@ export class UIManager {
+ 
+     if (this.waveValue.textContent !== state.wave.toString()) {
+       this.waveValue.textContent = state.wave.toString();
++
++      // If wave increased, show destruction message
++      if (!this.firstUpdate && state.wave > this.lastWave) {
++        this.destructionValue.classList.remove('hidden');
++        if (this.destructionTimeout) clearTimeout(this.destructionTimeout);
++        this.destructionTimeout = setTimeout(() => {
++          this.destructionValue.classList.add('hidden');
++        }, 4000); // Stay for 4 seconds
++      }
++      this.lastWave = state.wave;
+     }
+ 
+     // Handle Stage display and instructions
+@@ -235,7 +255,7 @@ export class UIManager {
+           this.instructionValue.classList.remove('hidden');
+           break;
+         case 'TRENCH':
+-          this.instructionValue.textContent = 'STAY LOW AND FIRE TORPEDOES INTO THE PORT (SPACE/RIGHT-CLICK)';
++          this.instructionValue.textContent = 'STAY LOW AND AIM AT THE PORT TO AUTO-FIRE TORPEDOES';
+           this.instructionValue.classList.remove('hidden');
+           break;
+       }
+@@ -256,6 +276,13 @@ export class UIManager {
+       this.updateStageButtons(state.stage);
+     }
+ 
++    // Torpedo Ready indicator
++    if (state.stage === 'TRENCH' && state.stageManager?.canFireTorpedo) {
++      this.torpedoReadyValue.classList.remove('hidden');
++    } else {
++      this.torpedoReadyValue.classList.add('hidden');
++    }
++
+     this.firstUpdate = false;
+   }
+ 
+diff --git a/src/collision.ts b/src/collision.ts
+index 09af3f8..626993f 100644
+--- a/src/collision.ts
++++ b/src/collision.ts
+@@ -4,10 +4,12 @@ import { GameConfig } from './config';
+ const scratchTargetDir = new THREE.Vector3();
+ const scratchCameraDir = new THREE.Vector3();
+ const scratchProjected = new THREE.Vector3();
++const scratchCameraWorldPos = new THREE.Vector3();
+ 
+ export function checkAim(target: THREE.Vector3, input: { x: number, y: number }, camera: THREE.Camera): boolean {
+   // 1. Check if target is behind camera
+-  scratchTargetDir.subVectors(target, camera.position).normalize();
++  camera.getWorldPosition(scratchCameraWorldPos);
++  scratchTargetDir.subVectors(target, scratchCameraWorldPos).normalize();
+   camera.getWorldDirection(scratchCameraDir);
+ 
+   // If dot product is negative, it's behind the camera (angle > 90 degrees)
+diff --git a/src/config.test.ts b/src/config.test.ts
+index afcee58..a06b9b7 100644
+--- a/src/config.test.ts
++++ b/src/config.test.ts
+@@ -82,23 +82,25 @@ describe('GameConfig', () => {
+     expect(GameConfig.tieFighter.meshSize).toBe(1);
+     expect(GameConfig.tieFighter.spawnInterval).toBe(3.0);
+     expect(GameConfig.tieFighter.cleanupDistance).toBe(600);
+-    expect(GameConfig.tieFighter.smartSpeed).toBe(180);
+-    expect(GameConfig.tieFighter.smartSpawnRandomZ).toBe(50);
+-    expect(GameConfig.tieFighter.smartSpawnRandomX).toBe(40);
+-    expect(GameConfig.tieFighter.smartSpawnRandomY).toBe(30);
+-    expect(GameConfig.tieFighter.smartBrakingZone).toBe(60);
+-    expect(GameConfig.tieFighter.smartIntensityMax).toBe(0.8);
+-    expect(GameConfig.tieFighter.smartStageThreshold).toBe(0.1);
+-    expect(GameConfig.tieFighter.smartEscapeAccelerationDuration).toBe(6.0);
+-    expect(GameConfig.tieFighter.smartEscapeFadeDuration).toBe(3.0);
+-    expect(GameConfig.tieFighter.smartArcFalloff).toBe(60);
+-    expect(GameConfig.tieFighter.smartRotationSpeed).toBe(10.0);
+-    expect(GameConfig.tieFighter.smartEscapeFarRandomX).toBe(0.4);
+-    expect(GameConfig.tieFighter.smartEscapeFarRandomY).toBe(0.4);
+-    expect(GameConfig.tieFighter.smartEscapeFarZ).toBe(-1.0);
+-    expect(GameConfig.tieFighter.smartEscapeQuickRandomX).toBe(2.5);
+-    expect(GameConfig.tieFighter.smartEscapeQuickRandomY).toBe(2.0);
+-    expect(GameConfig.tieFighter.smartEscapeQuickZ).toBe(-0.5);
++    
++    const smart = GameConfig.tieFighter.smartAI;
++    expect(smart.speed).toBe(180);
++    expect(smart.spawnRandomZ).toBe(50);
++    expect(smart.spawnRandomX).toBe(40);
++    expect(smart.spawnRandomY).toBe(30);
++    expect(smart.brakingZone).toBe(60);
++    expect(smart.arcIntensity).toBe(0.8);
++    expect(smart.stageThreshold).toBe(0.1);
++    expect(smart.escapeAccelerationDuration).toBe(6.0);
++    expect(smart.escapeFadeDuration).toBe(3.0);
++    expect(smart.arcFalloff).toBe(60);
++    expect(smart.rotationSpeed).toBe(10.0);
++    expect(smart.escapeFarRandomX).toBe(0.4);
++    expect(smart.escapeFarRandomY).toBe(0.4);
++    expect(smart.escapeFarZ).toBe(-1.0);
++    expect(smart.escapeQuickRandomX).toBe(2.5);
++    expect(smart.escapeQuickRandomY).toBe(2.0);
++    expect(smart.escapeQuickZ).toBe(-0.5);
+   });
+ 
+   test('should be immutable at the type level', () => {
+diff --git a/src/config.ts b/src/config.ts
+index 3136b35..3aca80d 100644
+--- a/src/config.ts
++++ b/src/config.ts
+@@ -68,6 +68,8 @@ export const GameConfig = deepFreeze({
+     catwalkCollisionThreshold: 15, // Tolerance for Z-axis hit detection
+     catwalkHeightThreshold: 15,    // Tolerance for Y-axis hit detection
+     exhaustPortZOffset: 400,
++    trenchMaxPitch: Math.PI / 6, // 30 degrees
++    trenchMaxYaw: Math.PI / 6,   // 30 degrees
+   },
+   tieFighter: {
+     speed: 50,
+@@ -79,34 +81,33 @@ export const GameConfig = deepFreeze({
+     explosionVelocity: 50,
+     spawnInterval: 3.0,
+     cleanupDistance: 600,
+-    smartSpeed: 180,
+-    smartOscillationFreq: 2.0,
+-    smartOscillationAmp: 10,
+-    smartSwoopFreq: 0.5,
+-    smartSwoopAmp: 5,
+-    spawnDistanceBehind: 100,
+-    smartArcAmplitude: 40,
+-    smartArcFrequency: 0.5,
+-    smartArcFrequencyMult: 0.7,
+-    smartArcAmplitudeMult: 0.5,
+-    smartShadowDistance: -50,
+-    smartShadowDuration: 3.0,
+-    smartSpawnRandomZ: 50,
+-    smartSpawnRandomX: 40,
+-    smartSpawnRandomY: 30,
+-    smartBrakingZone: 60,
+-    smartIntensityMax: 0.8,
+-    smartStageThreshold: 0.1,
+-    smartEscapeAccelerationDuration: 6.0,
+-    smartEscapeFadeDuration: 3.0,
+-    smartArcFalloff: 60,
+-    smartRotationSpeed: 10.0,
+-    smartEscapeFarRandomX: 0.4,
+-    smartEscapeFarRandomY: 0.4,
+-    smartEscapeFarZ: -1.0,
+-    smartEscapeQuickRandomX: 2.5,
+-    smartEscapeQuickRandomY: 2.0,
+-    smartEscapeQuickZ: -0.5,
++    smartAI: {
++      speed: 180,
++      oscillationFreq: 2.0,
++      oscillationAmp: 10,
++      spawnDistanceBehind: 100,
++      spawnRandomZ: 50,
++      spawnRandomX: 40,
++      spawnRandomY: 30,
++      arcAmplitude: 40,
++      arcFrequency: 0.5,
++      arcIntensity: 0.8,
++      arcFalloff: 60,
++      verticalSwayRatio: 0.5,
++      shadowDistance: -50,
++      shadowDuration: 3.0,
++      brakingZone: 60,
++      stageThreshold: 0.1,
++      escapeAccelerationDuration: 6.0,
++      escapeFadeDuration: 3.0,
++      rotationSpeed: 10.0,
++      escapeFarRandomX: 0.4,
++      escapeFarRandomY: 0.4,
++      escapeFarZ: -1.0,
++      escapeQuickRandomX: 2.5,
++      escapeQuickRandomY: 2.0,
++      escapeQuickZ: -0.5,
++    },
+   },
+   laser: {
+     speed: 2000,
+@@ -141,4 +142,22 @@ export const GameConfig = deepFreeze({
+     hitDistanceThreshold: 2.0,
+     hitNDCThreshold: 1.2,
+   },
++  torpedo: {
++    speedMultiplier: 2.0,
++    cooldown: 2.0,
++    bonusPoints: 10000,
++    range: 2000,
++    sparkleCount: 8,
++    sparkleSize: 4.0,
++    explosionVelocity: 30,
++    explosionDuration: 0.5,
++  },
++  turret: {
++    meshSize: 5.0,
++    meshColor: 0x888888,
++    fireRate: 3.0,
++    range: 1500,
++    spacing: 1000,
++    points: 200,
++  },
+ } as const);
+diff --git a/src/entities/Entity.ts b/src/entities/Entity.ts
+index 443ad2d..52426df 100644
+--- a/src/entities/Entity.ts
++++ b/src/entities/Entity.ts
+@@ -1,3 +1,5 @@
++import * as THREE from 'three';
++
+ /**
+  * STUB: This entity base class is a placeholder and subject to 
+  * major refactoring as the architecture is finalized.
+@@ -7,3 +9,12 @@ export class Entity {
+     console.log('Entity created');
+   }
+ }
++
++export interface Targetable {
++  readonly position: THREE.Vector3;
++  readonly isExploded: boolean;
++  explode(): void;
++  getScore(): number;
++  update?(deltaTime: number, playerPosition: THREE.Vector3, playerQuaternion: THREE.Quaternion, playerSpeed: number): THREE.Vector3 | null;
++  getVelocity?(playerForward: THREE.Vector3, playerSpeed: number): THREE.Vector3;
++}
+diff --git a/src/entities/EntityManager.test.ts b/src/entities/EntityManager.test.ts
+index 5339c28..0e477c6 100644
+--- a/src/entities/EntityManager.test.ts
++++ b/src/entities/EntityManager.test.ts
+@@ -29,21 +29,12 @@ describe('EntityManager', () => {
+ 
+   test('removeTieFighter should call dispose and remove from scene', () => {
+     entityManager.clear();
+-    // Use spawnTieFighter to get it in the list properly or add it via a testing-only method if we had one
+-    // Since we don't, we'll just use spawnTieFighter and then override its position
+     entityManager.spawnTieFighter(false);
+     const actualTf = entityManager.getTieFighters()[0];
+-
+     const disposeSpy = vi.spyOn(actualTf, 'dispose');
+-
+-    // Set position far away
+     actualTf.position.set(0, 0, GameConfig.tieFighter.cleanupDistance + 100);
+-
+-    // We need to make sure the strategy doesn't move it back during update
+     vi.spyOn(actualTf, 'update').mockReturnValue(new THREE.Vector3());
+-
+     entityManager.update(0.1, playerPosition, playerQuaternion, true, new THREE.PerspectiveCamera(), GameConfig.player.baseForwardSpeed);
+-
+     expect(entityManager.getTieFighters().length).toBe(0);
+     expect(scene.children.length).toBe(0);
+     expect(disposeSpy).toHaveBeenCalled();
+@@ -52,12 +43,9 @@ describe('EntityManager', () => {
+   test('clear should dispose all fighters', () => {
+     entityManager.spawnTieFighter(true);
+     entityManager.spawnTieFighter(false);
+-
+     const fighters = entityManager.getTieFighters();
+     const spies = fighters.map(tf => vi.spyOn(tf, 'dispose'));
+-
+     entityManager.clear();
+-
+     expect(entityManager.getTieFighters().length).toBe(0);
+     expect(scene.children.length).toBe(0);
+     spies.forEach(spy => expect(spy).toHaveBeenCalled());
+@@ -65,38 +53,46 @@ describe('EntityManager', () => {
+ 
+   test('fireball should collide with camera when crossing threshold', () => {
+     const camera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
+-    // Move player and camera to world position
+     playerPosition.set(0, 0, 100);
+-    playerQuaternion.set(0, 0, 0, 1); // Looking at -Z
+-
+-    // Camera is a child of player, but we pass it as a world-aware object
+-    // In actual game it's attached. Here we'll just set its world position.
++    playerQuaternion.set(0, 0, 0, 1);
+     camera.position.set(0, 0, 100);
+-    camera.lookAt(0, 0, 0); // Looking at -Z
++    camera.lookAt(0, 0, 0);
+     camera.updateMatrixWorld();
+ 
+     const onHit = vi.fn();
+-
+-    // Spawn fireball ahead of player, moving towards them
+-    // Ahead is -Z from player position
+     const fbPos = new THREE.Vector3(0, 0, 90);
+-    const fbVel = new THREE.Vector3(0, 0, 100); // Moving +Z towards player
++    const fbVel = new THREE.Vector3(0, 0, 100);
+     const fb = entityManager.spawnFireball(fbPos, fbVel);
+ 
+-    // Update 1: moves from 90 to 90 + (100 * 0.05) = 95
+-    // Player is at 100. fb is at 95. 
+-    // prevDist = dot(90-100, -1) = 10
+-    // currDist = dot(95-100, -1) = 5
+-    // Threshold=1.5. No hit.
+     entityManager.update(0.05, playerPosition, playerQuaternion, false, camera, GameConfig.player.baseForwardSpeed, onHit);
+     expect(onHit).not.toHaveBeenCalled();
+     expect(fb.isExploded).toBe(false);
+ 
+-    // Update 2: moves from 95 to 95 + (100 * 0.05) = 100
+-    // Player is at 100. fb is at 100.
+-    // currDist = dot(100-100, -1) = 0. HIT!
+     entityManager.update(0.05, playerPosition, playerQuaternion, false, camera, GameConfig.player.baseForwardSpeed, onHit);
+     expect(onHit).toHaveBeenCalled();
+     expect(fb.isExploded).toBe(true);
+   })
+-})
++
++  test('spawnTorpedo should add to scene and list', () => {
++    entityManager.clear();
++    const pos = new THREE.Vector3(0, 0, 0);
++    const vel = new THREE.Vector3(0, 0, -100);
++    entityManager.spawnTorpedo(pos, vel);
++    expect(entityManager.getTorpedoes().length).toBe(1);
++    expect(scene.children.length).toBe(1);
++  });
++
++  test('update should move torpedoes and remove expired ones', () => {
++    entityManager.clear();
++    const pos = new THREE.Vector3(0, 0, 0);
++    const vel = new THREE.Vector3(0, 0, -100);
++    const torpedo = entityManager.spawnTorpedo(pos, vel);
++    
++    entityManager.update(0.1, playerPosition, playerQuaternion, false, new THREE.PerspectiveCamera(), GameConfig.player.baseForwardSpeed);
++    expect(torpedo.position.z).toBeCloseTo(-10);
++
++    torpedo.explode();
++    entityManager.update(GameConfig.fireball.explosionDuration + 0.1, playerPosition, playerQuaternion, false, new THREE.PerspectiveCamera(), GameConfig.player.baseForwardSpeed);
++    expect(entityManager.getTorpedoes().length).toBe(0);
++  });
++})
+\ No newline at end of file
+diff --git a/src/entities/EntityManager.ts b/src/entities/EntityManager.ts
+index 79cfed9..91c4f8e 100644
+--- a/src/entities/EntityManager.ts
++++ b/src/entities/EntityManager.ts
+@@ -4,11 +4,15 @@ import { AIStrategyFactory } from './AIStrategyFactory';
+ import { GameConfig } from '../config';
+ import { Fireball } from './Fireball';
+ import { Laser } from './Laser';
++import { Torpedo } from './Torpedo';
++import { Targetable } from './Entity';
+ 
+ export class EntityManager {
+   private tieFighters: TieFighter[] = [];
+   private fireballs: Fireball[] = [];
+   private lasers: Laser[] = [];
++  private torpedoes: Torpedo[] = [];
++  private additionalTargets: Targetable[] = [];
+   private spawnTimer: number = 0;
+   private worldScene: THREE.Scene;
+   private hudScene: THREE.Scene;
+@@ -41,13 +45,7 @@ export class EntityManager {
+       const fireDirection = tf.update(deltaTime, playerPosition, playerQuaternion, playerSpeed);
+ 
+       if (fireDirection && !tf.isExploded) {
+-        // Inherit player's forward velocity so the fireball closure rate is exactly relativeSpeed
+-        this.scratchPlayerVelocity.copy(this.scratchPlayerForward).multiplyScalar(playerSpeed);
+-        this.scratchRelativeVelocity.copy(fireDirection).multiplyScalar(GameConfig.fireball.relativeSpeed);
+-        this.scratchTotalVelocity.copy(this.scratchPlayerVelocity).add(this.scratchRelativeVelocity);
+-
+-        this.scratchFireballPos.copy(tf.position);
+-        this.spawnFireball(this.scratchFireballPos, this.scratchTotalVelocity);
++        this.spawnFireballFromTarget(tf, fireDirection, playerQuaternion, playerSpeed);
+       }
+ 
+       // Cleanup distant TIE fighters
+@@ -129,7 +127,16 @@ export class EntityManager {
+       }
+     }
+ 
+-    // 4. Spawn new TIE fighters
++    // 4. Update torpedoes
++    for (let i = this.torpedoes.length - 1; i >= 0; i--) {
++      const torpedo = this.torpedoes[i];
++      torpedo.update(deltaTime);
++      if (torpedo.isExpired()) {
++        this.removeTorpedo(i);
++      }
++    }
++
++    // 5. Spawn new TIE fighters
+     if (this.spawningEnabled) {
+       this.spawnTimer += deltaTime;
+       if (this.spawnTimer >= GameConfig.tieFighter.spawnInterval) {
+@@ -137,6 +144,34 @@ export class EntityManager {
+         this.spawnTimer = 0;
+       }
+     }
++
++    // 5. Update additional targets (like turrets)
++    for (const target of this.additionalTargets) {
++      if (target.update) {
++        const fireDirection = target.update(deltaTime, playerPosition, playerQuaternion, playerSpeed);
++        if (fireDirection && !target.isExploded) {
++          this.spawnFireballFromTarget(target, fireDirection, playerQuaternion, playerSpeed);
++        }
++      }
++    }
++  }
++
++  private spawnFireballFromTarget(target: Targetable, fireDirection: THREE.Vector3, playerQuaternion: THREE.Quaternion, playerSpeed: number) {
++    this.scratchPlayerForward.set(0, 0, -1).applyQuaternion(playerQuaternion);
++    
++    // Get target's base velocity (e.g. TIE fighters move with player, turrets are static)
++    if (target.getVelocity) {
++      this.scratchPlayerVelocity.copy(target.getVelocity(this.scratchPlayerForward, playerSpeed));
++    } else {
++      // Default fallback (previous behavior)
++      this.scratchPlayerVelocity.copy(this.scratchPlayerForward).multiplyScalar(playerSpeed);
++    }
++
++    this.scratchRelativeVelocity.copy(fireDirection).multiplyScalar(GameConfig.fireball.relativeSpeed);
++    this.scratchTotalVelocity.copy(this.scratchPlayerVelocity).add(this.scratchRelativeVelocity);
++
++    this.scratchFireballPos.copy(target.position);
++    this.spawnFireball(this.scratchFireballPos, this.scratchTotalVelocity);
+   }
+ 
+   public setSpawningEnabled(enabled: boolean): void {
+@@ -164,6 +199,13 @@ export class EntityManager {
+     return laser;
+   }
+ 
++  public spawnTorpedo(position: THREE.Vector3, velocity: THREE.Vector3): Torpedo {
++    const torpedo = new Torpedo(position, velocity);
++    this.torpedoes.push(torpedo);
++    this.worldScene.add(torpedo.mesh);
++    return torpedo;
++  }
++
+   public removeTieFighter(index: number): void {
+     const tf = this.tieFighters[index];
+     this.worldScene.remove(tf.mesh);
+@@ -192,6 +234,13 @@ export class EntityManager {
+     this.lasers.splice(index, 1);
+   }
+ 
++  public removeTorpedo(index: number): void {
++    const torpedo = this.torpedoes[index];
++    this.worldScene.remove(torpedo.mesh);
++    torpedo.dispose();
++    this.torpedoes.splice(index, 1);
++  }
++
+   public getTieFighters(): TieFighter[] {
+     return this.tieFighters;
+   }
+@@ -204,6 +253,25 @@ export class EntityManager {
+     return this.lasers;
+   }
+ 
++  public getTorpedoes(): Torpedo[] {
++    return this.torpedoes;
++  }
++
++  public addTarget(target: Targetable): void {
++    this.additionalTargets.push(target);
++  }
++
++  public getTargets(): Targetable[] {
++    return [...this.tieFighters, ...this.additionalTargets];
++  }
++
++  public removeTarget(target: Targetable): void {
++    const index = this.additionalTargets.indexOf(target);
++    if (index !== -1) {
++      this.additionalTargets.splice(index, 1);
++    }
++  }
++
+   public clear(): void {
+     this.tieFighters.forEach(tf => {
+       this.worldScene.remove(tf.mesh);
+@@ -211,6 +279,8 @@ export class EntityManager {
+     });
+     this.tieFighters = [];
+ 
++    this.additionalTargets = [];
++
+     this.fireballs.forEach(fb => {
+       this.worldScene.remove(fb.mesh);
+       fb.dispose();
+@@ -223,6 +293,12 @@ export class EntityManager {
+     });
+     this.lasers = [];
+ 
++    this.torpedoes.forEach(torpedo => {
++      this.worldScene.remove(torpedo.mesh);
++      torpedo.dispose();
++    });
++    this.torpedoes = [];
++
+     this.spawnTimer = 0;
+   }
+ }
+diff --git a/src/entities/EntityManager_Turret_Leak.test.ts b/src/entities/EntityManager_Turret_Leak.test.ts
+new file mode 100644
+index 0000000..237135d
+--- /dev/null
++++ b/src/entities/EntityManager_Turret_Leak.test.ts
+@@ -0,0 +1,31 @@
++import * as THREE from 'three';
++import { describe, it, expect, beforeEach } from 'vitest';
++import { state, initGame } from '../state';
++
++describe('EntityManager Turret Leak', () => {
++  let worldScene: THREE.Scene;
++  let hudScene: THREE.Scene;
++
++  beforeEach(() => {
++    worldScene = new THREE.Scene();
++    hudScene = new THREE.Scene();
++    initGame(worldScene, hudScene);
++  });
++
++  it('should not leak turrets in EntityManager when resetting TRENCH stage', () => {
++    // 1. Enter TRENCH stage
++    state.stage = 'TRENCH';
++    state.stageManager!.reset();
++    
++    const initialTurretCount = state.entityManager!.getTargets().filter(t => t.constructor.name === 'Turret').length;
++    expect(initialTurretCount).toBeGreaterThan(0);
++
++    // 2. Reset TRENCH stage (simulating restart)
++    state.stageManager!.reset();
++    
++    const secondTurretCount = state.entityManager!.getTargets().filter(t => t.constructor.name === 'Turret').length;
++    
++    // If it leaks, secondTurretCount will be 2 * initialTurretCount
++    expect(secondTurretCount).toBe(initialTurretCount);
++  });
++});
+diff --git a/src/entities/Player.test.ts b/src/entities/Player.test.ts
+index b67ed60..4cc1c2b 100644
+--- a/src/entities/Player.test.ts
++++ b/src/entities/Player.test.ts
+@@ -37,7 +37,7 @@ describe('Player', () => {
+   it('update should move player forward if speed > 0', () => {
+     const initialZ = player.position.z;
+     const speed = GameConfig.player.baseForwardSpeed;
+-    player.update({ x: 0, y: 0, isFiring: false, isLaunchingTorpedo: false }, 0.1, speed);
++    player.update({ x: 0, y: 0, isFiring: false }, 0.1, speed);
+     if (speed > 0) {
+       expect(player.position.z).toBeLessThan(initialZ);
+     } else {
+@@ -48,7 +48,7 @@ describe('Player', () => {
+   it('update should move player horizontally based on input x (if speed > 0)', () => {
+     const player = new Player();
+     const speed = GameConfig.player.baseForwardSpeed;
+-    player.update({ x: 1, y: 0, isFiring: false, isLaunchingTorpedo: false }, 0.1, speed);
++    player.update({ x: 1, y: 0, isFiring: false }, 0.1, speed);
+     if (speed > 0) {
+       expect(player.position.x).toBeGreaterThan(0);
+     } else {
+@@ -59,7 +59,7 @@ describe('Player', () => {
+   it('update should move player vertically based on input y (if speed > 0)', () => {
+     const player = new Player();
+     const speed = GameConfig.player.baseForwardSpeed;
+-    player.update({ x: 0, y: 1, isFiring: false, isLaunchingTorpedo: false }, 0.1, speed);
++    player.update({ x: 0, y: 1, isFiring: false }, 0.1, speed);
+     if (speed > 0) {
+       expect(player.position.y).toBeGreaterThan(0);
+     } else {
+@@ -68,26 +68,26 @@ describe('Player', () => {
+   })
+ 
+   it('update should bank the visual mesh based on input x', () => {
+-    player.update({ x: 1, y: 0, isFiring: false, isLaunchingTorpedo: false }, 0.1, GameConfig.player.baseForwardSpeed);
++    player.update({ x: 1, y: 0, isFiring: false }, 0.1, GameConfig.player.baseForwardSpeed);
+     // @ts-ignore - access private visualMesh via property if needed or check rotation.z
+     expect(player.mesh.children[0].rotation.z).toBeLessThan(0);
+   })
+ 
+   it('update should rotate the player mesh based on input y', () => {
+     const initialQuat = player.mesh.quaternion.clone();
+-    player.update({ x: 0, y: 1, isFiring: false, isLaunchingTorpedo: false }, 0.1, GameConfig.player.baseForwardSpeed);
++    player.update({ x: 0, y: 1, isFiring: false }, 0.1, GameConfig.player.baseForwardSpeed);
+     expect(player.mesh.quaternion.equals(initialQuat)).toBe(false);
+   })
+ 
+   it('should rotate over time with horizontal input', () => {
+     const startQuat = player.mesh.quaternion.clone();
+-    player.update({ x: 1, y: 0, isFiring: false, isLaunchingTorpedo: false }, 0.5, GameConfig.player.baseForwardSpeed);
++    player.update({ x: 1, y: 0, isFiring: false }, 0.5, GameConfig.player.baseForwardSpeed);
+     expect(player.mesh.quaternion.equals(startQuat)).toBe(false);
+   })
+ 
+   it('should rotate over time with vertical input', () => {
+     const startQuat = player.mesh.quaternion.clone();
+-    player.update({ x: 0, y: 1, isFiring: false, isLaunchingTorpedo: false }, 0.5, GameConfig.player.baseForwardSpeed);
++    player.update({ x: 0, y: 1, isFiring: false }, 0.5, GameConfig.player.baseForwardSpeed);
+     expect(player.mesh.quaternion.equals(startQuat)).toBe(false);
+   })
+ 
+@@ -95,10 +95,10 @@ describe('Player', () => {
+     const player = new Player();
+     const speed = GameConfig.player.baseForwardSpeed;
+     // Turn 90 degrees right (approx)
+-    player.update({ x: 1, y: 0, isFiring: false, isLaunchingTorpedo: false }, 1.0, speed);
++    player.update({ x: 1, y: 0, isFiring: false }, 1.0, speed);
+ 
+     const initialX = player.position.x;
+-    player.update({ x: 0, y: 0, isFiring: false, isLaunchingTorpedo: false }, 0.1, speed);
++    player.update({ x: 0, y: 0, isFiring: false }, 0.1, speed);
+ 
+     if (speed > 0) {
+       expect(player.position.x).not.toBe(initialX);
+@@ -115,11 +115,68 @@ describe('Player', () => {
+     expect(visualMesh.visible).toBe(false);
+ 
+     // Toggle on
+-    player.update({ x: 0, y: 0, isFiring: false, isLaunchingTorpedo: false }, 0.1, GameConfig.player.baseForwardSpeed, true);
++    player.update({ x: 0, y: 0, isFiring: false }, 0.1, GameConfig.player.baseForwardSpeed, true);
+     expect(visualMesh.visible).toBe(true);
+ 
+     // Toggle off
+-    player.update({ x: 0, y: 0, isFiring: false, isLaunchingTorpedo: false }, 0.1, GameConfig.player.baseForwardSpeed, false);
++    player.update({ x: 0, y: 0, isFiring: false }, 0.1, GameConfig.player.baseForwardSpeed, false);
+     expect(visualMesh.visible).toBe(false);
+   })
+-})
++
++  describe('orientation constraints', () => {
++    it('should lock roll to zero when lockUpright is enabled', () => {
++      // Give some horizontal input that would normally cause rotation (yaw/pitch)
++      // and potentially roll if using relative quaternions without care.
++      // But the requirement is specifically about world roll being 0.
++      player.update({ x: 1, y: 0.5, isFiring: false }, 0.1, 100, false, { lockUpright: true });
++      
++      const euler = new THREE.Euler().setFromQuaternion(player.mesh.quaternion, 'YXZ');
++      expect(euler.z).toBeCloseTo(0);
++    });
++
++    it('should clamp pitch to the upper limit', () => {
++      const maxPitch = Math.PI / 6; // 30 degrees
++      player.update({ x: 0, y: 10, isFiring: false }, 1.0, 100, false, { lockUpright: true, maxPitch });
++      
++      const euler = new THREE.Euler().setFromQuaternion(player.mesh.quaternion, 'YXZ');
++      expect(euler.x).toBeCloseTo(maxPitch);
++    });
++
++    it('should clamp pitch to the lower limit', () => {
++      const maxPitch = Math.PI / 6; // 30 degrees
++      player.update({ x: 0, y: -10, isFiring: false }, 1.0, 100, false, { lockUpright: true, maxPitch });
++
++      const euler = new THREE.Euler().setFromQuaternion(player.mesh.quaternion, 'YXZ');
++      expect(euler.x).toBeCloseTo(-maxPitch);
++    });
++
++    it('should clamp yaw to the upper limit', () => {
++      const maxYaw = Math.PI / 6; // 30 degrees
++      // input.x = -10 should result in positive yaw (yawAmount = -input.x * ...)
++      player.update({ x: -10, y: 0, isFiring: false }, 1.0, 100, false, { lockUpright: true, maxYaw });
++      
++      const euler = new THREE.Euler().setFromQuaternion(player.mesh.quaternion, 'YXZ');
++      expect(euler.y).toBeCloseTo(maxYaw);
++    });
++
++    it('should clamp yaw to the lower limit', () => {
++      const maxYaw = Math.PI / 6; // 30 degrees
++      // input.x = 10 should result in negative yaw
++      player.update({ x: 10, y: 0, isFiring: false }, 1.0, 100, false, { lockUpright: true, maxYaw });
++      
++      const euler = new THREE.Euler().setFromQuaternion(player.mesh.quaternion, 'YXZ');
++      expect(euler.y).toBeCloseTo(-maxYaw);
++    });
++
++    it('should maintain 6DOF behavior when no options are provided', () => {
++      // In 6DOF, we should be able to loop.
++      // 10 seconds of full pitch up should result in a loop (more than 30 degrees)
++      player.update({ x: 0, y: 1, isFiring: false }, 10.0, 100);
++      
++      const euler = new THREE.Euler().setFromQuaternion(player.mesh.quaternion, 'YXZ');
++      // If it's not clamped to 30 degrees (Math.PI/6 ~ 0.52), it should be much larger or have wrapped.
++      // Basically, it shouldn't be clamped to 0.52.
++      expect(Math.abs(euler.x)).toBeGreaterThan(Math.PI / 6);
++    });
++  });
++})
+\ No newline at end of file
+diff --git a/src/entities/Player.ts b/src/entities/Player.ts
+index fef4532..dd2f188 100644
+--- a/src/entities/Player.ts
++++ b/src/entities/Player.ts
+@@ -3,6 +3,12 @@ import { Entity } from './Entity';
+ import { GameConfig } from '../config';
+ import { UserInput } from '../input';
+ 
++export interface PlayerUpdateOptions {
++  lockUpright?: boolean;
++  maxPitch?: number;
++  maxYaw?: number;
++}
++
+ export class Player extends Entity {
+   public readonly mesh: THREE.Group;
+   private readonly visualMesh: THREE.LineSegments;
+@@ -29,22 +35,48 @@ export class Player extends Entity {
+     this.position.set(0, 0, 0);
+   }
+ 
+-  public update(input: UserInput, deltaTime: number, speed: number, showChassis: boolean = false): void {
++  public update(
++    input: UserInput,
++    deltaTime: number,
++    speed: number,
++    showChassis: boolean = false,
++    options?: PlayerUpdateOptions
++  ): void {
+     this.visualMesh.visible = showChassis;
+ 
+     // Relative turning amounts
+     const yawAmount = -input.x * GameConfig.player.turnSpeedYaw * deltaTime;
+     const pitchAmount = input.y * GameConfig.player.turnSpeedPitch * deltaTime;
+ 
+-    // Create relative rotation quaternion from Euler angles
+-    // Order 'YXZ' is standard for relative orientation changes (Yaw then Pitch)
+-    const qRelative = new THREE.Quaternion().setFromEuler(
+-      new THREE.Euler(pitchAmount, yawAmount, 0, 'YXZ')
+-    );
++    if (options?.lockUpright) {
++      // For locked upright movement (e.g. Trench Run), we use absolute Euler clamping
++      // Extract current Euler angles
++      const currentEuler = new THREE.Euler().setFromQuaternion(this.mesh.quaternion, 'YXZ');
++
++      let targetPitch = currentEuler.x + pitchAmount;
++      let targetYaw = currentEuler.y + yawAmount;
++
++      // Apply clamping if options provided
++      if (options.maxPitch !== undefined) {
++        targetPitch = THREE.MathUtils.clamp(targetPitch, -options.maxPitch, options.maxPitch);
++      }
++      if (options.maxYaw !== undefined) {
++        targetYaw = THREE.MathUtils.clamp(targetYaw, -options.maxYaw, options.maxYaw);
++      }
++
++      // Set new orientation, forcing Roll to 0
++      this.mesh.quaternion.setFromEuler(new THREE.Euler(targetPitch, targetYaw, 0, 'YXZ'));
++    } else {
++      // Create relative rotation quaternion from Euler angles
++      // Order 'YXZ' is standard for relative orientation changes (Yaw then Pitch)
++      const qRelative = new THREE.Quaternion().setFromEuler(
++        new THREE.Euler(pitchAmount, yawAmount, 0, 'YXZ')
++      );
+ 
+-    // Apply relative rotation to current orientation
+-    // Post-multiplication applies the rotation in the object's local space
+-    this.mesh.quaternion.multiply(qRelative);
++      // Apply relative rotation to current orientation
++      // Post-multiplication applies the rotation in the object's local space
++      this.mesh.quaternion.multiply(qRelative);
++    }
+ 
+     // Visual Bank (Roll) - non-accumulating
+     const bankRoll = -input.x * GameConfig.player.maxBank;
+diff --git a/src/entities/QuatTurning.test.ts b/src/entities/QuatTurning.test.ts
+index e6cbb82..a9ff8e8 100644
+--- a/src/entities/QuatTurning.test.ts
++++ b/src/entities/QuatTurning.test.ts
+@@ -9,7 +9,7 @@ describe('Player Quaternion Turning', () => {
+     
+     // Initial state: looking at -Z, level.
+     // Give X input (turn right).
+-    player.update({ x: 1, y: 0, isFiring: false, isLaunchingTorpedo: false }, 0.1, GameConfig.player.baseForwardSpeed);
++    player.update({ x: 1, y: 0, isFiring: false }, 0.1, GameConfig.player.baseForwardSpeed);
+     
+     const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(player.mesh.quaternion);
+     
+@@ -24,7 +24,7 @@ describe('Player Quaternion Turning', () => {
+     // 1. Pitch up 45 degrees
+     // TURN_SPEED_PITCH is Math.PI / 1.5
+     // 45 deg = (PI/4) / (PI/1.5) = 1.5/4 = 0.375s
+-    player.update({ x: 0, y: 1, isFiring: false, isLaunchingTorpedo: false }, 0.375, GameConfig.player.baseForwardSpeed);
++    player.update({ x: 0, y: 1, isFiring: false }, 0.375, GameConfig.player.baseForwardSpeed);
+     
+     let forward = new THREE.Vector3(0, 0, -1).applyQuaternion(player.mesh.quaternion);
+     expect(forward.y).toBeCloseTo(Math.sin(Math.PI / 4), 5);
+@@ -32,7 +32,7 @@ describe('Player Quaternion Turning', () => {
+     // 2. Yaw right 90 degrees
+     // TURN_SPEED_YAW is Math.PI / 1.5
+     // 90 deg = (PI/2) / (PI/1.5) = 1.5/2 = 0.75s
+-    player.update({ x: 1, y: 0, isFiring: false, isLaunchingTorpedo: false }, 0.75, GameConfig.player.baseForwardSpeed);
++    player.update({ x: 1, y: 0, isFiring: false }, 0.75, GameConfig.player.baseForwardSpeed);
+     
+     forward = new THREE.Vector3(0, 0, -1).applyQuaternion(player.mesh.quaternion);
+     
+@@ -42,4 +42,4 @@ describe('Player Quaternion Turning', () => {
+     expect(forward.y).toBeCloseTo(0, 5);
+     expect(forward.z).toBeCloseTo(0, 5);
+   })
+-})
++})
+\ No newline at end of file
+diff --git a/src/entities/RelativeTurning.test.ts b/src/entities/RelativeTurning.test.ts
+index 9b5f1af..c84232e 100644
+--- a/src/entities/RelativeTurning.test.ts
++++ b/src/entities/RelativeTurning.test.ts
+@@ -10,7 +10,7 @@ describe('Player Relative Turning', () => {
+     // 1. Pitch up 90 degrees (looking straight up at +Y)
+     // TURN_SPEED_PITCH is Math.PI / 1.5
+     // 90 deg is 0.75s
+-    player.update({ x: 0, y: 1, isFiring: false, isLaunchingTorpedo: false }, 0.75, GameConfig.player.baseForwardSpeed);
++    player.update({ x: 0, y: 1, isFiring: false }, 0.75, GameConfig.player.baseForwardSpeed);
+     
+     // Confirm we are looking UP
+     const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(player.mesh.quaternion);
+@@ -31,7 +31,7 @@ describe('Player Relative Turning', () => {
+     // WAIT. If Local Up is World -Z, and Local Forward is World +Y.
+     // Rotating around Local Up (-Z) will rotate the Forward vector (+Y) in the XY plane.
+     
+-    player.update({ x: 1, y: 0, isFiring: false, isLaunchingTorpedo: false }, 0.1, GameConfig.player.baseForwardSpeed);
++    player.update({ x: 1, y: 0, isFiring: false }, 0.1, GameConfig.player.baseForwardSpeed);
+     
+     const newForward = new THREE.Vector3(0, 0, -1).applyQuaternion(player.mesh.quaternion);
+     
+@@ -45,4 +45,4 @@ describe('Player Relative Turning', () => {
+     
+     expect(newForward.y).toBeLessThan(0.99); // This should FAIL with current implementation
+   })
+-})
+\ No newline at end of file
++})
+diff --git a/src/entities/RelativeTurningBank.test.ts b/src/entities/RelativeTurningBank.test.ts
+index 0fd0c34..55e07b0 100644
+--- a/src/entities/RelativeTurningBank.test.ts
++++ b/src/entities/RelativeTurningBank.test.ts
+@@ -15,7 +15,7 @@ describe('Player Relative Turning with Bank', () => {
+     // Initial state: Forward = -Z, Up = +Y, Right = +X.
+     // Bank right 45 deg: New Up = (+0.707, +0.707, 0) approx, New Right = (+0.707, -0.707, 0) approx.
+     
+-    player.update({ x: 1, y: 0, isFiring: false, isLaunchingTorpedo: false }, 0.1, GameConfig.player.baseForwardSpeed);
++    player.update({ x: 1, y: 0, isFiring: false }, 0.1, GameConfig.player.baseForwardSpeed);
+     
+     const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(player.mesh.quaternion);
+     
+@@ -23,4 +23,4 @@ describe('Player Relative Turning with Bank', () => {
+     // should NOT change forward.y, even though the ship is visually banked.
+     expect(forward.y).toBeCloseTo(0, 5);
+   })
+-})
++})
+\ No newline at end of file
+diff --git a/src/entities/SmartAIStrategy.test.ts b/src/entities/SmartAIStrategy.test.ts
+index 34f3bbe..c329c75 100644
+--- a/src/entities/SmartAIStrategy.test.ts
++++ b/src/entities/SmartAIStrategy.test.ts
+@@ -27,7 +27,7 @@ describe('SmartAIStrategy', () => {
+     // First update initializes
+     strategy.update(0, entityPosition, entityQuaternion, playerPosition, playerQuaternion, GameConfig.player.baseForwardSpeed);
+     // with 0.5, random offset is 0.
+-    expect(entityPosition.z).toBeCloseTo(GameConfig.tieFighter.spawnDistanceBehind + 0.5 * GameConfig.tieFighter.smartSpawnRandomZ, 1);
++    expect(entityPosition.z).toBeCloseTo(GameConfig.tieFighter.smartAI.spawnDistanceBehind + 0.5 * GameConfig.tieFighter.smartAI.spawnRandomZ, 1);
+ 
+     const initialZ = entityPosition.z;
+     strategy.update(0.1, entityPosition, entityQuaternion, playerPosition, playerQuaternion, GameConfig.player.baseForwardSpeed);
+@@ -48,7 +48,7 @@ describe('SmartAIStrategy', () => {
+     // elapsedTime will be 0 on first update
+     rngStrategy.update(0, entityPosition, entityQuaternion, playerPosition, playerQuaternion, GameConfig.player.baseForwardSpeed);
+ 
+-    // offset.x = (0.6 - 0.5) * smartSpawnRandomX = 0.1 * 40 = 4
++    // offset.x = (0.6 - 0.5) * spawnRandomX = 0.1 * 40 = 4
+     // xOsc = sin(0) = 0
+     // xArc = sin(0 + 0) = 0
+     // entityPosition.x = offset.x + xArc + xOsc = 4
+@@ -74,7 +74,7 @@ describe('SmartAIStrategy', () => {
+     // Manually setting offset is not possible because it's private.
+     // But we can update until it reaches Z=0.
+ 
+-    // Initial Z is around 100. relativeSpeed is smartSpeed (180) - playerSpeed (100) = 80.
++    // Initial Z is around 100. relativeSpeed is smartAI.speed (180) - playerSpeed (100) = 80.
+     // Takes about 1.25s to reach Z=0.
+ 
+     strategy.update(0, entityPosition, entityQuaternion, playerPosition, playerQuaternion, GameConfig.player.baseForwardSpeed);
+@@ -88,7 +88,7 @@ describe('SmartAIStrategy', () => {
+     }
+ 
+     // It should have significant lateral movement at some point
+-    expect(maxLateralMovement).toBeGreaterThan(GameConfig.tieFighter.smartArcAmplitude * 0.4);
++    expect(maxLateralMovement).toBeGreaterThan(GameConfig.tieFighter.smartAI.arcAmplitude * 0.4);
+   })
+ 
+   test('should maintain constant distance during shadowing stage', () => {
+@@ -103,7 +103,7 @@ describe('SmartAIStrategy', () => {
+     }
+ 
+     // Now it should be shadowing at -50
+-    expect(entityPosition.z).toBeCloseTo(GameConfig.tieFighter.smartShadowDistance, 0);
++    expect(entityPosition.z).toBeCloseTo(GameConfig.tieFighter.smartAI.shadowDistance, 0);
+ 
+     const zBefore = entityPosition.z;
+     strategy.update(0.5, entityPosition, entityQuaternion, playerPosition, playerQuaternion, GameConfig.player.baseForwardSpeed);
+@@ -120,4 +120,30 @@ describe('SmartAIStrategy', () => {
+     strategy.update(0.5, entityPosition, entityQuaternion, playerPosition, playerQuaternion, GameConfig.player.baseForwardSpeed);
+     expect(entityPosition.z).toBeLessThan(zShadow);
+   })
++
++  test('should use far-away escape trajectory when RNG allows', () => {
++    // We need to trigger SHADOW -> ESCAPE transition with random > 0.5
++    strategy.update(0, entityPosition, entityQuaternion, playerPosition, playerQuaternion, GameConfig.player.baseForwardSpeed);
++    
++    // Fast forward to SHADOW
++    for (let t = 0; t < 8.0; t += 0.1) {
++      strategy.update(0.1, entityPosition, entityQuaternion, playerPosition, playerQuaternion, GameConfig.player.baseForwardSpeed);
++    }
++    
++    // In SHADOW stage. Wait for duration.
++    // Transition happens when shadowTimer >= shadowDuration.
++    for (let t = 0; t < GameConfig.tieFighter.smartAI.shadowDuration - 0.5; t += 0.5) {
++      strategy.update(0.5, entityPosition, entityQuaternion, playerPosition, playerQuaternion, GameConfig.player.baseForwardSpeed);
++    }
++
++    // Next update will transition to ESCAPE. Mock RNG to return 0.6 for isFarAway.
++    mockRng.random = vi.fn().mockReturnValue(0.6);
++    strategy.update(0.5, entityPosition, entityQuaternion, playerPosition, playerQuaternion, GameConfig.player.baseForwardSpeed);
++    
++    // Should be in ESCAPE stage and moving according to escapeFarZ
++    // We can't easily check the private escapeDirection, but we can check movement.
++    const zBefore = entityPosition.z;
++    strategy.update(0.1, entityPosition, entityQuaternion, playerPosition, playerQuaternion, GameConfig.player.baseForwardSpeed);
++    expect(entityPosition.z).toBeLessThan(zBefore);
++  })
+ })
+\ No newline at end of file
+diff --git a/src/entities/SmartAIStrategy.ts b/src/entities/SmartAIStrategy.ts
+index 5bedd7e..d87fd99 100644
+--- a/src/entities/SmartAIStrategy.ts
++++ b/src/entities/SmartAIStrategy.ts
+@@ -48,45 +48,43 @@ export class SmartAIStrategy implements AIStrategy {
+     playerQuaternion: THREE.Quaternion,
+     playerSpeed: number
+   ): void {
++    const cfg = GameConfig.tieFighter.smartAI;
+     this.elapsedTime += deltaTime;
+ 
+     if (!this.isInitialized) {
+-      const initialZOffset = GameConfig.tieFighter.spawnDistanceBehind + this.rng.random() * GameConfig.tieFighter.smartSpawnRandomZ;
++      const initialZOffset = cfg.spawnDistanceBehind + this.rng.random() * cfg.spawnRandomZ;
+       this.offset.set(
+-        (this.rng.random() - 0.5) * GameConfig.tieFighter.smartSpawnRandomX,
+-        (this.rng.random() - 0.5) * GameConfig.tieFighter.smartSpawnRandomY,
++        (this.rng.random() - 0.5) * cfg.spawnRandomX,
++        (this.rng.random() - 0.5) * cfg.spawnRandomY,
+         initialZOffset
+       );
+       this.isInitialized = true;
+     }
+ 
+     this.prevWorldPos.copy(entityPosition);
+-    const relativeSpeed = GameConfig.tieFighter.smartSpeed - playerSpeed;
++    const relativeSpeed = cfg.speed - playerSpeed;
+ 
+     // Stage transitions and Z-Movement logic
+     let speedFactor = 1.0;
+     if (this.stage === 'APPROACH') {
+-      const distToShadow = this.offset.z - GameConfig.tieFighter.smartShadowDistance;
+-      const brakingZone = GameConfig.tieFighter.smartBrakingZone;
+-
+-      // Continuous deceleration to zero
+-      speedFactor = Math.max(0, Math.min(1.0, distToShadow / brakingZone));
++      const distToShadow = this.offset.z - cfg.shadowDistance;
++      speedFactor = THREE.MathUtils.clamp(distToShadow / cfg.brakingZone, 0, 1);
+       this.offset.z -= relativeSpeed * speedFactor * deltaTime;
+ 
+       // Smoothly ramp up extra intensity as we approach
+-      this.extraIntensity = GameConfig.tieFighter.smartIntensityMax * (1.0 - speedFactor);
++      this.extraIntensity = cfg.arcIntensity * (1.0 - speedFactor);
+ 
+-      if (distToShadow <= GameConfig.tieFighter.smartStageThreshold) {
++      if (distToShadow <= cfg.stageThreshold) {
+         this.stage = 'SHADOW';
+         this.shadowTimer = 0;
+-        this.offset.z = GameConfig.tieFighter.smartShadowDistance;
+-        this.extraIntensity = GameConfig.tieFighter.smartIntensityMax;
++        this.offset.z = cfg.shadowDistance;
++        this.extraIntensity = cfg.arcIntensity;
+       }
+     } else if (this.stage === 'SHADOW') {
+       this.shadowTimer += deltaTime;
+-      this.offset.z = GameConfig.tieFighter.smartShadowDistance;
+-      this.extraIntensity = GameConfig.tieFighter.smartIntensityMax;
+-      if (this.shadowTimer >= GameConfig.tieFighter.smartShadowDuration) {
++      this.offset.z = cfg.shadowDistance;
++      this.extraIntensity = cfg.arcIntensity;
++      if (this.shadowTimer >= cfg.shadowDuration) {
+         this.stage = 'ESCAPE';
+         this.escapeTimer = 0;
+ 
+@@ -95,24 +93,23 @@ export class SmartAIStrategy implements AIStrategy {
+         if (isFarAway) {
+           // Fly deep into the distance (-Z dominant)
+           this.escapeDirection.set(
+-            (this.rng.random() - 0.5) * GameConfig.tieFighter.smartEscapeFarRandomX,
+-            (this.rng.random() - 0.5) * GameConfig.tieFighter.smartEscapeFarRandomY,
+-            GameConfig.tieFighter.smartEscapeFarZ
++            (this.rng.random() - 0.5) * cfg.escapeFarRandomX,
++            (this.rng.random() - 0.5) * cfg.escapeFarRandomY,
++            cfg.escapeFarZ
+           ).normalize();
+         } else {
+           // Exit screen quickly (High X/Y components)
+           this.escapeDirection.set(
+-            (this.rng.random() - 0.5) * GameConfig.tieFighter.smartEscapeQuickRandomX,
+-            (this.rng.random() - 0.5) * GameConfig.tieFighter.smartEscapeQuickRandomY,
+-            GameConfig.tieFighter.smartEscapeQuickZ
++            (this.rng.random() - 0.5) * cfg.escapeQuickRandomX,
++            (this.rng.random() - 0.5) * cfg.escapeQuickRandomY,
++            cfg.escapeQuickZ
+           ).normalize();
+         }
+       }
+     } else if (this.stage === 'ESCAPE') {
+       this.escapeTimer += deltaTime;
+-      const accelerationDuration = GameConfig.tieFighter.smartEscapeAccelerationDuration;
+-      const t = Math.min(1.0, this.escapeTimer / accelerationDuration);
+-      speedFactor = t * t;
++      const t = THREE.MathUtils.clamp(this.escapeTimer / cfg.escapeAccelerationDuration, 0, 1);
++      speedFactor = t * t; // Smooth acceleration
+ 
+       // Move along the randomized escape vector
+       const moveAmount = relativeSpeed * speedFactor * deltaTime;
+@@ -121,22 +118,24 @@ export class SmartAIStrategy implements AIStrategy {
+       this.offset.z += this.escapeDirection.z * moveAmount;
+ 
+       // Fade out
+-      this.extraIntensity = Math.max(0, GameConfig.tieFighter.smartIntensityMax * (1.0 - this.escapeTimer / GameConfig.tieFighter.smartEscapeFadeDuration));
++      this.extraIntensity = Math.max(0, cfg.arcIntensity * (1.0 - this.escapeTimer / cfg.escapeFadeDuration));
+     }
+ 
+-    // Cinematic Arc: Intensity is high near the player and during shadowing
+-    const arcIntensity = Math.exp(-Math.pow(this.offset.z / GameConfig.tieFighter.smartArcFalloff, 2)) + this.extraIntensity;
+-    const xArc = Math.sin(this.elapsedTime * GameConfig.tieFighter.smartArcFrequency + this.stageOffsets.x) * 
+-                 GameConfig.tieFighter.smartArcAmplitude * arcIntensity * this.arcDirection.x;
+-    const yArc = Math.cos(this.elapsedTime * GameConfig.tieFighter.smartArcFrequency * GameConfig.tieFighter.smartArcFrequencyMult + this.stageOffsets.y) * 
+-                 GameConfig.tieFighter.smartArcAmplitude * GameConfig.tieFighter.smartArcAmplitudeMult * arcIntensity * this.arcDirection.y;
++    // Cinematic Swerve: Unified oscillation and arc logic
++    const dist = Math.abs(this.offset.z);
++    const baseIntensity = 1.0 - Math.max(0, Math.min(1.0, dist / cfg.arcFalloff));
++    const intensity = baseIntensity + this.extraIntensity;
++
++    const phase = this.elapsedTime * cfg.arcFrequency;
++    const swerveX = Math.sin(phase + this.stageOffsets.x) * cfg.arcAmplitude * intensity * this.arcDirection.x;
++    const swerveY = Math.cos(phase + this.stageOffsets.y) * cfg.arcAmplitude * cfg.verticalSwayRatio * intensity * this.arcDirection.y;
+ 
+     // Small persistent oscillation
+-    const xOsc = Math.sin(this.elapsedTime * GameConfig.tieFighter.smartOscillationFreq) * GameConfig.tieFighter.smartOscillationAmp;
++    const oscX = Math.sin(this.elapsedTime * cfg.oscillationFreq) * cfg.oscillationAmp;
+ 
+     this.currentRelativePos.copy(this.offset);
+-    this.currentRelativePos.x += xArc + xOsc;
+-    this.currentRelativePos.y += yArc;
++    this.currentRelativePos.x += swerveX + oscX;
++    this.currentRelativePos.y += swerveY;
+ 
+     // Transform relative position to world position
+     entityPosition.copy(this.currentRelativePos).applyQuaternion(playerQuaternion).add(playerPosition);
+@@ -154,6 +153,6 @@ export class SmartAIStrategy implements AIStrategy {
+     }
+ 
+     // Smoothly rotate towards the target orientation to eliminate snaps
+-    entityQuaternion.slerp(this.targetQuat, Math.min(1.0, deltaTime * GameConfig.tieFighter.smartRotationSpeed));
++    entityQuaternion.slerp(this.targetQuat, Math.min(1.0, deltaTime * cfg.rotationSpeed));
+   }
+ }
+\ No newline at end of file
+diff --git a/src/entities/TieFighter.ts b/src/entities/TieFighter.ts
+index a2df7ab..96358ee 100644
+--- a/src/entities/TieFighter.ts
++++ b/src/entities/TieFighter.ts
+@@ -1,10 +1,10 @@
+ import * as THREE from 'three';
+-import { Entity } from './Entity';
++import { Entity, Targetable } from './Entity';
+ import { GameConfig } from '../config';
+ import { AIStrategy } from './AIStrategy';
+ import { state } from '../state';
+ 
+-export class TieFighter extends Entity {
++export class TieFighter extends Entity implements Targetable {
+   public readonly mesh: THREE.Group;
+   private strategy: AIStrategy;
+ 
+@@ -112,6 +112,14 @@ export class TieFighter extends Entity {
+     return null;
+   }
+ 
++  public getScore(): number {
++    return 100;
++  }
++
++  public getVelocity(playerForward: THREE.Vector3, playerSpeed: number): THREE.Vector3 {
++    return playerForward.clone().multiplyScalar(playerSpeed);
++  }
++
+   public setStrategy(strategy: AIStrategy): void {
+     this.strategy = strategy;
+   }
+diff --git a/src/entities/Torpedo.test.ts b/src/entities/Torpedo.test.ts
+new file mode 100644
+index 0000000..0f579e1
+--- /dev/null
++++ b/src/entities/Torpedo.test.ts
+@@ -0,0 +1,39 @@
++import { describe, it, expect } from 'vitest';
++import * as THREE from 'three';
++import { Torpedo } from './Torpedo';
++import { GameConfig } from '../config';
++
++describe('Torpedo', () => {
++  it('should initialize with position and velocity', () => {
++    const pos = new THREE.Vector3(1, 2, 3);
++    const vel = new THREE.Vector3(0, 0, -100);
++    const torpedo = new Torpedo(pos, vel);
++
++    expect(torpedo.position.x).toBe(1);
++    expect(torpedo.position.y).toBe(2);
++    expect(torpedo.position.z).toBe(3);
++  });
++
++  it('should update position based on velocity and deltaTime', () => {
++    const pos = new THREE.Vector3(0, 0, 0);
++    const vel = new THREE.Vector3(0, 0, -100);
++    const torpedo = new Torpedo(pos, vel);
++
++    torpedo.update(0.1);
++
++    expect(torpedo.position.z).toBeCloseTo(-10);
++  });
++
++  it('should mark as expired after explosion duration', () => {
++    const pos = new THREE.Vector3(0, 0, 0);
++    const vel = new THREE.Vector3(0, 0, -100);
++    const torpedo = new Torpedo(pos, vel);
++
++    torpedo.explode();
++    expect(torpedo.isExploded).toBe(true);
++    expect(torpedo.isExpired()).toBe(false);
++
++    torpedo.update(GameConfig.fireball.explosionDuration + 0.1);
++    expect(torpedo.isExpired()).toBe(true);
++  });
++});
+diff --git a/src/entities/Torpedo.ts b/src/entities/Torpedo.ts
+new file mode 100644
+index 0000000..8184781
+--- /dev/null
++++ b/src/entities/Torpedo.ts
+@@ -0,0 +1,133 @@
++import * as THREE from 'three';
++import { Entity } from './Entity';
++import { GameConfig } from '../config';
++
++export class Torpedo extends Entity {
++  mesh: THREE.Group;
++  velocity: THREE.Vector3;
++  previousPosition: THREE.Vector3;
++  isExploded: boolean = false;
++  explosionTimer: number = 0;
++  private sparkleVelocities: THREE.Vector3[] = [];
++  private sparkleRotationSpeeds: number[] = [];
++  private static sparkleTexture: THREE.Texture | null = null;
++
++  constructor(position: THREE.Vector3, velocity: THREE.Vector3) {
++    super();
++    this.mesh = new THREE.Group();
++    this.mesh.position.copy(position);
++    this.previousPosition = position.clone();
++    this.velocity = velocity.clone();
++
++    // Use cyan/blue for proton torpedoes
++    const color = new THREE.Color(0x00ffff);
++    const size = GameConfig.torpedo.sparkleSize * 1.5;
++
++    if (!Torpedo.sparkleTexture) {
++      Torpedo.sparkleTexture = Torpedo.createSparkleTexture();
++    }
++
++    for (let i = 0; i < GameConfig.torpedo.sparkleCount; i++) {
++      const material = new THREE.SpriteMaterial({
++        map: Torpedo.sparkleTexture,
++        color: color,
++        transparent: true,
++        blending: THREE.AdditiveBlending,
++        rotation: Math.random() * Math.PI * 2,
++      });
++
++      const sparkle = new THREE.Sprite(material);
++      sparkle.scale.set(size, size, 1);
++      
++      // Random offset
++      sparkle.position.set(
++        (Math.random() - 0.5) * 0.5,
++        (Math.random() - 0.5) * 0.5,
++        (Math.random() - 0.5) * 0.5
++      );
++
++      this.mesh.add(sparkle);
++      this.sparkleVelocities.push(new THREE.Vector3());
++      this.sparkleRotationSpeeds.push((Math.random() - 0.5) * 10.0);
++    }
++  }
++
++  private static createSparkleTexture(): THREE.Texture {
++    const canvas = document.createElement('canvas');
++    canvas.width = 64;
++    canvas.height = 64;
++    const ctx = canvas.getContext('2d');
++
++    if (ctx) {
++      ctx.strokeStyle = '#ffffff';
++      ctx.lineWidth = 4;
++      ctx.translate(32, 32);
++
++      // Proton torpedoes are "balls of energy", so let's give them a cross-like star
++      for (let i = 0; i < 2; i++) {
++        ctx.beginPath();
++        ctx.moveTo(0, -30);
++        ctx.lineTo(0, 30);
++        ctx.stroke();
++        ctx.rotate(Math.PI / 2);
++      }
++      
++      // Add a circular glow
++      ctx.beginPath();
++      ctx.arc(0, 0, 10, 0, Math.PI * 2);
++      ctx.stroke();
++    }
++
++    return new THREE.CanvasTexture(canvas);
++  }
++
++  get position(): THREE.Vector3 {
++    return this.mesh.position;
++  }
++
++  explode(): void {
++    if (this.isExploded) return;
++    this.isExploded = true;
++
++    this.mesh.children.forEach((_, i) => {
++      const direction = new THREE.Vector3(
++        Math.random() - 0.5,
++        Math.random() - 0.5,
++        Math.random() - 0.5
++      ).normalize();
++      this.sparkleVelocities[i].copy(direction).multiplyScalar(GameConfig.torpedo.explosionVelocity * 1.5);
++      this.sparkleRotationSpeeds[i] *= 3;
++    });
++  }
++
++  update(deltaTime: number): void {
++    this.previousPosition.copy(this.mesh.position);
++    this.mesh.position.addScaledVector(this.velocity, deltaTime);
++
++    if (this.isExploded) {
++      this.explosionTimer += deltaTime;
++    }
++
++    this.mesh.children.forEach((child, i) => {
++      if (child instanceof THREE.Sprite) {
++        child.material.rotation += this.sparkleRotationSpeeds[i] * deltaTime;
++        if (this.isExploded) {
++          child.position.addScaledVector(this.sparkleVelocities[i], deltaTime);
++        }
++      }
++    });
++  }
++
++  isExpired(): boolean {
++    return this.isExploded && this.explosionTimer >= GameConfig.torpedo.explosionDuration;
++  }
++
++  dispose(): void {
++    this.mesh.children.forEach(child => {
++      if (child instanceof THREE.Sprite) {
++        // child.material.map?.dispose(); // Shared texture, do not dispose here
++        child.material.dispose();
++      }
++    });
++  }
++}
+diff --git a/src/entities/Trench.test.ts b/src/entities/Trench.test.ts
+index 3404771..a5511ba 100644
+--- a/src/entities/Trench.test.ts
++++ b/src/entities/Trench.test.ts
+@@ -58,4 +58,8 @@ describe('Trench Entity', () => {
+     const missPos = new THREE.Vector3(0, portY + 100, portZ);
+     expect(trench.checkPortCollision(missPos)).toBe(false);
+   });
++
++  it('should have turrets', () => {
++    expect(trench.getTurrets().length).toBeGreaterThan(0);
++  });
+ });
+diff --git a/src/entities/Trench.ts b/src/entities/Trench.ts
+index 66ae5e4..9bfccee 100644
+--- a/src/entities/Trench.ts
++++ b/src/entities/Trench.ts
+@@ -1,12 +1,14 @@
+ import * as THREE from 'three';
+ import { Entity } from './Entity';
+ import { GameConfig } from '../config';
++import { Turret } from './Turret';
+ 
+ export class Trench extends Entity {
+   public mesh: THREE.Group;
+   private leftWall: THREE.Mesh;
+   private rightWall: THREE.Mesh;
+   private floor: THREE.Mesh;
++  private turrets: Turret[] = [];
+ 
+   constructor() {
+     super();
+@@ -40,6 +42,11 @@ export class Trench extends Entity {
+     this.floor.position.set(0, -trenchHeight / 2 - 5, -halfLength);
+     this.mesh.add(this.floor);
+ 
++    const backWallGeometry = new THREE.BoxGeometry(trenchWidth, trenchHeight, 10);
++    const backWall = new THREE.Mesh(backWallGeometry, wallMaterial);
++    backWall.position.set(0, 0, -trenchLength - 5);
++    this.mesh.add(backWall);
++
+     this.addObstacles();
+   }
+ 
+@@ -73,6 +80,22 @@ export class Trench extends Entity {
+       this.mesh.add(catwalk);
+     }
+ 
++    // Add Turrets along the walls
++    const { spacing: turretSpacing } = GameConfig.turret;
++    const halfWidth = trenchWidth / 2;
++
++    for (let z = catwalkStartZ; z > catwalkEndZ; z -= turretSpacing) {
++      // Alternate sides
++      const isLeft = Math.floor(Math.abs(z) / turretSpacing) % 2 === 0;
++      const x = isLeft ? -halfWidth : halfWidth;
++      // Random height within trench walls
++      const y = (Math.random() - 0.5) * trenchHeight * 0.5;
++      
++      const turret = new Turret(new THREE.Vector3(x, y, z));
++      this.turrets.push(turret);
++      this.mesh.add(turret.mesh);
++    }
++
+     // Add Exhaust Port at the end
+     const portGeometry = new THREE.BoxGeometry(20, 20, 20);
+     const portMaterial = new THREE.MeshBasicMaterial({
+@@ -139,6 +162,10 @@ export class Trench extends Entity {
+     );
+   }
+ 
++  public getTurrets(): Turret[] {
++    return this.turrets;
++  }
++
+   update(_deltaTime: number) {
+     // Keep the trench centered on Z but far enough to cover the run
+     // For now it's static at origin, we might want to move it with the player or tile it.
+@@ -146,6 +173,7 @@ export class Trench extends Entity {
+   }
+ 
+   dispose() {
++    this.turrets.forEach(t => t.dispose());
+     this.mesh.traverse(child => {
+       if (child instanceof THREE.Mesh) {
+         child.geometry.dispose();
+diff --git a/src/entities/Turret.test.ts b/src/entities/Turret.test.ts
+new file mode 100644
+index 0000000..0c914f3
+--- /dev/null
++++ b/src/entities/Turret.test.ts
+@@ -0,0 +1,75 @@
++import * as THREE from 'three';
++import { describe, it, expect, beforeEach } from 'vitest';
++import { Turret } from './Turret';
++
++describe('Turret Entity', () => {
++  let turret: Turret;
++  const initialPosition = new THREE.Vector3(0, 0, -500);
++
++  beforeEach(() => {
++    turret = new Turret(initialPosition);
++  });
++
++  it('should initialize with correct position and mesh', () => {
++    expect(turret.mesh.position.equals(initialPosition)).toBe(true);
++    expect(turret.mesh.children.length).toBeGreaterThan(0);
++  });
++
++  it('should return a direction when firing', () => {
++    const playerPos = new THREE.Vector3(0, 0, 0);
++    // Force cooldown to 0
++    (turret as any).fireCooldown = 0;
++    
++    const fireDir = turret.update(0.1, playerPos, new THREE.Quaternion(), 0);
++    expect(fireDir).not.toBeNull();
++    if (fireDir) {
++      const expectedDir = new THREE.Vector3().subVectors(playerPos, initialPosition).normalize();
++      expect(fireDir.distanceTo(expectedDir)).toBeLessThan(0.001);
++    }
++  });
++
++  it('should obey fire rate', () => {
++    const playerPos = new THREE.Vector3(0, 0, 0);
++    // Force cooldown to 0
++    (turret as any).fireCooldown = 0;
++    
++    let fireDir = turret.update(0.1, playerPos, new THREE.Quaternion(), 0);
++    expect(fireDir).not.toBeNull();
++    
++    // Immediately updating again should not fire
++    fireDir = turret.update(0.1, playerPos, new THREE.Quaternion(), 0);
++    expect(fireDir).toBeNull();
++  });
++
++  it('should not fire if player is out of range', () => {
++    const playerPos = new THREE.Vector3(0, 0, 10000); // Very far away
++    (turret as any).fireCooldown = 0;
++    
++    const fireDir = turret.update(0.1, playerPos, new THREE.Quaternion(), 0);
++    expect(fireDir).toBeNull();
++  });
++
++  it('should aim at the player', () => {
++    const playerPos = new THREE.Vector3(100, 100, 0);
++    turret.update(0.1, playerPos, new THREE.Quaternion(), 0);
++    
++    // Turret should look at the player (roughly)
++    // We check if the forward vector of the mesh points towards the player
++    const turretForward = new THREE.Vector3(0, 0, 1).applyQuaternion(turret.mesh.quaternion);
++    const toPlayer = new THREE.Vector3().subVectors(playerPos, turret.mesh.position).normalize();
++    
++    // Depending on implementation, it might look at player with +Z or -Z.
++    // Let's assume +Z for now.
++    expect(turretForward.dot(toPlayer)).toBeGreaterThan(0.9);
++  });
++
++  it('should change color to orange when exploded', () => {
++    turret.explode();
++    
++    turret.mesh.traverse(child => {
++      if (child instanceof THREE.Mesh && child.material instanceof THREE.MeshBasicMaterial) {
++        expect(child.material.color.getHex()).toBe(0xffa500); // Orange
++      }
++    });
++  });
++});
+diff --git a/src/entities/Turret.ts b/src/entities/Turret.ts
+new file mode 100644
+index 0000000..77b1391
+--- /dev/null
++++ b/src/entities/Turret.ts
+@@ -0,0 +1,117 @@
++import * as THREE from 'three';
++import { Entity, Targetable } from './Entity';
++import { GameConfig } from '../config';
++
++export class Turret extends Entity implements Targetable {
++  public readonly mesh: THREE.Group;
++  private fireCooldown: number = Math.random() * 1.0; // Fire soon after encounter
++  public isExploded: boolean = false;
++  private pieceVelocities: THREE.Vector3[] = [];
++
++  public get position(): THREE.Vector3 {
++    return this.mesh.position;
++  }
++
++  constructor(position: THREE.Vector3) {
++    super();
++    this.mesh = new THREE.Group();
++    this.mesh.position.copy(position);
++
++    const size = GameConfig.turret.meshSize;
++    const material = new THREE.MeshBasicMaterial({
++      color: GameConfig.turret.meshColor,
++      wireframe: true
++    });
++
++    // Actually, let's just make it a simple box for now to represent a turret
++    const boxGeo = new THREE.BoxGeometry(size, size, size);
++    const box = new THREE.Mesh(boxGeo, material.clone());
++    this.mesh.add(box);
++
++    // Barrel
++    const barrelGeo = new THREE.CylinderGeometry(size / 10, size / 10, size, 8);
++    const barrel = new THREE.Mesh(barrelGeo, material.clone());
++    barrel.position.z = size / 2;
++    barrel.rotation.x = Math.PI / 2;
++    this.mesh.add(barrel);
++    
++    // Dispose of original material template
++    material.dispose();
++  }
++
++  public explode(): void {
++    if (this.isExploded) return;
++    this.isExploded = true;
++
++    // Change color to orange
++    this.mesh.traverse(child => {
++      if (child instanceof THREE.Mesh && child.material instanceof THREE.MeshBasicMaterial) {
++        child.material.color.setHex(0xffa500);
++      }
++    });
++
++    // Generate random velocities for each piece
++    this.mesh.children.forEach(() => {
++      const vel = 20; // Explosion velocity
++      const velocity = new THREE.Vector3(
++        (Math.random() - 0.5) * vel,
++        Math.random() * vel, // Mostly upwards
++        (Math.random() - 0.5) * vel
++      );
++      this.pieceVelocities.push(velocity);
++    });
++  }
++
++  public update(deltaTime: number, playerPosition: THREE.Vector3, _playerQuaternion: THREE.Quaternion, _playerSpeed: number): THREE.Vector3 | null {
++    if (this.isExploded) {
++      // Move pieces
++      this.mesh.children.forEach((child, index) => {
++        if (this.pieceVelocities[index]) {
++          child.position.addScaledVector(this.pieceVelocities[index], deltaTime);
++          child.rotation.x += deltaTime * 2;
++          child.rotation.y += deltaTime * 2;
++        }
++      });
++      return null;
++    }
++
++    this.fireCooldown -= deltaTime;
++
++    // Aim at player
++    this.mesh.lookAt(playerPosition);
++
++    const dist = this.mesh.position.distanceTo(playerPosition);
++    
++    // Only fire if in range AND player is "ahead" of the turret (player.z > turret.z since moving towards -Z)
++    // Actually, in the trench, player moves from 0 to -5000. 
++    // Turret at -500 is ahead if player.z > -500.
++    const isPlayerAhead = playerPosition.z > this.mesh.position.z;
++
++    if (isPlayerAhead && dist < GameConfig.turret.range && this.fireCooldown <= 0) {
++      this.fireCooldown = GameConfig.turret.fireRate;
++      // Return direction towards player
++      return new THREE.Vector3().subVectors(playerPosition, this.mesh.position).normalize();
++    }
++
++    return null;
++  }
++
++  public getScore(): number {
++    return GameConfig.turret.points;
++  }
++
++  public getVelocity(_playerForward: THREE.Vector3, _playerSpeed: number): THREE.Vector3 {
++    return new THREE.Vector3(0, 0, 0);
++  }
++
++  public dispose(): void {
++    this.mesh.traverse(child => {
++      if (child instanceof THREE.Mesh) {
++        child.geometry.dispose();
++        if (child.material instanceof THREE.Material) {
++          child.material.dispose();
++        }
++      }
++    });
++  }
++}
+diff --git a/src/entities/Turret_Destruction.test.ts b/src/entities/Turret_Destruction.test.ts
+new file mode 100644
+index 0000000..e58eee8
+--- /dev/null
++++ b/src/entities/Turret_Destruction.test.ts
+@@ -0,0 +1,53 @@
++import * as THREE from 'three';
++import { describe, it, expect, beforeEach } from 'vitest';
++import { state, initGame } from '../state';
++import { CombatSystem } from '../CombatSystem';
++
++describe('Turret Destruction', () => {
++  let worldScene: THREE.Scene;
++  let hudScene: THREE.Scene;
++  let camera: THREE.PerspectiveCamera;
++  let combatSystem: CombatSystem;
++
++  beforeEach(() => {
++    worldScene = new THREE.Scene();
++    hudScene = new THREE.Scene();
++    camera = new THREE.PerspectiveCamera(75, 1, 0.1, 10000);
++    initGame(worldScene, hudScene);
++    combatSystem = new CombatSystem(camera);
++
++    // Transition to TRENCH stage
++    state.stage = 'TRENCH';
++    if (state.stageManager) {
++        state.stageManager.reset();
++    }
++  });
++
++  it('should allow turrets to be destroyed and award points', () => {
++    const initialScore = state.score;
++    const initialKills = state.kills;
++
++    // Get a turret from the entityManager
++    const targets = state.entityManager!.getTargets();
++    const turret = targets.find(t => t.constructor.name === 'Turret');
++    
++    expect(turret).toBeDefined();
++    expect(turret!.isExploded).toBe(false);
++
++    // Position camera to look at the turret
++    camera.position.copy(turret!.position).add(new THREE.Vector3(0, 0, 100));
++    camera.lookAt(turret!.position);
++    camera.updateMatrixWorld();
++
++    // Simulate firing at the turret
++    // We need to calculate the NDC coordinates of the turret
++    const projected = turret!.position.clone().project(camera);
++    const input = { x: projected.x, y: projected.y, isFiring: true, isLaunchingTorpedo: false };
++
++    combatSystem.update(0.1, input);
++
++    expect(turret!.isExploded).toBe(true);
++    expect(state.score).toBe(initialScore + turret!.getScore());
++    expect(state.kills).toBe(initialKills + 1);
++  });
++});
+diff --git a/src/fireball_explosion.test.ts b/src/fireball_explosion.test.ts
+index 4c5e088..40cd1ce 100644
+--- a/src/fireball_explosion.test.ts
++++ b/src/fireball_explosion.test.ts
+@@ -27,7 +27,7 @@ describe('Fireball Explosion Integration', () => {
+ 
+     // Create a laser that will hit the fireball
+     // projected NDC of (0,0,-20) with camera at (0,0,0) looking at -Z should be (0,0)
+-    const input = { x: 0, y: 0, isFiring: true, isLaunchingTorpedo: false };
++    const input = { x: 0, y: 0, isFiring: true };
+ 
+     const initialScore = state.score;
+ 
+diff --git a/src/input.test.ts b/src/input.test.ts
+index 387cb94..10bd0d6 100644
+--- a/src/input.test.ts
++++ b/src/input.test.ts
+@@ -44,27 +44,17 @@ describe('InputManager', () => {
+   });
+ 
+   it('initializes with zero input', () => {
+-    expect(inputManager.getInput()).toEqual({ x: 0, y: 0, isFiring: false, isLaunchingTorpedo: false });
++    expect(inputManager.getInput()).toEqual({ x: 0, y: 0, isFiring: false });
+   });
+ 
+-  it('reports isLaunchingTorpedo when space is pressed', () => {
++  it('reports isFiring when space is pressed', () => {
+     const event = new KeyboardEvent('keydown', { code: 'Space' });
+     listeners['keydown'](event);
+-    expect(inputManager.getInput().isLaunchingTorpedo).toBe(true);
++    expect(inputManager.getInput().isFiring).toBe(true);
+ 
+     const upEvent = new KeyboardEvent('keyup', { code: 'Space' });
+     listeners['keyup'](upEvent);
+-    expect(inputManager.getInput().isLaunchingTorpedo).toBe(false);
+-  });
+-
+-  it('reports isLaunchingTorpedo when right clicked', () => {
+-    const event = createMouseEvent('mousedown', { button: 2 });
+-    listeners['mousedown'](event);
+-    expect(inputManager.getInput().isLaunchingTorpedo).toBe(true);
+-
+-    const upEvent = createMouseEvent('mouseup', { button: 2 });
+-    listeners['mouseup'](upEvent);
+-    expect(inputManager.getInput().isLaunchingTorpedo).toBe(false);
++    expect(inputManager.getInput().isFiring).toBe(false);
+   });
+ 
+   it('responds to ArrowLeft keydown', () => {
+@@ -316,6 +306,30 @@ describe('InputManager', () => {
+     expect(inputManager.getInput().isFiring).toBe(false);
+   });
+ 
++  it('updates input coordinates but not isFiring when right-clicked and dragged', () => {
++    // Right mouse down (button 2)
++    const downEvent = createMouseEvent('mousedown', { button: 2 });
++    listeners['mousedown'](downEvent);
++    
++    expect(inputManager.getInput().isFiring).toBe(false);
++
++    // Move mouse while right-clicking
++    listeners['mousemove'](new MouseEvent('mousemove', { clientX: 0, clientY: 0 }));
++    inputManager.update(0);
++    
++    expect(inputManager.getInput().x).toBe(-1);
++    expect(inputManager.getInput().y).toBe(1);
++    expect(inputManager.getInput().isFiring).toBe(false);
++
++    // Mouse up
++    const upEvent = createMouseEvent('mouseup', { button: 2 });
++    listeners['mouseup'](upEvent);
++    
++    // Should start decaying
++    inputManager.update(0.1);
++    expect(inputManager.getInput().x).toBeGreaterThan(-1);
++  });
++
+   it('reports isFiring only when touch is on fire button', () => {
+     // Touch on body should NOT fire
+     const touch0 = { identifier: 0, clientX: 500, clientY: 500, target: document.body };
+diff --git a/src/input.ts b/src/input.ts
+index d1fc89f..4cedd79 100644
+--- a/src/input.ts
++++ b/src/input.ts
+@@ -6,7 +6,6 @@ export interface UserInput {
+   x: number;
+   y: number;
+   isFiring: boolean;
+-  isLaunchingTorpedo: boolean;
+ }
+ 
+ export class InputManager {
+@@ -19,14 +18,13 @@ export class InputManager {
+   private dragTouchId: number | null = null;
+   private dragStartedOnFireButton: boolean = false;
+   private isFiring: boolean = false;
+-  private isLaunchingTorpedo: boolean = false;
+   private useRelativeInput: boolean = false;
+   private pointerAnchor: THREE.Vector2 = new THREE.Vector2(0, 0);
+   private fireButton: HTMLElement | null = null;
+   
+   private handleKeyDown = (event: KeyboardEvent) => {
+     if (event.code === 'Space') {
+-      this.isLaunchingTorpedo = true;
++      this.isFiring = true;
+     }
+     this.keys.add(event.code);
+     this.updateKeyboardTarget();
+@@ -34,7 +32,7 @@ export class InputManager {
+ 
+   private handleKeyUp = (event: KeyboardEvent) => {
+     if (event.code === 'Space') {
+-      this.isLaunchingTorpedo = false;
++      this.isFiring = false;
+     }
+     this.keys.delete(event.code);
+     this.updateKeyboardTarget();
+@@ -49,7 +47,7 @@ export class InputManager {
+     }
+ 
+     if (event.button === 2) { // Right click
+-      this.isLaunchingTorpedo = true;
++      this.startDrag(event.clientX, event.clientY, null, false, false);
+     } else {
+       this.isFiring = true;
+       this.startDrag(event.clientX, event.clientY, null, target === this.fireButton, false);
+@@ -58,7 +56,7 @@ export class InputManager {
+ 
+   private handlePointerUp = (event: MouseEvent) => {
+     if (event.button === 2) { // Right click
+-      this.isLaunchingTorpedo = false;
++      this.isDragging = false;
+     } else {
+       this.isDragging = false;
+       this.isFiring = false;
+@@ -236,8 +234,7 @@ export class InputManager {
+     return {
+       x: this.input.x,
+       y: this.input.y,
+-      isFiring: this.isFiring,
+-      isLaunchingTorpedo: this.isLaunchingTorpedo
++      isFiring: this.isFiring
+     };
+   }
+ }
+\ No newline at end of file
+diff --git a/src/state.ts b/src/state.ts
+index 5983e9c..37373a1 100644
+--- a/src/state.ts
++++ b/src/state.ts
+@@ -90,13 +90,20 @@ export function initGame(worldScene: THREE.Scene, hudScene: THREE.Scene) {
+   console.log('Game initialized', { debug: state.debug, stage: state.stage });
+ }
+ 
+-export function updateState(deltaTime: number, camera: THREE.Camera, input: UserInput = { x: 0, y: 0, isFiring: false, isLaunchingTorpedo: false }) {
++export function updateState(deltaTime: number, camera: THREE.Camera, input: UserInput = { x: 0, y: 0, isFiring: false }) {
+   if (state.isGameOver || !state.player || !state.entityManager || !state.stageManager) {
+     return;
+   }
+ 
+   const currentSpeed = state.stageManager.getStage()?.speed ?? GameConfig.player.baseForwardSpeed;
+-  state.player.update(input, deltaTime, currentSpeed, state.showChassis);
++
++  const playerOptions = state.stage === 'TRENCH' ? {
++    lockUpright: true,
++    maxPitch: GameConfig.stage.trenchMaxPitch,
++    maxYaw: GameConfig.stage.trenchMaxYaw,
++  } : undefined;
++
++  state.player.update(input, deltaTime, currentSpeed, state.showChassis, playerOptions);
+ 
+   // Ensure camera world matrix is updated after player moves but before collision check
+   camera.updateMatrixWorld();
+@@ -160,6 +167,11 @@ export function spawnFireball(position: THREE.Vector3, velocity: THREE.Vector3):
+   return state.entityManager.spawnFireball(position, velocity);
+ }
+ 
++export function spawnTorpedo(position: THREE.Vector3, velocity: THREE.Vector3) {
++  if (!state.entityManager) return null;
++  return state.entityManager.spawnTorpedo(position, velocity);
++}
++
+ export function addScore(points: number) {
+   state.score += points;
+ }
+diff --git a/src/torpedo_miss.test.ts b/src/torpedo_miss.test.ts
+new file mode 100644
+index 0000000..2c5479e
+--- /dev/null
++++ b/src/torpedo_miss.test.ts
+@@ -0,0 +1,97 @@
++import { describe, it, expect, beforeEach } from 'vitest';
++import * as THREE from 'three';
++import { StageManager } from './StageManager';
++import { Player } from './entities/Player';
++import { GameConfig } from './config';
++import { state, initGame } from './state';
++
++describe('Torpedo Miss', () => {
++  let scene: THREE.Scene;
++  let hudScene: THREE.Scene;
++  let stageManager: StageManager;
++  let player: Player;
++
++  beforeEach(() => {
++    scene = new THREE.Scene();
++    hudScene = new THREE.Scene();
++    initGame(scene, hudScene);
++    stageManager = state.stageManager!;
++    player = state.player!;
++    
++    // Start in TRENCH stage
++    state.stage = 'TRENCH';
++    stageManager.reset();
++  });
++
++  it('should restart trench stage and take damage if player reaches the end without hitting the port', () => {
++    const initialShields = state.shields;
++    
++    // Move player to the end of the trench
++    player.position.z = -GameConfig.stage.trenchLength - 10;
++    
++    // Update stage manager
++    stageManager.update(0.1, player);
++    
++    // Should still be in TRENCH stage (because it restarted)
++    expect(state.stage).toBe('TRENCH');
++    // Should have taken damage
++    expect(state.shields).toBe(initialShields - 1);
++    // Should have reset position to start of trench
++    expect(player.position.z).toBe(0);
++  });
++
++  it('should restart trench stage and take damage if a torpedo misses the port and hits the back wall', () => {
++    const initialShields = state.shields;
++
++    // Fire a torpedo that will miss the port but hit the back of the trench
++    // The port is at (0, portY, -4900)
++    // We fire it at (50, 0, -5000) which is definitely a miss
++    const backWallZ = -GameConfig.stage.trenchLength - 10; // Definitely beyond the trench end
++    
++    state.entityManager!.spawnTorpedo(
++      new THREE.Vector3(50, 0, backWallZ),
++      new THREE.Vector3(0, 0, 0)
++    );
++    
++    stageManager.update(0.1, player);
++    
++    // If the torpedo hit the "back wall", it should trigger failure
++    expect(state.stage).toBe('TRENCH');
++    expect(state.shields).toBe(initialShields - 1);
++    expect(player.position.z).toBe(0);
++  });
++
++  it('should restart trench stage and take damage if a torpedo hits a catwalk', () => {
++    const initialShields = state.shields;
++
++    // Fire a torpedo that hits a catwalk
++    // There is a catwalk at z = -500, y = -20
++    state.entityManager!.spawnTorpedo(
++      new THREE.Vector3(0, -20, -500),
++      new THREE.Vector3(0, 0, 0)
++    );
++    
++    stageManager.update(0.1, player);
++    
++    expect(state.stage).toBe('TRENCH');
++    expect(state.shields).toBe(initialShields - 1);
++    expect(player.position.z).toBe(0);
++  });
++
++  it('should restart trench stage and take damage if the ship hits the port directly', () => {
++    const initialShields = state.shields;
++
++    const { catwalkEndZ, exhaustPortZOffset, trenchHeight } = GameConfig.stage;
++    const portZ = catwalkEndZ - exhaustPortZOffset;
++    const portY = -trenchHeight / 2 + 10;
++
++    // Move player to the port position
++    player.position.set(0, portY, portZ);
++    
++    stageManager.update(0.1, player);
++    
++    expect(state.stage).toBe('TRENCH');
++    expect(state.shields).toBe(initialShields - 1);
++    expect(player.position.z).toBe(0);
++  });
++});
+diff --git a/src/trench_integration.test.ts b/src/trench_integration.test.ts
+index 849378a..baa7434 100644
+--- a/src/trench_integration.test.ts
++++ b/src/trench_integration.test.ts
+@@ -50,5 +50,20 @@ describe('Trench Integration', () => {
+     
+     updateState(0.1, camera);
+     expect(state.player!.position.x).toBeLessThanOrEqual(halfWidth);
++
++    // 4. Orientation clamping in TRENCH
++    // In TRENCH mode, orientation should be clamped.
++    // Give extreme input for several frames
++    for (let i = 0; i < 10; i++) {
++      updateState(0.1, camera, { x: 1, y: 1, isFiring: false });
++    }
++    
++    const euler = new THREE.Euler().setFromQuaternion(state.player!.mesh.quaternion, 'YXZ');
++    // Pitch (x) should be clamped to GameConfig.stage.trenchMaxPitch (30 degrees ~ 0.52 rad)
++    expect(euler.x).toBeCloseTo(GameConfig.stage.trenchMaxPitch);
++    // Yaw (y) should be clamped to -GameConfig.stage.trenchMaxYaw (30 degrees ~ 0.52 rad)
++    expect(euler.y).toBeCloseTo(-GameConfig.stage.trenchMaxYaw);
++    // Roll (z) should be exactly 0
++    expect(euler.z).toBeCloseTo(0);
+   });
+ });
+diff --git a/src/turret_fireball.test.ts b/src/turret_fireball.test.ts
+new file mode 100644
+index 0000000..7fc1c6c
+--- /dev/null
++++ b/src/turret_fireball.test.ts
+@@ -0,0 +1,62 @@
++import { describe, it, expect, beforeEach } from 'vitest';
++import * as THREE from 'three';
++import { EntityManager } from './entities/EntityManager';
++import { Turret } from './entities/Turret';
++import { Player } from './entities/Player';
++import { GameConfig } from './config';
++import { state, initGame } from './state';
++
++describe('Turret Fireball Movement', () => {
++  let scene: THREE.Scene;
++  let hudScene: THREE.Scene;
++  let entityManager: EntityManager;
++  let player: Player;
++
++  beforeEach(() => {
++    scene = new THREE.Scene();
++    hudScene = new THREE.Scene();
++    initGame(scene, hudScene);
++    entityManager = state.entityManager!;
++    entityManager.clear(); // Clear default TIE fighter
++    player = state.player!;
++  });
++
++  it('should fire fireballs that move towards the player in TRENCH stage', () => {
++    // Trench stage speed
++    const playerSpeed = GameConfig.player.forwardSpeeds.TRENCH; // 500
++    
++    // Player at Z = 0
++    player.position.set(0, 0, 0);
++    // Player moving forward (negative Z)
++    const playerQuaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), 0);
++    
++    // Turret at Z = -500 (ahead of player)
++    const turretPos = new THREE.Vector3(0, 0, -500);
++    const turret = new Turret(turretPos);
++    entityManager.addTarget(turret);
++
++    // Force turret to fire
++    (turret as any).fireCooldown = 0;
++    
++    // Update entityManager
++    entityManager.update(0.1, player.position, playerQuaternion, false, new THREE.Camera(), playerSpeed);
++    
++    const fireballs = entityManager.getFireballs();
++    expect(fireballs.length).toBe(1);
++    
++    const fireball = fireballs[0];
++    const initialZ = fireball.position.z;
++    expect(initialZ).toBe(-500);
++    
++    // Update fireball for 0.1s
++    fireball.update(0.1);
++    
++    // The fireball should have moved TOWARDS the player (player is at ~ -50 after 0.1s update if we updated player)
++    // Wait, let's see where the fireball SHOULD move.
++    // If player is at 0 and moving to -500.
++    // Turret is at -500.
++    // Fireball should move in +Z direction to hit the player.
++    
++    expect(fireball.position.z).toBeGreaterThan(initialZ);
++  });
++});
+diff --git a/src/ui.test.ts b/src/ui.test.ts
+index 6666e50..8be34ee 100644
+--- a/src/ui.test.ts
++++ b/src/ui.test.ts
+@@ -221,10 +221,50 @@ describe('UIManager', () => {
+     // Change to TRENCH
+     mockState.stage = 'TRENCH';
+     uiManager.update(mockState);
+-    expect(hud?.textContent).toContain('STAY LOW AND FIRE TORPEDOES INTO THE PORT (SPACE/RIGHT-CLICK)');
++    expect(hud?.textContent).toContain('STAY LOW AND AIM AT THE PORT TO AUTO-FIRE TORPEDOES');
+     expect(hud?.textContent).toContain('STAGE: TRENCH');
+   });
+ 
++  it('should show DEATH STAR DESTROYED message when wave increases', () => {
++    // Start at TRENCH wave 1
++    mockState.stage = 'TRENCH';
++    mockState.wave = 1;
++    uiManager.update(mockState);
++
++    // Transition to DOGFIGHT wave 2
++    mockState.stage = 'DOGFIGHT';
++    mockState.wave = 2;
++    uiManager.update(mockState);
++
++    const destructionValue = document.getElementById('destruction-value');
++    expect(destructionValue?.textContent).toBe('DEATH STAR DESTROYED');
++    expect(destructionValue?.classList.contains('hidden')).toBe(false);
++
++    // Should still be there after 3 seconds
++    vi.advanceTimersByTime(3000);
++    expect(destructionValue?.classList.contains('hidden')).toBe(false);
++
++    // Should be gone after 4.1 seconds
++    vi.advanceTimersByTime(1100);
++    expect(destructionValue?.classList.contains('hidden')).toBe(true);
++  });
++
++  it('should show TORPEDO READY indicator in TRENCH stage when aiming at port', () => {
++    mockState.stage = 'TRENCH';
++    
++    // Mock StageManager
++    state.stageManager = { 
++      checkExhaustPortHit: vi.fn().mockReturnValue(true),
++      reset: vi.fn(),
++      canFireTorpedo: true
++    } as any;
++    
++    uiManager.update(mockState);
++    
++    const hud = document.getElementById('hud');
++    expect(hud?.textContent).toContain('TORPEDO READY');
++  });
++
+   describe('Debug Panel - Stage Switcher', () => {
+     beforeEach(() => {
+       state.debug = true;

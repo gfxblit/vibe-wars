@@ -23,7 +23,9 @@ describe('Turret Entity', () => {
     const fireDir = turret.update(0.1, playerPos, new THREE.Quaternion(), 0);
     expect(fireDir).not.toBeNull();
     if (fireDir) {
-      const expectedDir = new THREE.Vector3().subVectors(playerPos, initialPosition).normalize();
+      const turretPos = new THREE.Vector3();
+      turret.getWorldPosition(turretPos);
+      const expectedDir = new THREE.Vector3().subVectors(playerPos, turretPos).normalize();
       expect(fireDir.distanceTo(expectedDir)).toBeLessThan(0.001);
     }
   });
@@ -56,7 +58,9 @@ describe('Turret Entity', () => {
     // Turret should look at the player (roughly)
     // We check if the forward vector of the mesh points towards the player
     const turretForward = new THREE.Vector3(0, 0, 1).applyQuaternion(turret.mesh.quaternion);
-    const toPlayer = new THREE.Vector3().subVectors(playerPos, turret.mesh.position).normalize();
+    const turretPos = new THREE.Vector3();
+    turret.getWorldPosition(turretPos);
+    const toPlayer = new THREE.Vector3().subVectors(playerPos, turretPos).normalize();
     
     // Depending on implementation, it might look at player with +Z or -Z.
     // Let's assume +Z for now.

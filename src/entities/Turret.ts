@@ -8,8 +8,10 @@ export class Turret extends Entity implements Targetable {
   public isExploded: boolean = false;
   private pieceVelocities: THREE.Vector3[] = [];
 
-  public get position(): THREE.Vector3 {
-    return this.mesh.position;
+  private readonly scratchVector3: THREE.Vector3 = new THREE.Vector3();
+
+  public getWorldPosition(target: THREE.Vector3): THREE.Vector3 {
+    return this.mesh.getWorldPosition(target);
   }
 
   constructor(position: THREE.Vector3) {
@@ -80,17 +82,18 @@ export class Turret extends Entity implements Targetable {
     // Aim at player
     this.mesh.lookAt(playerPosition);
 
-    const dist = this.mesh.position.distanceTo(playerPosition);
+    const worldPos = this.getWorldPosition(this.scratchVector3);
+    const dist = worldPos.distanceTo(playerPosition);
     
     // Only fire if in range AND player is "ahead" of the turret (player.z > turret.z since moving towards -Z)
     // Actually, in the trench, player moves from 0 to -5000. 
     // Turret at -500 is ahead if player.z > -500.
-    const isPlayerAhead = playerPosition.z > this.mesh.position.z;
+    const isPlayerAhead = playerPosition.z > worldPos.z;
 
     if (isPlayerAhead && dist < GameConfig.turret.range && this.fireCooldown <= 0) {
       this.fireCooldown = GameConfig.turret.fireRate;
       // Return direction towards player
-      return new THREE.Vector3().subVectors(playerPosition, this.mesh.position).normalize();
+      return new THREE.Vector3().subVectors(playerPosition, worldPos).normalize();
     }
 
     return null;

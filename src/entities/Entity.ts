@@ -11,7 +11,7 @@ export class Entity {
 }
 
 export interface Targetable {
-  readonly position: THREE.Vector3;
+  getWorldPosition(target: THREE.Vector3): THREE.Vector3;
   readonly isExploded: boolean;
   explode(): void;
   getScore(): number;
