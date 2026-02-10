@@ -8,6 +8,7 @@ export class UIManager {
   private shieldBar!: HTMLElement;
   private waveValue!: HTMLElement;
   private stageValue!: HTMLElement;
+  private distanceValue!: HTMLElement;
   private instructionValue!: HTMLElement;
   private destructionValue!: HTMLElement;
   private torpedoReadyValue!: HTMLElement;
@@ -45,6 +46,8 @@ export class UIManager {
     // Central info area
     const centerArea = this.createEl('div', 'fixed top-1/4 left-1/2 -translate-x-1/2 flex flex-col items-center space-y-4 pointer-events-none', this.hud);
     this.stageValue = this.createEl('div', 'text-vector-yellow text-4xl animate-pulse hidden', centerArea);
+    this.distanceValue = this.createEl('div', 'text-vector-red text-2xl font-bold hidden', centerArea);
+    this.distanceValue.id = 'distance-value';
     this.destructionValue = this.createEl('div', 'text-vector-red text-3xl font-bold text-center hidden animate-pulse', centerArea);
     this.destructionValue.id = 'destruction-value';
     this.destructionValue.textContent = 'DEATH STAR DESTROYED';
@@ -293,6 +296,23 @@ export class UIManager {
       setTimeout(() => {
         this.instructionValue.classList.add('hidden');
       }, 5000);
+    }
+
+    // Distance countdown in TRENCH stage
+    if (state.stage === 'TRENCH' && state.player) {
+      const { catwalkEndZ, exhaustPortZOffset } = GameConfig.stage;
+      const portZ = catwalkEndZ - exhaustPortZOffset;
+      const dist = Math.max(0, Math.floor(Math.abs(state.player.position.z - portZ)));
+      
+      // Show countdown when within range
+      if (dist < 4000) {
+        this.distanceValue.textContent = dist.toString().padStart(4, '0');
+        this.distanceValue.classList.remove('hidden');
+      } else {
+        this.distanceValue.classList.add('hidden');
+      }
+    } else {
+      this.distanceValue.classList.add('hidden');
     }
 
     if (state.isGameOver) {

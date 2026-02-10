@@ -118,8 +118,9 @@ export class Trench extends Entity {
       // Alternate sides
       const isLeft = Math.floor(Math.abs(z) / turretSpacing) % 2 === 0;
       const x = isLeft ? -halfWidth : halfWidth;
-      // Random height within trench walls
-      const y = (Math.random() - 0.5) * trenchHeight * 0.5;
+      // Deterministic height within trench walls based on z
+      // This creates a pattern player can learn (e.g. high, low, middle)
+      const y = (((Math.abs(z) / turretSpacing) % 3) - 1) * trenchHeight * 0.25;
       
       const turret = new Turret(new THREE.Vector3(x, y, z));
       this.turrets.push(turret);
