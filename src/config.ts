@@ -192,5 +192,6 @@ export const GameConfig = deepFreeze({
     fireRate: 3.0,
     range: 1500,
     spacing: 1000,
+    points: 200,
   },
 } as const);

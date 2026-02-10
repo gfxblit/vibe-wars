@@ -23,26 +23,32 @@ export class Turret extends Entity implements Targetable {
       wireframe: true
     });
 
-    // Base (Cylinder)
-    const baseGeo = new THREE.CylinderGeometry(size / 2, size / 1.5, size / 2, 8);
-    const base = new THREE.Mesh(baseGeo, material);
-    base.rotation.x = Math.PI / 2; // Orient along Z initially if we want, but actually it's a base
     // Actually, let's just make it a simple box for now to represent a turret
     const boxGeo = new THREE.BoxGeometry(size, size, size);
-    const box = new THREE.Mesh(boxGeo, material);
+    const box = new THREE.Mesh(boxGeo, material.clone());
     this.mesh.add(box);
 
     // Barrel
     const barrelGeo = new THREE.CylinderGeometry(size / 10, size / 10, size, 8);
-    const barrel = new THREE.Mesh(barrelGeo, material);
+    const barrel = new THREE.Mesh(barrelGeo, material.clone());
     barrel.position.z = size / 2;
     barrel.rotation.x = Math.PI / 2;
     this.mesh.add(barrel);
+    
+    // Dispose of original material template
+    material.dispose();
   }
 
   public explode(): void {
     if (this.isExploded) return;
     this.isExploded = true;
+
+    // Change color to orange
+    this.mesh.traverse(child => {
+      if (child instanceof THREE.Mesh && child.material instanceof THREE.MeshBasicMaterial) {
+        child.material.color.setHex(0xffa500);
+      }
+    });
 
     // Generate random velocities for each piece
     this.mesh.children.forEach(() => {
@@ -91,7 +97,7 @@ export class Turret extends Entity implements Targetable {
   }
 
   public getScore(): number {
-    return 200;
+    return GameConfig.turret.points;
   }
 
   public getVelocity(_playerForward: THREE.Vector3, _playerSpeed: number): THREE.Vector3 {

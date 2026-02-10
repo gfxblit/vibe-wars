@@ -62,4 +62,14 @@ describe('Turret Entity', () => {
     // Let's assume +Z for now.
     expect(turretForward.dot(toPlayer)).toBeGreaterThan(0.9);
   });
+
+  it('should change color to orange when exploded', () => {
+    turret.explode();
+    
+    turret.mesh.traverse(child => {
+      if (child instanceof THREE.Mesh && child.material instanceof THREE.MeshBasicMaterial) {
+        expect(child.material.color.getHex()).toBe(0xffa500); // Orange
+      }
+    });
+  });
 });
