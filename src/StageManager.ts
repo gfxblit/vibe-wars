@@ -95,6 +95,7 @@ class TrenchStage implements Stage {
 
   constructor(private manager: StageManager) {
     if (state.entityManager) {
+      state.entityManager.clear();
       state.entityManager.setSpawningEnabled(false);
     }
 
