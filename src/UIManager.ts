@@ -9,19 +9,24 @@ export class UIManager {
   private waveValue!: HTMLElement;
   private stageValue!: HTMLElement;
   private instructionValue!: HTMLElement;
+  private destructionValue!: HTMLElement;
+  private torpedoReadyValue!: HTMLElement;
   private gameOver!: HTMLElement;
   private debugPanel?: HTMLElement;
   private damageOverlay!: HTMLElement;
   private stageButtons?: Map<string, HTMLElement>;
   private lastShields: number;
   private lastStage: string = '';
+  private lastWave: number = 1;
   private damageTimeout: any = null;
   private shieldTimeout: any = null;
+  private destructionTimeout: any = null;
 
   private firstUpdate = true;
 
   constructor() {
     this.lastShields = GameConfig.player.maxShields;
+    this.lastWave = state.wave;
 
     // Set CSS variables from config (convert ms to s)
     document.documentElement.style.setProperty('--ui-damage-flash-duration', `${GameConfig.ui.damageFlashDuration / 1000}s`);
@@ -39,7 +44,12 @@ export class UIManager {
     // Central info area
     const centerArea = this.createEl('div', 'fixed top-1/4 left-1/2 -translate-x-1/2 flex flex-col items-center space-y-4 pointer-events-none', this.hud);
     this.stageValue = this.createEl('div', 'text-vector-yellow text-4xl animate-pulse hidden', centerArea);
+    this.destructionValue = this.createEl('div', 'text-vector-red text-3xl font-bold text-center hidden animate-pulse', centerArea);
+    this.destructionValue.id = 'destruction-value';
+    this.destructionValue.textContent = 'DEATH STAR DESTROYED';
     this.instructionValue = this.createEl('div', 'text-vector-green text-xl text-center hidden', centerArea);
+    this.torpedoReadyValue = this.createEl('div', 'text-vector-red text-2xl font-bold hidden animate-pulse', centerArea);
+    this.torpedoReadyValue.textContent = 'TORPEDO READY';
 
     this.createGameOverOverlay();
 
@@ -211,6 +221,16 @@ export class UIManager {
 
     if (this.waveValue.textContent !== state.wave.toString()) {
       this.waveValue.textContent = state.wave.toString();
+
+      // If wave increased, show destruction message
+      if (!this.firstUpdate && state.wave > this.lastWave) {
+        this.destructionValue.classList.remove('hidden');
+        if (this.destructionTimeout) clearTimeout(this.destructionTimeout);
+        this.destructionTimeout = setTimeout(() => {
+          this.destructionValue.classList.add('hidden');
+        }, 4000); // Stay for 4 seconds
+      }
+      this.lastWave = state.wave;
     }
 
     // Handle Stage display and instructions
@@ -235,7 +255,7 @@ export class UIManager {
           this.instructionValue.classList.remove('hidden');
           break;
         case 'TRENCH':
-          this.instructionValue.textContent = 'STAY LOW AND FIRE TORPEDOES INTO THE PORT (SPACE/RIGHT-CLICK)';
+          this.instructionValue.textContent = 'STAY LOW AND AIM AT THE PORT TO AUTO-FIRE TORPEDOES';
           this.instructionValue.classList.remove('hidden');
           break;
       }
@@ -254,6 +274,13 @@ export class UIManager {
 
     if (this.stageButtons) {
       this.updateStageButtons(state.stage);
+    }
+
+    // Torpedo Ready indicator
+    if (state.stage === 'TRENCH' && state.stageManager?.canFireTorpedo) {
+      this.torpedoReadyValue.classList.remove('hidden');
+    } else {
+      this.torpedoReadyValue.classList.add('hidden');
     }
 
     this.firstUpdate = false;

@@ -90,7 +90,7 @@ export function initGame(worldScene: THREE.Scene, hudScene: THREE.Scene) {
   console.log('Game initialized', { debug: state.debug, stage: state.stage });
 }
 
-export function updateState(deltaTime: number, camera: THREE.Camera, input: UserInput = { x: 0, y: 0, isFiring: false, isLaunchingTorpedo: false }) {
+export function updateState(deltaTime: number, camera: THREE.Camera, input: UserInput = { x: 0, y: 0, isFiring: false }) {
   if (state.isGameOver || !state.player || !state.entityManager || !state.stageManager) {
     return;
   }
@@ -165,6 +165,11 @@ export function spawnLasers(input: Pick<UserInput, 'x' | 'y'>): Laser[] {
 export function spawnFireball(position: THREE.Vector3, velocity: THREE.Vector3): Fireball | null {
   if (!state.entityManager) return null;
   return state.entityManager.spawnFireball(position, velocity);
+}
+
+export function spawnTorpedo(position: THREE.Vector3, velocity: THREE.Vector3) {
+  if (!state.entityManager) return null;
+  return state.entityManager.spawnTorpedo(position, velocity);
 }
 
 export function addScore(points: number) {

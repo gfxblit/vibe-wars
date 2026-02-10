@@ -9,7 +9,7 @@ describe('Player Quaternion Turning', () => {
     
     // Initial state: looking at -Z, level.
     // Give X input (turn right).
-    player.update({ x: 1, y: 0, isFiring: false, isLaunchingTorpedo: false }, 0.1, GameConfig.player.baseForwardSpeed);
+    player.update({ x: 1, y: 0, isFiring: false }, 0.1, GameConfig.player.baseForwardSpeed);
     
     const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(player.mesh.quaternion);
     
@@ -24,7 +24,7 @@ describe('Player Quaternion Turning', () => {
     // 1. Pitch up 45 degrees
     // TURN_SPEED_PITCH is Math.PI / 1.5
     // 45 deg = (PI/4) / (PI/1.5) = 1.5/4 = 0.375s
-    player.update({ x: 0, y: 1, isFiring: false, isLaunchingTorpedo: false }, 0.375, GameConfig.player.baseForwardSpeed);
+    player.update({ x: 0, y: 1, isFiring: false }, 0.375, GameConfig.player.baseForwardSpeed);
     
     let forward = new THREE.Vector3(0, 0, -1).applyQuaternion(player.mesh.quaternion);
     expect(forward.y).toBeCloseTo(Math.sin(Math.PI / 4), 5);
@@ -32,7 +32,7 @@ describe('Player Quaternion Turning', () => {
     // 2. Yaw right 90 degrees
     // TURN_SPEED_YAW is Math.PI / 1.5
     // 90 deg = (PI/2) / (PI/1.5) = 1.5/2 = 0.75s
-    player.update({ x: 1, y: 0, isFiring: false, isLaunchingTorpedo: false }, 0.75, GameConfig.player.baseForwardSpeed);
+    player.update({ x: 1, y: 0, isFiring: false }, 0.75, GameConfig.player.baseForwardSpeed);
     
     forward = new THREE.Vector3(0, 0, -1).applyQuaternion(player.mesh.quaternion);
     

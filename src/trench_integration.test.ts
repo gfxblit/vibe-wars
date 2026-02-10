@@ -55,7 +55,7 @@ describe('Trench Integration', () => {
     // In TRENCH mode, orientation should be clamped.
     // Give extreme input for several frames
     for (let i = 0; i < 10; i++) {
-      updateState(0.1, camera, { x: 1, y: 1, isFiring: false, isLaunchingTorpedo: false });
+      updateState(0.1, camera, { x: 1, y: 1, isFiring: false });
     }
     
     const euler = new THREE.Euler().setFromQuaternion(state.player!.mesh.quaternion, 'YXZ');

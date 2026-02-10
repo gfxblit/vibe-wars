@@ -11,20 +11,20 @@ A first-person space combat simulator that puts the player in the role of Luke S
 1.  **Pilot:** Steer the X-Wing through space and trench environments.
 2.  **Combat:** Aim the crosshairs to shoot down TIE Fighters, fireballs, and towers.
 3.  **Survive:** Avoid incoming fire and collisions (Shield Management).
-4.  **Destroy:** Fire proton torpedoes into the Death Star exhaust port.
+4.  **Destroy:** Aim at the Death Star exhaust port while firing to auto-launch a proton torpedo.
 5.  **Repeat:** Game difficulty increases with each successful Death Star destruction.
 
 ### Controls
 The control scheme simulates the original flight yoke. The ship's nose "chases" the crosshair.
 
-*   **PC (Mouse):** Mouse moves crosshair; edges pitch/yaw ship. Left Click for Laser, Right Click/Space for Torpedo.
+*   **PC (Mouse):** Mouse moves crosshair; edges pitch/yaw ship. Left Click/Space for Laser. Torpedoes auto-fire when aiming at the exhaust port while firing.
     *   **Inverted Option:** Toggle available in settings to invert Y-Axis (Mouse Up = Ship Down) to mimic real flight controls.
-*   **Mobile (Touch):** Virtual yoke (left) for steering, Action buttons (right) for fire.
+*   **Mobile (Touch):** Virtual yoke (left) for steering, Action button (right) for fire. Torpedoes auto-fire when aiming at the exhaust port while firing.
 
 ### Level Stages
 1.  **Dogfight:** Destroy TIE Fighters and avoid fireballs.
 2.  **Surface:** Destroy bunkers and towers on the Death Star surface.
-3.  **Trench Run:** Navigate obstacles and fire the proton torpedo into the exhaust port.
+3.  **Trench Run:** Navigate obstacles and auto-fire the proton torpedo into the exhaust port by aiming while firing.
 
 ### Scoring System
 | Action | Points Awarded |

@@ -40,6 +40,11 @@ export class Trench extends Entity {
     this.floor.position.set(0, -trenchHeight / 2 - 5, -halfLength);
     this.mesh.add(this.floor);
 
+    const backWallGeometry = new THREE.BoxGeometry(trenchWidth, trenchHeight, 10);
+    const backWall = new THREE.Mesh(backWallGeometry, wallMaterial);
+    backWall.position.set(0, 0, -trenchLength - 5);
+    this.mesh.add(backWall);
+
     this.addObstacles();
   }
 

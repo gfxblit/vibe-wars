@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { GameConfig } from './config';
-import { state, goToNextStage, takeDamage } from './state';
+import { state, goToNextStage, takeDamage, addScore } from './state';
 import { Player } from './entities/Player';
 import { DeathStar } from './entities/DeathStar';
 import { Trench } from './entities/Trench';
@@ -95,6 +95,7 @@ class TrenchStage implements Stage {
 
   constructor(private manager: StageManager) {
     if (state.entityManager) {
+      state.entityManager.clear();
       state.entityManager.setSpawningEnabled(false);
     }
 
@@ -130,8 +131,33 @@ class TrenchStage implements Stage {
 
     // If player reaches the end of the trench or hits the port, they win the stage
     const hitPort = this.trench.checkPortCollision(player.position);
-    if (hitPort || player.position.z <= -GameConfig.stage.trenchLength) {
+    
+    // Check if any torpedoes hit the port or obstacles
+    let torpedoHitPort = false;
+    let torpedoMissed = false;
+    if (state.entityManager) {
+      state.entityManager.getTorpedoes().forEach(torpedo => {
+        if (!torpedo.isExploded) {
+          if (this.trench.checkPortCollision(torpedo.position)) {
+            torpedoHitPort = true;
+            torpedo.explode();
+          } else if (this.trench.checkObstacleCollision(torpedo.position) !== null) {
+            torpedo.explode();
+            torpedoMissed = true;
+          } else if (torpedo.position.z <= -GameConfig.stage.trenchLength) {
+            torpedo.explode();
+            torpedoMissed = true;
+          }
+        }
+      });
+    }
+
+    if (torpedoHitPort) {
+      addScore(GameConfig.torpedo.bonusPoints);
       goToNextStage();
+    } else if (torpedoMissed || hitPort || player.position.z <= -GameConfig.stage.trenchLength) {
+      takeDamage(1);
+      this.manager.reset();
     }
   }
 
@@ -143,12 +169,15 @@ class TrenchStage implements Stage {
 
 export class StageManager {
   private currentStage: Stage | null = null;
+  public canFireTorpedo: boolean = false;
+  public hasFiredTorpedo: boolean = false;
 
   constructor(public worldScene: THREE.Scene) {
     this.initStage();
   }
 
   private initStage(): void {
+    this.hasFiredTorpedo = false;
     switch (state.stage) {
       case 'DOGFIGHT':
         this.currentStage = new DogfightStage();
@@ -191,7 +220,7 @@ export class StageManager {
 
     // Range Check: Can only hit when close enough
     const distanceToPort = Math.abs(state.player.position.z - portZ);
-    if (distanceToPort > 2000) return false;
+    if (distanceToPort > GameConfig.torpedo.range) return false;
 
     return checkAim(portPos, input, camera);
   }

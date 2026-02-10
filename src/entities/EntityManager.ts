@@ -4,11 +4,13 @@ import { AIStrategyFactory } from './AIStrategyFactory';
 import { GameConfig } from '../config';
 import { Fireball } from './Fireball';
 import { Laser } from './Laser';
+import { Torpedo } from './Torpedo';
 
 export class EntityManager {
   private tieFighters: TieFighter[] = [];
   private fireballs: Fireball[] = [];
   private lasers: Laser[] = [];
+  private torpedoes: Torpedo[] = [];
   private spawnTimer: number = 0;
   private worldScene: THREE.Scene;
   private hudScene: THREE.Scene;
@@ -129,7 +131,16 @@ export class EntityManager {
       }
     }
 
-    // 4. Spawn new TIE fighters
+    // 4. Update torpedoes
+    for (let i = this.torpedoes.length - 1; i >= 0; i--) {
+      const torpedo = this.torpedoes[i];
+      torpedo.update(deltaTime);
+      if (torpedo.isExpired()) {
+        this.removeTorpedo(i);
+      }
+    }
+
+    // 5. Spawn new TIE fighters
     if (this.spawningEnabled) {
       this.spawnTimer += deltaTime;
       if (this.spawnTimer >= GameConfig.tieFighter.spawnInterval) {
@@ -164,6 +175,13 @@ export class EntityManager {
     return laser;
   }
 
+  public spawnTorpedo(position: THREE.Vector3, velocity: THREE.Vector3): Torpedo {
+    const torpedo = new Torpedo(position, velocity);
+    this.torpedoes.push(torpedo);
+    this.worldScene.add(torpedo.mesh);
+    return torpedo;
+  }
+
   public removeTieFighter(index: number): void {
     const tf = this.tieFighters[index];
     this.worldScene.remove(tf.mesh);
@@ -192,6 +210,13 @@ export class EntityManager {
     this.lasers.splice(index, 1);
   }
 
+  public removeTorpedo(index: number): void {
+    const torpedo = this.torpedoes[index];
+    this.worldScene.remove(torpedo.mesh);
+    torpedo.dispose();
+    this.torpedoes.splice(index, 1);
+  }
+
   public getTieFighters(): TieFighter[] {
     return this.tieFighters;
   }
@@ -202,6 +227,10 @@ export class EntityManager {
 
   public getLasers(): Laser[] {
     return this.lasers;
+  }
+
+  public getTorpedoes(): Torpedo[] {
+    return this.torpedoes;
   }
 
   public clear(): void {
@@ -222,6 +251,12 @@ export class EntityManager {
       laser.dispose();
     });
     this.lasers = [];
+
+    this.torpedoes.forEach(torpedo => {
+      this.worldScene.remove(torpedo.mesh);
+      torpedo.dispose();
+    });
+    this.torpedoes = [];
 
     this.spawnTimer = 0;
   }

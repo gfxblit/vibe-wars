@@ -6,7 +6,6 @@ export interface UserInput {
   x: number;
   y: number;
   isFiring: boolean;
-  isLaunchingTorpedo: boolean;
 }
 
 export class InputManager {
@@ -19,14 +18,13 @@ export class InputManager {
   private dragTouchId: number | null = null;
   private dragStartedOnFireButton: boolean = false;
   private isFiring: boolean = false;
-  private isLaunchingTorpedo: boolean = false;
   private useRelativeInput: boolean = false;
   private pointerAnchor: THREE.Vector2 = new THREE.Vector2(0, 0);
   private fireButton: HTMLElement | null = null;
   
   private handleKeyDown = (event: KeyboardEvent) => {
     if (event.code === 'Space') {
-      this.isLaunchingTorpedo = true;
+      this.isFiring = true;
     }
     this.keys.add(event.code);
     this.updateKeyboardTarget();
@@ -34,7 +32,7 @@ export class InputManager {
 
   private handleKeyUp = (event: KeyboardEvent) => {
     if (event.code === 'Space') {
-      this.isLaunchingTorpedo = false;
+      this.isFiring = false;
     }
     this.keys.delete(event.code);
     this.updateKeyboardTarget();
@@ -236,8 +234,7 @@ export class InputManager {
     return {
       x: this.input.x,
       y: this.input.y,
-      isFiring: this.isFiring,
-      isLaunchingTorpedo: this.isLaunchingTorpedo
+      isFiring: this.isFiring
     };
   }
 }
