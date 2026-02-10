@@ -10,6 +10,7 @@ export class Torpedo extends Entity {
   explosionTimer: number = 0;
   private sparkleVelocities: THREE.Vector3[] = [];
   private sparkleRotationSpeeds: number[] = [];
+  private static sparkleTexture: THREE.Texture | null = null;
 
   constructor(position: THREE.Vector3, velocity: THREE.Vector3) {
     super();
@@ -22,9 +23,13 @@ export class Torpedo extends Entity {
     const color = new THREE.Color(0x00ffff);
     const size = GameConfig.torpedo.sparkleSize * 1.5;
 
+    if (!Torpedo.sparkleTexture) {
+      Torpedo.sparkleTexture = Torpedo.createSparkleTexture();
+    }
+
     for (let i = 0; i < GameConfig.torpedo.sparkleCount; i++) {
       const material = new THREE.SpriteMaterial({
-        map: this.createSparkleTexture(),
+        map: Torpedo.sparkleTexture,
         color: color,
         transparent: true,
         blending: THREE.AdditiveBlending,
@@ -47,7 +52,7 @@ export class Torpedo extends Entity {
     }
   }
 
-  private createSparkleTexture(): THREE.Texture {
+  private static createSparkleTexture(): THREE.Texture {
     const canvas = document.createElement('canvas');
     canvas.width = 64;
     canvas.height = 64;
@@ -120,7 +125,7 @@ export class Torpedo extends Entity {
   dispose(): void {
     this.mesh.children.forEach(child => {
       if (child instanceof THREE.Sprite) {
-        child.material.map?.dispose();
+        // child.material.map?.dispose(); // Shared texture, do not dispose here
         child.material.dispose();
       }
     });
