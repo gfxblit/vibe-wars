@@ -43,13 +43,13 @@ Refactor the existing `StageManager.ts` by extracting the inner stage classes (`
 
 5. **Extract TrenchStage** (File: `src/stages/TrenchStage.ts`)
    - Action: Move `TrenchStage` class code.
-   - Refactor: Update constructor to accept `scene: THREE.Scene` instead of `StageManager`.
-   - Why: Separation and decoupling.
+   - Refactor: Update constructor to accept `scene: THREE.Scene` and `onReset: () => void` instead of `StageManager`.
+   - Why: Separation and decoupling, while allowing the stage to trigger a manager reset without a circular dependency.
 
 ### Phase 2: Integration
 6. **Update StageManager** (File: `src/StageManager.ts`)
-   - Action: Remove extracted classes. Import them from `src/stages/`. Update `initStage` to pass `this.worldScene` to Surface and Trench stages.
-   - Why: To use the new file structure.
+   - Action: Remove extracted classes. Import them from `src/stages/`. Update `initStage` to pass `this.worldScene` to Surface stage, and `this.worldScene` plus a reset callback to Trench stage.
+   - Why: To use the new file structure while maintaining reset functionality.
 
 ## Testing Strategy
 - **Unit Tests:** Run `vitest src/StageManager.test.ts` and `vitest src/StageTransition.test.ts`.
