@@ -1,31 +1,59 @@
 import * as THREE from 'three';
 import { GameConfig } from '../config';
-import { state, goToNextStage } from '../state';
+import { state, goToNextStage, takeDamage } from '../state';
 import { Player } from '../entities/Player';
 import { Stage } from './Stage';
+import { Tower } from '../entities/Tower';
+import { Surface } from '../entities/Surface';
 
 export class SurfaceStage implements Stage {
   public readonly speed = GameConfig.player.forwardSpeeds.SURFACE;
   private elapsedTime: number = 0;
-  private readonly TRANSITION_DELAY = 2.0;
+  private surface: Surface;
 
-  constructor(_scene: THREE.Scene) {
+  constructor(private scene: THREE.Scene) {
     // Clear existing enemies for a clean transition
     if (state.entityManager) {
       state.entityManager.clear();
       state.entityManager.setSpawningEnabled(false);
     }
+    
+    this.surface = new Surface();
+    this.scene.add(this.surface.mesh);
   }
 
-  update(deltaTime: number, _player: Player): void {
+  public getTowers(): Tower[] {
+    return this.surface.getTowers();
+  }
+
+  update(deltaTime: number, player: Player): void {
     this.elapsedTime += deltaTime;
     
-    if (this.elapsedTime >= this.TRANSITION_DELAY) {
+    this.surface.update(deltaTime, player.position.z);
+
+    const playerBox = new THREE.Box3().setFromObject(player.mesh);
+    
+    const { floorHit, towerHit } = this.surface.checkCollisions(playerBox, player.position);
+
+    if (floorHit) { 
+        takeDamage(1);
+        // Bounce player up to avoid instant death loop or getting stuck
+        player.position.y = GameConfig.stage.surfaceFloorY + 2;
+    }
+
+    if (towerHit) {
+        takeDamage(1);
+        towerHit.isDestroyed = true; // Mark as hit so we don't hit it again immediately
+    }
+    
+    // Check End Condition
+    if (this.elapsedTime >= GameConfig.stage.surfaceDuration) {
       goToNextStage();
     }
   }
 
   cleanup(): void {
-    // Nothing to cleanup for now
+    this.scene.remove(this.surface.mesh);
+    this.surface.dispose();
   }
 }

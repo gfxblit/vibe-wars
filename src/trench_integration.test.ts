@@ -43,7 +43,7 @@ describe('Trench Integration', () => {
     expect(state.stage).toBe('SURFACE'); // Now in Surface Stage
 
     // 3. Wait for Surface Stage Timer (Surface -> Trench)
-    updateState(GameConfig.stage.surfaceDuration + 1, camera);
+    updateState(GameConfig.stage.surfaceDuration + 1.0, camera);
 
     expect(state.stage).toBe('TRENCH');
     // Trench should be in scene

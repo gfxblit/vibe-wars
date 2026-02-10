@@ -61,8 +61,8 @@ describe('StageManager', () => {
     stageManager.update(0.1, player);
     expect(state.stage).toBe('SURFACE');
 
-    // Advance time past 2 seconds
-    stageManager.update(2.5, player);
+    // Advance time past surface duration
+    stageManager.update(GameConfig.stage.surfaceDuration + 1.0, player);
 
     expect(state.stage).toBe('TRENCH');
     
