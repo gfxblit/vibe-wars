@@ -132,25 +132,31 @@ class TrenchStage implements Stage {
     const hitPort = this.trench.checkPortCollision(player.position);
     
     // Check if any torpedoes hit the port or obstacles
-    let torpedoHit = false;
+    let torpedoHitPort = false;
+    let torpedoMissed = false;
     if (state.entityManager) {
       state.entityManager.getTorpedoes().forEach(torpedo => {
         if (!torpedo.isExploded) {
           if (this.trench.checkPortCollision(torpedo.position)) {
-            torpedoHit = true;
+            torpedoHitPort = true;
             torpedo.explode();
           } else if (this.trench.checkObstacleCollision(torpedo.position) !== null) {
             torpedo.explode();
+            torpedoMissed = true;
+          } else if (torpedo.position.z <= -GameConfig.stage.trenchLength) {
+            torpedo.explode();
+            torpedoMissed = true;
           }
         }
       });
     }
 
-    if (hitPort || torpedoHit || player.position.z <= -GameConfig.stage.trenchLength) {
-      if (torpedoHit) {
-        addScore(GameConfig.torpedo.bonusPoints);
-      }
+    if (torpedoHitPort) {
+      addScore(GameConfig.torpedo.bonusPoints);
       goToNextStage();
+    } else if (torpedoMissed || hitPort || player.position.z <= -GameConfig.stage.trenchLength) {
+      takeDamage(1);
+      this.manager.reset();
     }
   }
 

@@ -106,19 +106,23 @@ describe('StageManager', () => {
     expect(state.shields).toBe(initialShields);
   });
 
-  it('should complete level when reaching end of trench', () => {
+  it('should restart trench stage and take damage when reaching end of trench', () => {
     state.stage = 'TRENCH';
     stageManager.reset();
+    const initialShields = state.shields;
 
     player.position.set(0, 0, -GameConfig.stage.trenchLength - 100);
     stageManager.update(0.1, player);
 
-    expect(state.stage).not.toBe('TRENCH');
+    expect(state.stage).toBe('TRENCH');
+    expect(state.shields).toBe(initialShields - 1);
+    expect(player.position.z).toBe(0);
   });
 
-  it('should complete level when hitting the exhaust port', () => {
+  it('should restart trench stage and take damage when hitting the exhaust port structure', () => {
     state.stage = 'TRENCH';
     stageManager.reset();
+    const initialShields = state.shields;
 
     const { catwalkEndZ, exhaustPortZOffset, trenchHeight } = GameConfig.stage;
     const portZ = catwalkEndZ - exhaustPortZOffset;
@@ -127,7 +131,9 @@ describe('StageManager', () => {
     player.position.set(0, portY, portZ);
     stageManager.update(0.1, player);
 
-    expect(state.stage).not.toBe('TRENCH');
+    expect(state.stage).toBe('TRENCH');
+    expect(state.shields).toBe(initialShields - 1);
+    expect(player.position.z).toBe(0);
   });
 
   it('should complete level when a torpedo hits the exhaust port', () => {
