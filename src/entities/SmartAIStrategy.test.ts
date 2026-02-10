@@ -27,7 +27,7 @@ describe('SmartAIStrategy', () => {
     // First update initializes
     strategy.update(0, entityPosition, entityQuaternion, playerPosition, playerQuaternion, GameConfig.player.baseForwardSpeed);
     // with 0.5, random offset is 0.
-    expect(entityPosition.z).toBeCloseTo(GameConfig.tieFighter.spawnDistanceBehind + 0.5 * GameConfig.tieFighter.smartSpawnRandomZ, 1);
+    expect(entityPosition.z).toBeCloseTo(GameConfig.tieFighter.smartAI.spawnDistanceBehind + 0.5 * GameConfig.tieFighter.smartAI.spawnRandomZ, 1);
 
     const initialZ = entityPosition.z;
     strategy.update(0.1, entityPosition, entityQuaternion, playerPosition, playerQuaternion, GameConfig.player.baseForwardSpeed);
@@ -48,7 +48,7 @@ describe('SmartAIStrategy', () => {
     // elapsedTime will be 0 on first update
     rngStrategy.update(0, entityPosition, entityQuaternion, playerPosition, playerQuaternion, GameConfig.player.baseForwardSpeed);
 
-    // offset.x = (0.6 - 0.5) * smartSpawnRandomX = 0.1 * 40 = 4
+    // offset.x = (0.6 - 0.5) * spawnRandomX = 0.1 * 40 = 4
     // xOsc = sin(0) = 0
     // xArc = sin(0 + 0) = 0
     // entityPosition.x = offset.x + xArc + xOsc = 4
@@ -74,7 +74,7 @@ describe('SmartAIStrategy', () => {
     // Manually setting offset is not possible because it's private.
     // But we can update until it reaches Z=0.
 
-    // Initial Z is around 100. relativeSpeed is smartSpeed (180) - playerSpeed (100) = 80.
+    // Initial Z is around 100. relativeSpeed is smartAI.speed (180) - playerSpeed (100) = 80.
     // Takes about 1.25s to reach Z=0.
 
     strategy.update(0, entityPosition, entityQuaternion, playerPosition, playerQuaternion, GameConfig.player.baseForwardSpeed);
@@ -88,7 +88,7 @@ describe('SmartAIStrategy', () => {
     }
 
     // It should have significant lateral movement at some point
-    expect(maxLateralMovement).toBeGreaterThan(GameConfig.tieFighter.smartArcAmplitude * 0.4);
+    expect(maxLateralMovement).toBeGreaterThan(GameConfig.tieFighter.smartAI.arcAmplitude * 0.4);
   })
 
   test('should maintain constant distance during shadowing stage', () => {
@@ -103,7 +103,7 @@ describe('SmartAIStrategy', () => {
     }
 
     // Now it should be shadowing at -50
-    expect(entityPosition.z).toBeCloseTo(GameConfig.tieFighter.smartShadowDistance, 0);
+    expect(entityPosition.z).toBeCloseTo(GameConfig.tieFighter.smartAI.shadowDistance, 0);
 
     const zBefore = entityPosition.z;
     strategy.update(0.5, entityPosition, entityQuaternion, playerPosition, playerQuaternion, GameConfig.player.baseForwardSpeed);
@@ -119,5 +119,31 @@ describe('SmartAIStrategy', () => {
     const zShadow = entityPosition.z;
     strategy.update(0.5, entityPosition, entityQuaternion, playerPosition, playerQuaternion, GameConfig.player.baseForwardSpeed);
     expect(entityPosition.z).toBeLessThan(zShadow);
+  })
+
+  test('should use far-away escape trajectory when RNG allows', () => {
+    // We need to trigger SHADOW -> ESCAPE transition with random > 0.5
+    strategy.update(0, entityPosition, entityQuaternion, playerPosition, playerQuaternion, GameConfig.player.baseForwardSpeed);
+    
+    // Fast forward to SHADOW
+    for (let t = 0; t < 8.0; t += 0.1) {
+      strategy.update(0.1, entityPosition, entityQuaternion, playerPosition, playerQuaternion, GameConfig.player.baseForwardSpeed);
+    }
+    
+    // In SHADOW stage. Wait for duration.
+    // Transition happens when shadowTimer >= shadowDuration.
+    for (let t = 0; t < GameConfig.tieFighter.smartAI.shadowDuration - 0.5; t += 0.5) {
+      strategy.update(0.5, entityPosition, entityQuaternion, playerPosition, playerQuaternion, GameConfig.player.baseForwardSpeed);
+    }
+
+    // Next update will transition to ESCAPE. Mock RNG to return 0.6 for isFarAway.
+    mockRng.random = vi.fn().mockReturnValue(0.6);
+    strategy.update(0.5, entityPosition, entityQuaternion, playerPosition, playerQuaternion, GameConfig.player.baseForwardSpeed);
+    
+    // Should be in ESCAPE stage and moving according to escapeFarZ
+    // We can't easily check the private escapeDirection, but we can check movement.
+    const zBefore = entityPosition.z;
+    strategy.update(0.1, entityPosition, entityQuaternion, playerPosition, playerQuaternion, GameConfig.player.baseForwardSpeed);
+    expect(entityPosition.z).toBeLessThan(zBefore);
   })
 })

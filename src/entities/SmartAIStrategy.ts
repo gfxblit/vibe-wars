@@ -48,45 +48,43 @@ export class SmartAIStrategy implements AIStrategy {
     playerQuaternion: THREE.Quaternion,
     playerSpeed: number
   ): void {
+    const cfg = GameConfig.tieFighter.smartAI;
     this.elapsedTime += deltaTime;
 
     if (!this.isInitialized) {
-      const initialZOffset = GameConfig.tieFighter.spawnDistanceBehind + this.rng.random() * GameConfig.tieFighter.smartSpawnRandomZ;
+      const initialZOffset = cfg.spawnDistanceBehind + this.rng.random() * cfg.spawnRandomZ;
       this.offset.set(
-        (this.rng.random() - 0.5) * GameConfig.tieFighter.smartSpawnRandomX,
-        (this.rng.random() - 0.5) * GameConfig.tieFighter.smartSpawnRandomY,
+        (this.rng.random() - 0.5) * cfg.spawnRandomX,
+        (this.rng.random() - 0.5) * cfg.spawnRandomY,
         initialZOffset
       );
       this.isInitialized = true;
     }
 
     this.prevWorldPos.copy(entityPosition);
-    const relativeSpeed = GameConfig.tieFighter.smartSpeed - playerSpeed;
+    const relativeSpeed = cfg.speed - playerSpeed;
 
     // Stage transitions and Z-Movement logic
     let speedFactor = 1.0;
     if (this.stage === 'APPROACH') {
-      const distToShadow = this.offset.z - GameConfig.tieFighter.smartShadowDistance;
-      const brakingZone = GameConfig.tieFighter.smartBrakingZone;
-
-      // Continuous deceleration to zero
-      speedFactor = Math.max(0, Math.min(1.0, distToShadow / brakingZone));
+      const distToShadow = this.offset.z - cfg.shadowDistance;
+      speedFactor = THREE.MathUtils.clamp(distToShadow / cfg.brakingZone, 0, 1);
       this.offset.z -= relativeSpeed * speedFactor * deltaTime;
 
       // Smoothly ramp up extra intensity as we approach
-      this.extraIntensity = GameConfig.tieFighter.smartIntensityMax * (1.0 - speedFactor);
+      this.extraIntensity = cfg.arcIntensity * (1.0 - speedFactor);
 
-      if (distToShadow <= GameConfig.tieFighter.smartStageThreshold) {
+      if (distToShadow <= cfg.stageThreshold) {
         this.stage = 'SHADOW';
         this.shadowTimer = 0;
-        this.offset.z = GameConfig.tieFighter.smartShadowDistance;
-        this.extraIntensity = GameConfig.tieFighter.smartIntensityMax;
+        this.offset.z = cfg.shadowDistance;
+        this.extraIntensity = cfg.arcIntensity;
       }
     } else if (this.stage === 'SHADOW') {
       this.shadowTimer += deltaTime;
-      this.offset.z = GameConfig.tieFighter.smartShadowDistance;
-      this.extraIntensity = GameConfig.tieFighter.smartIntensityMax;
-      if (this.shadowTimer >= GameConfig.tieFighter.smartShadowDuration) {
+      this.offset.z = cfg.shadowDistance;
+      this.extraIntensity = cfg.arcIntensity;
+      if (this.shadowTimer >= cfg.shadowDuration) {
         this.stage = 'ESCAPE';
         this.escapeTimer = 0;
 
@@ -95,24 +93,23 @@ export class SmartAIStrategy implements AIStrategy {
         if (isFarAway) {
           // Fly deep into the distance (-Z dominant)
           this.escapeDirection.set(
-            (this.rng.random() - 0.5) * GameConfig.tieFighter.smartEscapeFarRandomX,
-            (this.rng.random() - 0.5) * GameConfig.tieFighter.smartEscapeFarRandomY,
-            GameConfig.tieFighter.smartEscapeFarZ
+            (this.rng.random() - 0.5) * cfg.escapeFarRandomX,
+            (this.rng.random() - 0.5) * cfg.escapeFarRandomY,
+            cfg.escapeFarZ
           ).normalize();
         } else {
           // Exit screen quickly (High X/Y components)
           this.escapeDirection.set(
-            (this.rng.random() - 0.5) * GameConfig.tieFighter.smartEscapeQuickRandomX,
-            (this.rng.random() - 0.5) * GameConfig.tieFighter.smartEscapeQuickRandomY,
-            GameConfig.tieFighter.smartEscapeQuickZ
+            (this.rng.random() - 0.5) * cfg.escapeQuickRandomX,
+            (this.rng.random() - 0.5) * cfg.escapeQuickRandomY,
+            cfg.escapeQuickZ
           ).normalize();
         }
       }
     } else if (this.stage === 'ESCAPE') {
       this.escapeTimer += deltaTime;
-      const accelerationDuration = GameConfig.tieFighter.smartEscapeAccelerationDuration;
-      const t = Math.min(1.0, this.escapeTimer / accelerationDuration);
-      speedFactor = t * t;
+      const t = THREE.MathUtils.clamp(this.escapeTimer / cfg.escapeAccelerationDuration, 0, 1);
+      speedFactor = t * t; // Smooth acceleration
 
       // Move along the randomized escape vector
       const moveAmount = relativeSpeed * speedFactor * deltaTime;
@@ -121,22 +118,24 @@ export class SmartAIStrategy implements AIStrategy {
       this.offset.z += this.escapeDirection.z * moveAmount;
 
       // Fade out
-      this.extraIntensity = Math.max(0, GameConfig.tieFighter.smartIntensityMax * (1.0 - this.escapeTimer / GameConfig.tieFighter.smartEscapeFadeDuration));
+      this.extraIntensity = Math.max(0, cfg.arcIntensity * (1.0 - this.escapeTimer / cfg.escapeFadeDuration));
     }
 
-    // Cinematic Arc: Intensity is high near the player and during shadowing
-    const arcIntensity = Math.exp(-Math.pow(this.offset.z / GameConfig.tieFighter.smartArcFalloff, 2)) + this.extraIntensity;
-    const xArc = Math.sin(this.elapsedTime * GameConfig.tieFighter.smartArcFrequency + this.stageOffsets.x) * 
-                 GameConfig.tieFighter.smartArcAmplitude * arcIntensity * this.arcDirection.x;
-    const yArc = Math.cos(this.elapsedTime * GameConfig.tieFighter.smartArcFrequency * GameConfig.tieFighter.smartArcFrequencyMult + this.stageOffsets.y) * 
-                 GameConfig.tieFighter.smartArcAmplitude * GameConfig.tieFighter.smartArcAmplitudeMult * arcIntensity * this.arcDirection.y;
+    // Cinematic Swerve: Unified oscillation and arc logic
+    const dist = Math.abs(this.offset.z);
+    const baseIntensity = 1.0 - Math.max(0, Math.min(1.0, dist / cfg.arcFalloff));
+    const intensity = baseIntensity + this.extraIntensity;
+
+    const phase = this.elapsedTime * cfg.arcFrequency;
+    const swerveX = Math.sin(phase + this.stageOffsets.x) * cfg.arcAmplitude * intensity * this.arcDirection.x;
+    const swerveY = Math.cos(phase + this.stageOffsets.y) * cfg.arcAmplitude * cfg.verticalSwayRatio * intensity * this.arcDirection.y;
 
     // Small persistent oscillation
-    const xOsc = Math.sin(this.elapsedTime * GameConfig.tieFighter.smartOscillationFreq) * GameConfig.tieFighter.smartOscillationAmp;
+    const oscX = Math.sin(this.elapsedTime * cfg.oscillationFreq) * cfg.oscillationAmp;
 
     this.currentRelativePos.copy(this.offset);
-    this.currentRelativePos.x += xArc + xOsc;
-    this.currentRelativePos.y += yArc;
+    this.currentRelativePos.x += swerveX + oscX;
+    this.currentRelativePos.y += swerveY;
 
     // Transform relative position to world position
     entityPosition.copy(this.currentRelativePos).applyQuaternion(playerQuaternion).add(playerPosition);
@@ -154,6 +153,6 @@ export class SmartAIStrategy implements AIStrategy {
     }
 
     // Smoothly rotate towards the target orientation to eliminate snaps
-    entityQuaternion.slerp(this.targetQuat, Math.min(1.0, deltaTime * GameConfig.tieFighter.smartRotationSpeed));
+    entityQuaternion.slerp(this.targetQuat, Math.min(1.0, deltaTime * cfg.rotationSpeed));
   }
 }
