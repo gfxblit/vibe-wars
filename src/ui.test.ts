@@ -35,6 +35,8 @@ describe('UIManager', () => {
       isSmartAI: true,
       isModeColoring: false,
       showChassis: false,
+      canFireTorpedo: false,
+      hasFiredTorpedo: false,
     };
 
     // Clean up body
