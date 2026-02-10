@@ -93,15 +93,12 @@ describe('SurfaceStage', () => {
   it('should spawn towers over time', () => {
     stage = new SurfaceStage(scene);
     
-    // Initially only floor
-    const initialChildren = scene.children.length; // Floor group
+    // Initially no towers
+    expect(stage.getTowers().length).toBe(0);
     
-    // Advance time to trigger spawn
-    // First update spawns a tower.
     stage.update(0.1, state.player as Player);
     
     // Should have spawned a tower
-    // Scene children: Floor + Tower Mesh
-    expect(scene.children.length).toBeGreaterThan(initialChildren);
+    expect(stage.getTowers().length).toBeGreaterThan(0);
   });
 });
