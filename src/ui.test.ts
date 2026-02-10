@@ -225,6 +225,30 @@ describe('UIManager', () => {
     expect(hud?.textContent).toContain('STAGE: TRENCH');
   });
 
+  it('should show DEATH STAR DESTROYED message when wave increases', () => {
+    // Start at TRENCH wave 1
+    mockState.stage = 'TRENCH';
+    mockState.wave = 1;
+    uiManager.update(mockState);
+
+    // Transition to DOGFIGHT wave 2
+    mockState.stage = 'DOGFIGHT';
+    mockState.wave = 2;
+    uiManager.update(mockState);
+
+    const destructionValue = document.getElementById('destruction-value');
+    expect(destructionValue?.textContent).toBe('DEATH STAR DESTROYED');
+    expect(destructionValue?.classList.contains('hidden')).toBe(false);
+
+    // Should still be there after 3 seconds
+    vi.advanceTimersByTime(3000);
+    expect(destructionValue?.classList.contains('hidden')).toBe(false);
+
+    // Should be gone after 4.1 seconds
+    vi.advanceTimersByTime(1100);
+    expect(destructionValue?.classList.contains('hidden')).toBe(true);
+  });
+
   it('should show TORPEDO READY indicator in TRENCH stage when aiming at port', () => {
     mockState.stage = 'TRENCH';
     
