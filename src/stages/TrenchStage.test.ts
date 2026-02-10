@@ -11,6 +11,8 @@ vi.mock('../state', () => ({
   state: {
     entityManager: {
       setSpawningEnabled: vi.fn(),
+      clear: vi.fn(),
+      getTorpedoes: vi.fn().mockReturnValue([]),
     },
     player: {
       position: new THREE.Vector3(0, 0, 0),
@@ -21,6 +23,7 @@ vi.mock('../state', () => ({
     shields: 3,
   },
   goToNextStage: vi.fn(),
+  addScore: vi.fn(),
   takeDamage: vi.fn((amount) => { state.shields -= amount; }),
 }));
 
@@ -57,7 +60,7 @@ describe('TrenchStage', () => {
     state.shields = 3;
 
     // Capture the mock instance
-    stage = new TrenchStage(scene);
+    stage = new TrenchStage(scene, () => {});
     mockTrenchInstance = (Trench as any).mock.results[0].value;
   });
 
@@ -112,16 +115,35 @@ describe('TrenchStage', () => {
     expect(takeDamage).toHaveBeenCalledWith(1);
   });
 
-  it('should transition to next stage when reaching end of trench', () => {
+  it('should take damage and reset when reaching end of trench', () => {
+    const onReset = vi.fn();
+    stage = new TrenchStage(scene, onReset);
     state.player!.position.z = -GameConfig.stage.trenchLength - 10;
     stage.update(0.1, state.player as Player);
-    expect(goToNextStage).toHaveBeenCalled();
+    expect(takeDamage).toHaveBeenCalledWith(1);
+    expect(onReset).toHaveBeenCalled();
+    expect(goToNextStage).not.toHaveBeenCalled();
   });
 
-  it('should transition to next stage when hitting port', () => {
+  it('should take damage and reset when hitting port structure with player', () => {
+    const onReset = vi.fn();
+    stage = new TrenchStage(scene, onReset);
     mockTrenchInstance.checkPortCollision.mockReturnValue(true);
     stage.update(0.1, state.player as Player);
+    expect(takeDamage).toHaveBeenCalledWith(1);
+    expect(onReset).toHaveBeenCalled();
+    expect(goToNextStage).not.toHaveBeenCalled();
+  });
+
+  it('should transition to next stage when torpedo hits port', () => {
+    const torpedo = { position: new THREE.Vector3(0, 0, -100), isExploded: false, explode: vi.fn() };
+    (state.entityManager?.getTorpedoes as any).mockReturnValue([torpedo]);
+    mockTrenchInstance.checkPortCollision.mockImplementation((pos: THREE.Vector3) => pos.z === -100);
+
+    stage.update(0.1, state.player as Player);
+    
     expect(goToNextStage).toHaveBeenCalled();
+    expect(torpedo.explode).toHaveBeenCalled();
   });
 
   it('should cleanup', () => {
