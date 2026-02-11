@@ -4,6 +4,8 @@ import { GameConfig } from '../config';
 
 export class DeathStar extends Entity {
   public mesh: THREE.Group;
+  private geometries: THREE.BufferGeometry[] = [];
+  private materials: THREE.Material[] = [];
 
   public get position(): THREE.Vector3 {
     return this.mesh.position;
@@ -20,12 +22,14 @@ export class DeathStar extends Entity {
       transparent: true,
       opacity: 0.6,
     });
+    this.materials.push(hullMaterial);
 
     const dishMaterial = new THREE.LineBasicMaterial({
       color: GameConfig.stage.deathStarDishColor,
       transparent: true,
       opacity: 0.9,
     });
+    this.materials.push(dishMaterial);
 
     // 1. Hull: Two hemispheres with a gap for the trench
     this.createHull(radius, hullMaterial);
@@ -54,7 +58,9 @@ export class DeathStar extends Entity {
       0,
       Math.PI / 2 - trenchHalfWidthPhi
     );
+    this.geometries.push(upperGeom);
     const upperEdges = new THREE.EdgesGeometry(upperGeom, 1);
+    this.geometries.push(upperEdges);
     const upper = new THREE.LineSegments(upperEdges, material);
     this.mesh.add(upper);
 
@@ -68,7 +74,9 @@ export class DeathStar extends Entity {
       Math.PI / 2 + trenchHalfWidthPhi,
       Math.PI / 2 - trenchHalfWidthPhi
     );
+    this.geometries.push(lowerGeom);
     const lowerEdges = new THREE.EdgesGeometry(lowerGeom, 1);
+    this.geometries.push(lowerEdges);
     const lower = new THREE.LineSegments(lowerEdges, material);
     this.mesh.add(lower);
   }
@@ -80,7 +88,9 @@ export class DeathStar extends Entity {
     // Interior horizontal rings for the trench
     const createRing = (y: number, r: number) => {
       const ringGeom = new THREE.CylinderGeometry(r, r, 0, segments, 1, true);
+      this.geometries.push(ringGeom);
       const ringEdges = new THREE.EdgesGeometry(ringGeom, 1);
+      this.geometries.push(ringEdges);
       const ring = new THREE.LineSegments(ringEdges, material);
       ring.position.y = y;
       return ring;
@@ -95,6 +105,7 @@ export class DeathStar extends Entity {
 
     // Vertical lines in the trench (optional, but adds "vector" feel)
     const verticalLinesGeom = new THREE.BufferGeometry();
+    this.geometries.push(verticalLinesGeom);
     const positions = [];
     for (let i = 0; i < segments; i++) {
       const angle = (i / segments) * Math.PI * 2;
@@ -124,7 +135,9 @@ export class DeathStar extends Entity {
     // Dish is a shallow cone, recessed
     const dishDepth = dishRadius * 0.4;
     const dishGeom = new THREE.ConeGeometry(dishRadius, dishDepth, 12, 2, true);
+    this.geometries.push(dishGeom);
     const dishEdges = new THREE.EdgesGeometry(dishGeom, 1);
+    this.geometries.push(dishEdges);
     const dish = new THREE.LineSegments(dishEdges, material);
     
     // Position the dish on the hull
@@ -142,7 +155,10 @@ export class DeathStar extends Entity {
     dish.position.copy(dishPos.clone().sub(centerDir.clone().multiplyScalar(dishDepth * 0.5)));
     
     // Orient it to face "out" (away from center)
+    // lookAt(0,0,0) points local +Z towards origin. 
+    // Cone is along Y, so we rotate -90 deg around X to align cone axis (Y) with Z.
     dish.lookAt(new THREE.Vector3(0, 0, 0));
+    dish.rotateX(-Math.PI / 2);
     
     this.mesh.add(dish);
 
@@ -150,13 +166,11 @@ export class DeathStar extends Entity {
     for (let i = 1; i < 3; i++) {
         const ringR = (dishRadius * i) / 3;
         const ringGeom = new THREE.CircleGeometry(ringR, 12);
+        this.geometries.push(ringGeom);
         const ringEdges = new THREE.EdgesGeometry(ringGeom, 1);
+        this.geometries.push(ringEdges);
         const ring = new THREE.LineSegments(ringEdges, material);
         // Position it slightly "up" from the tip of the cone
-        // We add it to the dish LineSegments, so it's a child.
-        // Wait, the test expects all children of this.mesh to be LineSegments.
-        // It doesn't check grandchildren. 
-        // But if I add it to 'dish' which is a LineSegments, it's fine as long as 'dish' itself is a LineSegments.
         ring.position.y = -dishDepth / 2 + (dishDepth * i) / 3;
         ring.rotation.x = Math.PI / 2;
         dish.add(ring);
@@ -169,15 +183,14 @@ export class DeathStar extends Entity {
   }
 
   dispose() {
-    this.mesh.traverse((child) => {
-      if (child instanceof THREE.LineSegments) {
-        child.geometry.dispose();
-        if (Array.isArray(child.material)) {
-          child.material.forEach(m => m.dispose());
-        } else {
-          child.material.dispose();
-        }
-      }
-    });
+    this.geometries.forEach(g => g.dispose());
+    this.materials.forEach(m => m.dispose());
+    this.geometries = [];
+    this.materials = [];
+    
+    // Remove children from mesh group
+    while (this.mesh.children.length > 0) {
+      this.mesh.remove(this.mesh.children[0]);
+    }
   }
 }
