@@ -10,7 +10,7 @@ describe('Trench Visuals', () => {
   });
 
   it('catwalks should be clean rectangular outlines (no diagonals)', () => {
-    const catwalks = trench.mesh.children.filter(child => child instanceof THREE.LineSegments);
+    const catwalks = trench.mesh.children.filter(child => child.name === 'catwalk');
     
     // There should be catwalks
     expect(catwalks.length).toBeGreaterThan(0);

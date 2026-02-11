@@ -54,6 +54,7 @@ export class Trench extends Entity {
       verticalGeometry, 
       new THREE.LineBasicMaterial({ color: trenchVerticalDetailColor })
     );
+    verticalLines.name = 'trench-grid-vertical';
     this.mesh.add(verticalLines);
 
     // Horizontal lines on floor (Longitudinal lanes)
@@ -70,6 +71,7 @@ export class Trench extends Entity {
       horizontalGeometry, 
       new THREE.LineBasicMaterial({ color: trenchHorizontalDetailColor })
     );
+    horizontalLines.name = 'trench-grid-horizontal';
     this.mesh.add(horizontalLines);
 
     this.addObstacles();
@@ -100,6 +102,7 @@ export class Trench extends Entity {
 
     for (let z = catwalkStartZ; z > catwalkEndZ; z -= catwalkSpacing) {
       const catwalk = new THREE.LineSegments(edgesGeometry, material);
+      catwalk.name = 'catwalk';
       const y = this.getCatwalkY(z);
       catwalk.position.set(0, y, z);
       this.mesh.add(catwalk);
@@ -114,6 +117,7 @@ export class Trench extends Entity {
       color: 0xffff00,
     });
     const port = new THREE.LineSegments(portEdges, portMaterial);
+    port.name = 'exhaust-port';
     // Place port just before the end of the trench visual
     port.position.set(0, -trenchHeight / 2 + 10, catwalkEndZ - exhaustPortZOffset);
     this.mesh.add(port);
