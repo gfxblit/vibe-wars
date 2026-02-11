@@ -4,46 +4,73 @@ import { GameConfig } from '../config';
 
 export class Trench extends Entity {
   public mesh: THREE.Group;
-  private leftWall: THREE.Mesh;
-  private rightWall: THREE.Mesh;
-  private floor: THREE.Mesh;
 
   constructor() {
     super();
     this.mesh = new THREE.Group();
 
     const { trenchWidth, trenchHeight, trenchLength } = GameConfig.stage;
-    const wallGeometry = new THREE.BoxGeometry(10, trenchHeight, trenchLength);
-    const wallMaterial = new THREE.MeshBasicMaterial({
-      color: 0x444444,
-      wireframe: true,
-    });
-
     const halfWidth = trenchWidth / 2;
-    const halfLength = trenchLength / 2;
+    const halfHeight = trenchHeight / 2;
 
-    this.leftWall = new THREE.Mesh(wallGeometry, wallMaterial);
-    this.leftWall.position.set(-halfWidth - 5, 0, -halfLength);
-    this.mesh.add(this.leftWall);
+    // Add periodic detail lines (grid) and boundaries
+    const { 
+      trenchVerticalDetailSpacing, 
+      trenchHorizontalDetailSpacing,
+      trenchVerticalDetailColor,
+      trenchHorizontalDetailColor
+    } = GameConfig.stage;
 
-    this.rightWall = new THREE.Mesh(wallGeometry, wallMaterial);
-    this.rightWall.position.set(halfWidth + 5, 0, -halfLength);
-    this.mesh.add(this.rightWall);
+    // Vertical detail lines and longitudinal boundaries
+    const verticalVertices: number[] = [];
+    const leftX = -halfWidth;
+    const rightX = halfWidth;
+    const floorY = -halfHeight;
+    const topY = halfHeight;
 
-    const floorGeometry = new THREE.BoxGeometry(trenchWidth, 10, trenchLength);
-    const floorMaterial = new THREE.MeshBasicMaterial({
-      color: 0x222222,
-      wireframe: true,
-    });
+    // Main longitudinal boundary lines (Top and Bottom of walls)
+    verticalVertices.push(leftX, topY, 0, leftX, topY, -trenchLength);    // Left top
+    verticalVertices.push(leftX, floorY, 0, leftX, floorY, -trenchLength); // Left bottom
+    verticalVertices.push(rightX, topY, 0, rightX, topY, -trenchLength);   // Right top
+    verticalVertices.push(rightX, floorY, 0, rightX, floorY, -trenchLength); // Right bottom
 
-    this.floor = new THREE.Mesh(floorGeometry, floorMaterial);
-    this.floor.position.set(0, -trenchHeight / 2 - 5, -halfLength);
-    this.mesh.add(this.floor);
+    // Periodic vertical lines on walls
+    for (let z = 0; z >= -trenchLength; z -= trenchVerticalDetailSpacing) {
+      // Left wall vertical line
+      verticalVertices.push(leftX, floorY, z, leftX, topY, z);
+      // Right wall vertical line
+      verticalVertices.push(rightX, floorY, z, rightX, topY, z);
+    }
 
-    const backWallGeometry = new THREE.BoxGeometry(trenchWidth, trenchHeight, 10);
-    const backWall = new THREE.Mesh(backWallGeometry, wallMaterial);
-    backWall.position.set(0, 0, -trenchLength - 5);
-    this.mesh.add(backWall);
+    // Back wall outline
+    verticalVertices.push(leftX, floorY, -trenchLength, rightX, floorY, -trenchLength); // bottom
+    verticalVertices.push(leftX, topY, -trenchLength, rightX, topY, -trenchLength);    // top
+    verticalVertices.push(leftX, floorY, -trenchLength, leftX, topY, -trenchLength);    // left
+    verticalVertices.push(rightX, floorY, -trenchLength, rightX, topY, -trenchLength);  // right
+
+    const verticalGeometry = new THREE.BufferGeometry();
+    verticalGeometry.setAttribute('position', new THREE.Float32BufferAttribute(verticalVertices, 3));
+    const verticalLines = new THREE.LineSegments(
+      verticalGeometry, 
+      new THREE.LineBasicMaterial({ color: trenchVerticalDetailColor })
+    );
+    this.mesh.add(verticalLines);
+
+    // Horizontal lines on floor (Longitudinal lanes)
+    const horizontalVertices: number[] = [];
+    // Skip the boundary lines which are already added above
+    for (let x = leftX + trenchHorizontalDetailSpacing; x < rightX; x += trenchHorizontalDetailSpacing) {
+      // Floor longitudinal line
+      horizontalVertices.push(x, floorY, 0, x, floorY, -trenchLength);
+    }
+
+    const horizontalGeometry = new THREE.BufferGeometry();
+    horizontalGeometry.setAttribute('position', new THREE.Float32BufferAttribute(horizontalVertices, 3));
+    const horizontalLines = new THREE.LineSegments(
+      horizontalGeometry, 
+      new THREE.LineBasicMaterial({ color: trenchHorizontalDetailColor })
+    );
+    this.mesh.add(horizontalLines);
 
     this.addObstacles();
   }
@@ -64,7 +91,7 @@ export class Trench extends Entity {
   private addObstacles() {
     // Add catwalks using configuration
     const { catwalkStartZ, catwalkEndZ, catwalkSpacing, catwalkDepth, trenchWidth, exhaustPortZOffset, trenchHeight, catwalkColor } = GameConfig.stage;
-    
+
     const boxGeometry = new THREE.BoxGeometry(trenchWidth, 10, catwalkDepth);
     const edgesGeometry = new THREE.EdgesGeometry(boxGeometry);
     const material = new THREE.LineBasicMaterial({
@@ -82,23 +109,25 @@ export class Trench extends Entity {
 
     // Add Exhaust Port at the end
     const portGeometry = new THREE.BoxGeometry(20, 20, 20);
-    const portMaterial = new THREE.MeshBasicMaterial({
+    const portEdges = new THREE.EdgesGeometry(portGeometry);
+    const portMaterial = new THREE.LineBasicMaterial({
       color: 0xffff00,
-      wireframe: true,
     });
-    const port = new THREE.Mesh(portGeometry, portMaterial);
+    const port = new THREE.LineSegments(portEdges, portMaterial);
     // Place port just before the end of the trench visual
-    port.position.set(0, -trenchHeight / 2 + 10, catwalkEndZ - exhaustPortZOffset); 
+    port.position.set(0, -trenchHeight / 2 + 10, catwalkEndZ - exhaustPortZOffset);
     this.mesh.add(port);
+
+    portGeometry.dispose();
   }
 
   public checkObstacleCollision(position: THREE.Vector3): number | null {
-    const { 
-      catwalkStartZ, 
-      catwalkEndZ, 
-      catwalkSpacing, 
-      catwalkCollisionThreshold, 
-      catwalkHeightThreshold 
+    const {
+      catwalkStartZ,
+      catwalkEndZ,
+      catwalkSpacing,
+      catwalkCollisionThreshold,
+      catwalkHeightThreshold
     } = GameConfig.stage;
 
     const pZ = position.z;
@@ -122,7 +151,7 @@ export class Trench extends Entity {
     if (Math.abs(pZ - catwalkZ) < catwalkCollisionThreshold) {
       // Check height (Y) collision
       const expectedY = this.getCatwalkY(catwalkZ);
-      
+
       if (Math.abs(pY - expectedY) < catwalkHeightThreshold) {
         return catwalkZ;
       }
@@ -154,10 +183,12 @@ export class Trench extends Entity {
 
   dispose() {
     this.mesh.traverse(child => {
-      if (child instanceof THREE.Mesh) {
+      if (child instanceof THREE.Mesh || child instanceof THREE.LineSegments || child instanceof THREE.Line) {
         child.geometry.dispose();
         if (child.material instanceof THREE.Material) {
           child.material.dispose();
+        } else if (Array.isArray(child.material)) {
+          child.material.forEach(m => m.dispose());
         }
       }
     });
