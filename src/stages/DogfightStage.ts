@@ -5,24 +5,30 @@ import { state, goToNextStage } from '../state';
 import { Player } from '../entities/Player';
 import { DeathStar } from '../entities/DeathStar';
 
-export class DogfightStage implements Stage {
-  private isApproaching: boolean = false;
+export enum DogfightPhase {
+  COMBAT,
+  APPROACH
+}
+
+export class DogfightStage extends Stage {
+  private phase: DogfightPhase = DogfightPhase.COMBAT;
   private deathStar: DeathStar | null = null;
 
   constructor(private scene: THREE.Scene) {
+    super();
     if (state.entityManager) {
       state.entityManager.setSpawningEnabled(true);
     }
   }
 
-  get speed(): number {
-    return this.isApproaching
+  public get speed(): number {
+    return this.phase === DogfightPhase.APPROACH
       ? GameConfig.player.forwardSpeeds.SURFACE
       : GameConfig.player.forwardSpeeds.DOGFIGHT;
   }
 
-  update(deltaTime: number, player: Player): void {
-    if (!this.isApproaching) {
+  public update(deltaTime: number, player: Player): void {
+    if (this.phase === DogfightPhase.COMBAT) {
       if (state.kills >= GameConfig.stage.trenchKillsThreshold) {
         this.startApproach(player);
       }
@@ -32,7 +38,7 @@ export class DogfightStage implements Stage {
   }
 
   private startApproach(player: Player): void {
-    this.isApproaching = true;
+    this.phase = DogfightPhase.APPROACH;
     
     if (state.entityManager) {
       state.entityManager.clear();
@@ -78,7 +84,7 @@ export class DogfightStage implements Stage {
     this.deathStar.update(deltaTime);
   }
 
-  cleanup(): void {
+  public cleanup(): void {
     if (this.deathStar) {
       this.scene.remove(this.deathStar.mesh);
       this.deathStar.dispose();

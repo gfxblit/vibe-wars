@@ -6,12 +6,13 @@ import { Stage } from './Stage';
 import { Tower } from '../entities/Tower';
 import { Surface } from '../entities/Surface';
 
-export class SurfaceStage implements Stage {
-  public readonly speed = GameConfig.player.forwardSpeeds.SURFACE;
+export class SurfaceStage extends Stage {
+  public override get speed() { return GameConfig.player.forwardSpeeds.SURFACE; }
   private elapsedTime: number = 0;
   private surface: Surface;
 
   constructor(private scene: THREE.Scene) {
+    super();
     // Clear existing enemies for a clean transition
     if (state.entityManager) {
       state.entityManager.clear();
@@ -26,7 +27,7 @@ export class SurfaceStage implements Stage {
     return this.surface.getTowers();
   }
 
-  update(deltaTime: number, player: Player): void {
+  public update(deltaTime: number, player: Player): void {
     this.elapsedTime += deltaTime;
     
     this.surface.update(deltaTime, player.position.z);
@@ -52,7 +53,7 @@ export class SurfaceStage implements Stage {
     }
   }
 
-  cleanup(): void {
+  public cleanup(): void {
     this.scene.remove(this.surface.mesh);
     this.surface.dispose();
   }
