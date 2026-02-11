@@ -44,8 +44,8 @@ export class DeathStar extends Entity {
   }
 
   private createHull(radius: number, material: THREE.Material): void {
-    const segmentsX = 24; // Increased for smoother lat/long lines
-    const segmentsY = 16;
+    const segmentsX = GameConfig.stage.deathStarHullSegmentsX;
+    const segmentsY = GameConfig.stage.deathStarHullSegmentsY;
     const trenchHalfWidthPhi = 0.04; // Roughly the angle of the trench gap
 
     // Upper Hull
@@ -85,7 +85,7 @@ export class DeathStar extends Entity {
 
   private createTrench(radius: number, material: THREE.Material): void {
     const trenchWidth = GameConfig.stage.deathStarTrenchWidth;
-    const segments = 32;
+    const segments = GameConfig.stage.deathStarTrenchSegments;
 
     // Interior horizontal rings for the trench
     const createRing = (y: number, r: number, name?: string) => {
@@ -135,10 +135,11 @@ export class DeathStar extends Entity {
 
   private createDish(radius: number, material: THREE.Material): void {
     const dishRadius = GameConfig.stage.deathStarDishSize;
+    const segments = GameConfig.stage.deathStarDishSegments;
     
     // Dish is a shallow cone, recessed
     const dishDepth = dishRadius * 0.4;
-    const dishGeom = new THREE.ConeGeometry(dishRadius, dishDepth, 12, 2, true);
+    const dishGeom = new THREE.ConeGeometry(dishRadius, dishDepth, segments, 2, true);
     this.geometries.push(dishGeom);
     const dishEdges = new THREE.EdgesGeometry(dishGeom, 1);
     this.geometries.push(dishEdges);
@@ -170,7 +171,7 @@ export class DeathStar extends Entity {
     // Add some concentric rings inside the dish for more "vector" detail
     for (let i = 1; i < 3; i++) {
         const ringR = (dishRadius * i) / 3;
-        const ringGeom = new THREE.CircleGeometry(ringR, 12);
+        const ringGeom = new THREE.CircleGeometry(ringR, segments);
         this.geometries.push(ringGeom);
         const ringEdges = new THREE.EdgesGeometry(ringGeom, 1);
         this.geometries.push(ringEdges);
