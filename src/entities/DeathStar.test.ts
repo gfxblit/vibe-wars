@@ -57,4 +57,21 @@ describe('DeathStar', () => {
     geometries.forEach(g => expect(g.dispose).toHaveBeenCalled());
     materials.forEach(m => expect(m.dispose).toHaveBeenCalled());
   });
+
+  it('should position the dish correctly on the hull', () => {
+    const deathStar = new DeathStar(new THREE.Vector3(0, 0, 0));
+    const dish = deathStar.mesh.getObjectByName('DeathStarDish') as THREE.LineSegments;
+    expect(dish).toBeDefined();
+
+    // The dish should be positioned at a specific point in the northern hemisphere
+    // and recessed slightly towards the center.
+    // Based on phi=PI*0.25, theta=PI*0.25, radius=100, dishDepth=8
+    const expectedX = 50 - (0.5 * 4); // 48
+    const expectedY = 100 * Math.cos(Math.PI * 0.25) - (Math.cos(Math.PI * 0.25) * 4); // ~67.88
+    const expectedZ = 50 - (0.5 * 4); // 48
+
+    expect(dish.position.x).toBeCloseTo(expectedX);
+    expect(dish.position.y).toBeCloseTo(expectedY);
+    expect(dish.position.z).toBeCloseTo(expectedZ);
+  });
 });

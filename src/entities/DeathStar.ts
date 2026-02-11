@@ -62,6 +62,7 @@ export class DeathStar extends Entity {
     const upperEdges = new THREE.EdgesGeometry(upperGeom, 1);
     this.geometries.push(upperEdges);
     const upper = new THREE.LineSegments(upperEdges, material);
+    upper.name = 'DeathStarHullUpper';
     this.mesh.add(upper);
 
     // Lower Hull
@@ -78,6 +79,7 @@ export class DeathStar extends Entity {
     const lowerEdges = new THREE.EdgesGeometry(lowerGeom, 1);
     this.geometries.push(lowerEdges);
     const lower = new THREE.LineSegments(lowerEdges, material);
+    lower.name = 'DeathStarHullLower';
     this.mesh.add(lower);
   }
 
@@ -86,22 +88,23 @@ export class DeathStar extends Entity {
     const segments = 32;
 
     // Interior horizontal rings for the trench
-    const createRing = (y: number, r: number) => {
+    const createRing = (y: number, r: number, name?: string) => {
       const ringGeom = new THREE.CylinderGeometry(r, r, 0, segments, 1, true);
       this.geometries.push(ringGeom);
       const ringEdges = new THREE.EdgesGeometry(ringGeom, 1);
       this.geometries.push(ringEdges);
       const ring = new THREE.LineSegments(ringEdges, material);
       ring.position.y = y;
+      if (name) ring.name = name;
       return ring;
     };
 
     // Trench floor (recessed slightly)
     const floorRadius = radius * 0.98;
-    this.mesh.add(createRing(trenchWidth / 2, radius)); // Top edge
-    this.mesh.add(createRing(-trenchWidth / 2, radius)); // Bottom edge
-    this.mesh.add(createRing(trenchWidth / 2, floorRadius)); // Inner top edge
-    this.mesh.add(createRing(-trenchWidth / 2, floorRadius)); // Inner bottom edge
+    this.mesh.add(createRing(trenchWidth / 2, radius, 'DeathStarTrenchEdgeTop')); // Top edge
+    this.mesh.add(createRing(-trenchWidth / 2, radius, 'DeathStarTrenchEdgeBottom')); // Bottom edge
+    this.mesh.add(createRing(trenchWidth / 2, floorRadius, 'DeathStarTrenchInnerTop')); // Inner top edge
+    this.mesh.add(createRing(-trenchWidth / 2, floorRadius, 'DeathStarTrenchInnerBottom')); // Inner bottom edge
 
     // Vertical lines in the trench (optional, but adds "vector" feel)
     const verticalLinesGeom = new THREE.BufferGeometry();
@@ -126,6 +129,7 @@ export class DeathStar extends Entity {
     }
     verticalLinesGeom.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
     const verticalLines = new THREE.LineSegments(verticalLinesGeom, material);
+    verticalLines.name = 'DeathStarTrenchVerticals';
     this.mesh.add(verticalLines);
   }
 
@@ -139,6 +143,7 @@ export class DeathStar extends Entity {
     const dishEdges = new THREE.EdgesGeometry(dishGeom, 1);
     this.geometries.push(dishEdges);
     const dish = new THREE.LineSegments(dishEdges, material);
+    dish.name = 'DeathStarDish';
     
     // Position the dish on the hull
     // We want it in the northern hemisphere, offset
@@ -152,7 +157,7 @@ export class DeathStar extends Entity {
     // Recess it slightly by moving it towards center
     const dishPos = new THREE.Vector3(x, y, z);
     const centerDir = dishPos.clone().normalize();
-    dish.position.copy(dishPos.clone().sub(centerDir.clone().multiplyScalar(dishDepth * 0.5)));
+    dish.position.copy(dishPos).addScaledVector(centerDir, -dishDepth * 0.5);
     
     // Orient it to face "out" (away from center)
     // lookAt(0,0,0) points local +Z towards origin. 
@@ -189,8 +194,8 @@ export class DeathStar extends Entity {
     this.materials = [];
     
     // Remove children from mesh group
-    while (this.mesh.children.length > 0) {
-      this.mesh.remove(this.mesh.children[0]);
+    for (let i = this.mesh.children.length - 1; i >= 0; i--) {
+      this.mesh.remove(this.mesh.children[i]);
     }
   }
 }
