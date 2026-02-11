@@ -13,6 +13,9 @@ export enum DogfightPhase {
 export class DogfightStage extends Stage {
   private phase: DogfightPhase = DogfightPhase.COMBAT;
   private deathStar: DeathStar | null = null;
+  private toDeathStar = new THREE.Vector3();
+  private targetRotation = new THREE.Quaternion();
+  private forward = new THREE.Vector3(0, 0, -1);
 
   constructor(private scene: THREE.Scene) {
     super();
@@ -64,8 +67,8 @@ export class DogfightStage extends Stage {
   private updateApproach(deltaTime: number, player: Player): void {
     if (!this.deathStar) return;
 
-    const toDeathStar = new THREE.Vector3().subVectors(this.deathStar.position, player.position);
-    const dist = toDeathStar.length();
+    this.toDeathStar.subVectors(this.deathStar.position, player.position);
+    const dist = this.toDeathStar.length();
 
     if (dist < GameConfig.stage.trenchTransitionDistance + GameConfig.stage.deathStarSize) {
       goToNextStage();
@@ -74,11 +77,12 @@ export class DogfightStage extends Stage {
 
     // Magnetic Steering: Slowly rotate player towards Death Star
     if (dist > 0) {
-      const targetRotation = new THREE.Quaternion().setFromUnitVectors(
-        new THREE.Vector3(0, 0, -1),
-        toDeathStar.normalize()
+      this.toDeathStar.divideScalar(dist); // Normalize in-place
+      this.targetRotation.setFromUnitVectors(
+        this.forward,
+        this.toDeathStar
       );
-      player.mesh.quaternion.slerp(targetRotation, GameConfig.stage.steeringStrength * deltaTime);
+      player.mesh.quaternion.slerp(this.targetRotation, GameConfig.stage.steeringStrength * deltaTime);
     }
 
     this.deathStar.update(deltaTime);

@@ -38,7 +38,7 @@ describe('Stage Transitions', () => {
     
     // Should still be DOGFIGHT, but with DeathStar spawned (Approach Phase)
     expect(state.stage).toBe('DOGFIGHT');
-    expect(scene.children.some(child => child.type === 'Mesh' && (child as THREE.Mesh).geometry.type === 'SphereGeometry')).toBe(true);
+    expect(scene.getObjectByName('DeathStar')).toBeTruthy();
   });
 
   it('should reset kills when cycling back to DOGFIGHT', () => {

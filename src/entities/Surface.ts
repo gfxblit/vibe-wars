@@ -3,12 +3,18 @@ import { Entity } from './Entity';
 import { GameConfig } from '../config';
 import { Tower } from './Tower';
 
+export interface CollisionResult {
+  floorHit: boolean;
+  towerHit: Tower | null;
+}
+
 export class Surface extends Entity {
   public mesh: THREE.Group;
   private towers: Tower[] = [];
   private floor: THREE.Group;
   private nextTowerSpawnTime: number = 0;
   private elapsedTime: number = 0;
+  private collisionResult: CollisionResult = { floorHit: false, towerHit: null };
 
   constructor() {
     super();
@@ -105,19 +111,19 @@ export class Surface extends Entity {
       }
   }
 
-  public checkCollisions(playerBox: THREE.Box3, playerPosition: THREE.Vector3): { floorHit: boolean, towerHit: Tower | null } {
+  public checkCollisions(playerBox: THREE.Box3, playerPosition: THREE.Vector3): CollisionResult {
       const { surfaceFloorY } = GameConfig.stage;
       // Player Y is center of ship. Ship size is roughly 1.
-      const floorHit = playerPosition.y - 1 < surfaceFloorY;
+      this.collisionResult.floorHit = playerPosition.y - 1 < surfaceFloorY;
+      this.collisionResult.towerHit = null;
 
-      let towerHit: Tower | null = null;
       for (const tower of this.towers) {
           if (tower.checkCollision(playerBox)) {
-              towerHit = tower;
+              this.collisionResult.towerHit = tower;
               break; 
           }
       }
-      return { floorHit, towerHit };
+      return this.collisionResult;
   }
 
   public getTowers(): Tower[] {
