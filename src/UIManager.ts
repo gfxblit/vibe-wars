@@ -23,6 +23,7 @@ export class UIManager {
   private destructionTimeout: any = null;
 
   private firstUpdate = true;
+  private tieFighterCountValue?: HTMLElement;
 
   constructor() {
     this.lastShields = GameConfig.player.maxShields;
@@ -71,6 +72,14 @@ export class UIManager {
     const title = this.createEl('div', 'mb-2 border-b border-vector-green pb-1', this.debugPanel);
     title.textContent = 'DEBUG CONSOLE';
 
+    // Stats
+    const statsTitle = this.createEl('div', 'mb-2 border-b border-vector-green pb-1', this.debugPanel);
+    statsTitle.textContent = 'STATS';
+    const tfRow = this.createEl('div', 'flex justify-between', this.debugPanel);
+    this.createEl('span', '', tfRow).textContent = 'TIE FIGHTERS:';
+    this.tieFighterCountValue = this.createEl('span', '', tfRow);
+    this.tieFighterCountValue.textContent = '0';
+
     this.createToggleButton(
       'ai-mode-toggle',
       () => `AI: ${state.isSmartAI ? 'SMART' : 'DUMB'}`,
@@ -107,6 +116,25 @@ export class UIManager {
     this.stageButtons.set('TRENCH', trenchBtn);
 
     this.updateStageButtons(state.stage);
+
+    // Kills Threshold
+    this.createEl('div', 'mt-4 mb-2 border-b border-vector-green pb-1', this.debugPanel).textContent = 'KILLS TO ADVANCE';
+    const killsInput = this.createEl('input', 'w-full bg-black text-vector-green border border-vector-green px-2 py-1', this.debugPanel) as HTMLInputElement;
+    killsInput.id = 'debug-kills-input';
+    killsInput.type = 'number';
+    killsInput.min = '0';
+    killsInput.placeholder = `Default (${GameConfig.stage.dogfightKillsThreshold})`;
+    if (state.debugKillsThreshold !== undefined) {
+      killsInput.value = state.debugKillsThreshold.toString();
+    }
+    killsInput.onchange = (e) => {
+      const val = parseInt((e.target as HTMLInputElement).value);
+      if (!isNaN(val)) {
+        state.debugKillsThreshold = Math.max(0, val);
+      } else {
+        state.debugKillsThreshold = undefined;
+      }
+    };
   }
 
   private createToggleButton(id: string, getText: () => string, onClick: () => void, parent: HTMLElement) {
@@ -274,6 +302,10 @@ export class UIManager {
 
     if (this.stageButtons) {
       this.updateStageButtons(state.stage);
+    }
+
+    if (this.tieFighterCountValue && state.entityManager) {
+      this.tieFighterCountValue.textContent = state.entityManager.getTieFighters().length.toString();
     }
 
     // Torpedo Ready indicator
