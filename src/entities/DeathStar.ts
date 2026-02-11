@@ -12,6 +12,7 @@ export class DeathStar extends Entity {
   constructor(position: THREE.Vector3) {
     super();
     this.mesh = new THREE.Group();
+    this.mesh.name = 'DeathStar';
 
     const radius = GameConfig.stage.deathStarSize;
     const hullMaterial = new THREE.LineBasicMaterial({
@@ -21,7 +22,7 @@ export class DeathStar extends Entity {
     });
 
     const dishMaterial = new THREE.LineBasicMaterial({
-      color: 0xccffcc, // Brighter green for the dish
+      color: GameConfig.stage.deathStarDishColor,
       transparent: true,
       opacity: 0.9,
     });

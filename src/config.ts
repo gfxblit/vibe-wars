@@ -60,6 +60,7 @@ export const GameConfig = deepFreeze({
     deathStarDishSize: 20,
     deathStarTrenchWidth: 4,
     deathStarColor: 0x00ff00,
+    deathStarDishColor: 0xccffcc,
     steeringStrength: 0.5,
     trenchLength: 5000,
     catwalkStartZ: -500,
