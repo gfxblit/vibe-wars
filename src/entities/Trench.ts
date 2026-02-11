@@ -61,58 +61,24 @@ export class Trench extends Entity {
     return (Math.abs(z) % (catwalkSpacing * 2) === 0) ? catwalkYOffset : -catwalkYOffset;
   }
 
-  private createTrussGeometry(width: number, height: number, depth: number): THREE.BufferGeometry {
-    const boxGeom = new THREE.BoxGeometry(width, height, depth);
-    const edgesGeom = new THREE.EdgesGeometry(boxGeom);
-    
-    const halfW = width / 2;
-    const halfH = height / 2;
-    const halfD = depth / 2;
-
-    const bracingVertices = [
-      // Front face "X"
-      -halfW, -halfH, halfD,  halfW,  halfH, halfD,
-      -halfW,  halfH, halfD,  halfW, -halfH, halfD,
-      // Back face "X"
-      -halfW, -halfH, -halfD,  halfW,  halfH, -halfD,
-      -halfW,  halfH, -halfD,  halfW, -halfH, -halfD,
-    ];
-
-    const bracingGeom = new THREE.BufferGeometry();
-    bracingGeom.setAttribute('position', new THREE.Float32BufferAttribute(bracingVertices, 3));
-
-    const mergedGeom = new THREE.BufferGeometry();
-    const pos1 = edgesGeom.getAttribute('position') as THREE.BufferAttribute;
-    const pos2 = bracingGeom.getAttribute('position') as THREE.BufferAttribute;
-    
-    const combinedArray = new Float32Array((pos1.count + pos2.count) * 3);
-    combinedArray.set(pos1.array);
-    combinedArray.set(pos2.array, pos1.array.length);
-    
-    mergedGeom.setAttribute('position', new THREE.BufferAttribute(combinedArray, 3));
-    
-    boxGeom.dispose();
-    edgesGeom.dispose();
-    bracingGeom.dispose();
-    
-    return mergedGeom;
-  }
-
   private addObstacles() {
     // Add catwalks using configuration
     const { catwalkStartZ, catwalkEndZ, catwalkSpacing, catwalkDepth, trenchWidth, exhaustPortZOffset, trenchHeight, catwalkColor } = GameConfig.stage;
     
-    const trussGeometry = this.createTrussGeometry(trenchWidth, 10, catwalkDepth);
-    const trussMaterial = new THREE.LineBasicMaterial({
+    const boxGeometry = new THREE.BoxGeometry(trenchWidth, 10, catwalkDepth);
+    const edgesGeometry = new THREE.EdgesGeometry(boxGeometry);
+    const material = new THREE.LineBasicMaterial({
       color: catwalkColor,
     });
 
     for (let z = catwalkStartZ; z > catwalkEndZ; z -= catwalkSpacing) {
-      const catwalk = new THREE.LineSegments(trussGeometry, trussMaterial);
+      const catwalk = new THREE.LineSegments(edgesGeometry, material);
       const y = this.getCatwalkY(z);
       catwalk.position.set(0, y, z);
       this.mesh.add(catwalk);
     }
+
+    boxGeometry.dispose();
 
     // Add Exhaust Port at the end
     const portGeometry = new THREE.BoxGeometry(20, 20, 20);
