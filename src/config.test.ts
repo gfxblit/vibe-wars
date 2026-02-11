@@ -103,6 +103,14 @@ describe('GameConfig', () => {
     expect(smart.escapeQuickZ).toBe(-0.5);
   });
 
+  test('should have stage settings', () => {
+    expect(GameConfig.stage.deathStarSize).toBe(100);
+    expect(GameConfig.stage.deathStarDishSize).toBe(20);
+    expect(GameConfig.stage.deathStarTrenchWidth).toBe(4);
+    expect(GameConfig.stage.deathStarColor).toBe(0x00ff00);
+    expect(GameConfig.stage.deathStarDistance).toBe(1000);
+  });
+
   test('should be immutable at the type level', () => {
     // This test passes if the TypeScript compiler shows an error on the line below.
     // It's a way to enforce readonly properties in the test suite.

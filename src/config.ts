@@ -57,6 +57,8 @@ export const GameConfig = deepFreeze({
     trenchWidth: 100,
     trenchHeight: 100,
     deathStarSize: 100,
+    deathStarDishSize: 20,
+    deathStarTrenchWidth: 4,
     deathStarColor: 0x00ff00,
     steeringStrength: 0.5,
     trenchLength: 5000,
