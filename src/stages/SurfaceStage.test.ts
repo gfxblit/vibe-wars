@@ -28,10 +28,11 @@ import { goToNextStage } from '../state';
 vi.mock('../entities/DeathStar', () => {
   return {
     DeathStar: class {
-      mesh: THREE.Mesh;
+      mesh: THREE.Group;
       position: THREE.Vector3;
       constructor(pos: THREE.Vector3) {
-        this.mesh = new THREE.Mesh(new THREE.SphereGeometry(), new THREE.MeshBasicMaterial());
+        this.mesh = new THREE.Group();
+        this.mesh.name = 'DeathStar';
         this.position = this.mesh.position;
         this.position.copy(pos);
       }
@@ -65,7 +66,7 @@ describe('SurfaceStage', () => {
 
   it('should spawn DeathStar in the scene', () => {
     stage = new SurfaceStage(scene);
-    const deathStar = scene.children.find(c => c.type === 'Mesh' && (c as THREE.Mesh).geometry.type === 'SphereGeometry');
+    const deathStar = scene.getObjectByName('DeathStar');
     expect(deathStar).toBeDefined();
   });
 
@@ -73,8 +74,8 @@ describe('SurfaceStage', () => {
     stage = new SurfaceStage(scene);
     
     // Find death star position from scene
-    const deathStarMesh = scene.children.find(c => c.type === 'Mesh' && (c as THREE.Mesh).geometry.type === 'SphereGeometry') as THREE.Mesh;
-    expect(deathStarMesh).toBeDefined();
+    const deathStar = scene.getObjectByName('DeathStar');
+    expect(deathStar).toBeDefined();
     
     // Move player close to DS
     // dist < trenchTransitionDistance + deathStarSize
@@ -83,7 +84,7 @@ describe('SurfaceStage', () => {
     // Place player such that distance is targetDist
     // DS is at some position. Player is at 0,0,0 usually.
     // Let's just move player to DS position + offset
-    state.player!.position.copy(deathStarMesh.position).add(new THREE.Vector3(0, 0, targetDist)); // Z offset
+    state.player!.position.copy(deathStar!.position).add(new THREE.Vector3(0, 0, targetDist)); // Z offset
     
     stage.update(0.1, state.player as Player);
     expect(goToNextStage).toHaveBeenCalled();

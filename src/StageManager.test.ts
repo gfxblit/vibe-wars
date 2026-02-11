@@ -28,7 +28,7 @@ describe('StageManager', () => {
     stageManager.update(0.1, player);
 
     expect(state.stage).toBe('SURFACE');
-    expect(scene.children.some(child => child.type === 'Mesh' && (child as THREE.Mesh).geometry.type === 'SphereGeometry')).toBe(true);
+    expect(scene.getObjectByName('DeathStar')).toBeTruthy();
 
     // Verify TIE fighters are cleared and spawning is disabled
     expect(state.entityManager!.getTieFighters().length).toBe(0);
@@ -39,10 +39,10 @@ describe('StageManager', () => {
     stageManager.update(0.1, player);
     expect(state.stage).toBe('SURFACE');
 
-    const deathStarMesh = scene.children.find(child => child.type === 'Mesh' && (child as THREE.Mesh).geometry.type === 'SphereGeometry') as THREE.Mesh;
-    expect(deathStarMesh).toBeDefined();
+    const deathStar = scene.getObjectByName('DeathStar');
+    expect(deathStar).toBeTruthy();
 
-    const dsPos = deathStarMesh.position.clone();
+    const dsPos = deathStar!.position.clone();
     player.position.copy(dsPos).add(new THREE.Vector3(0, 0, GameConfig.stage.deathStarSize + GameConfig.stage.trenchTransitionDistance - 10));
 
     stageManager.update(0.1, player);
