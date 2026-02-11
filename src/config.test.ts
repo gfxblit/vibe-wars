@@ -115,6 +115,7 @@ describe('GameConfig', () => {
     expect(GameConfig.stage.trenchWallColor).toBe(0x00ff00);
     expect(GameConfig.stage.trenchVerticalDetailSpacing).toBe(200);
     expect(GameConfig.stage.trenchHorizontalDetailSpacing).toBe(50);
+    expect(GameConfig.stage.exhaustPortColor).toBe(0xffff00);
   });
 
   test('should be immutable at the type level', () => {

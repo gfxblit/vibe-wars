@@ -83,6 +83,7 @@ export const GameConfig = deepFreeze({
     trenchHorizontalDetailSpacing: 50,
     trenchVerticalDetailColor: 0x00ff00,
     trenchHorizontalDetailColor: 0x00ff00,
+    exhaustPortColor: 0xffff00,
   },
   tieFighter: {
     speed: 50,

@@ -111,10 +111,11 @@ export class Trench extends Entity {
     boxGeometry.dispose();
 
     // Add Exhaust Port at the end
+    const { exhaustPortColor } = GameConfig.stage;
     const portGeometry = new THREE.BoxGeometry(20, 20, 20);
     const portEdges = new THREE.EdgesGeometry(portGeometry);
     const portMaterial = new THREE.LineBasicMaterial({
-      color: 0xffff00,
+      color: exhaustPortColor,
     });
     const port = new THREE.LineSegments(portEdges, portMaterial);
     port.name = 'exhaust-port';
