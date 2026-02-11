@@ -110,6 +110,8 @@ describe('GameConfig', () => {
     expect(GameConfig.stage.deathStarColor).toBe(0x00ff00);
     expect(GameConfig.stage.deathStarDishColor).toBe(0xccffcc);
     expect(GameConfig.stage.deathStarDistance).toBe(1000);
+    expect(GameConfig.stage.trenchWidth).toBe(100);
+    expect(GameConfig.stage.catwalkColor).toBe(0xaaaaaa);
   });
 
   test('should be immutable at the type level', () => {

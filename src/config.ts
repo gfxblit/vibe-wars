@@ -77,6 +77,7 @@ export const GameConfig = deepFreeze({
     exhaustPortZOffset: 400,
     trenchMaxPitch: Math.PI / 6, // 30 degrees
     trenchMaxYaw: Math.PI / 6,   // 30 degrees
+    catwalkColor: 0xaaaaaa,
   },
   tieFighter: {
     speed: 50,
