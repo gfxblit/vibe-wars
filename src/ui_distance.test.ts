@@ -31,6 +31,8 @@ describe('UIManager - Distance Countdown', () => {
       isSmartAI: false,
       isModeColoring: false,
       showChassis: false,
+      canFireTorpedo: false,
+      hasFiredTorpedo: false,
     };
 
     document.body.innerHTML = '';

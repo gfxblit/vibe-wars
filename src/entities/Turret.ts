@@ -4,6 +4,7 @@ import { GameConfig } from '../config';
 
 export class Turret extends Entity implements Targetable {
   public readonly mesh: THREE.Group;
+  private swivelBody: THREE.Group;
   private fireCooldown: number = Math.random() * 1.0; // Fire soon after encounter
   public isExploded: boolean = false;
   private pieceVelocities: THREE.Vector3[] = [];
@@ -12,6 +13,10 @@ export class Turret extends Entity implements Targetable {
 
   public getWorldPosition(target: THREE.Vector3): THREE.Vector3 {
     return this.mesh.getWorldPosition(target);
+  }
+
+  public get position(): THREE.Vector3 {
+    return this.mesh.position;
   }
 
   constructor(position: THREE.Vector3) {
@@ -25,17 +30,32 @@ export class Turret extends Entity implements Targetable {
       wireframe: true
     });
 
-    // Actually, let's just make it a simple box for now to represent a turret
-    const boxGeo = new THREE.BoxGeometry(size, size, size);
-    const box = new THREE.Mesh(boxGeo, material.clone());
-    this.mesh.add(box);
+    // Base - stays on the wall
+    const baseGeo = new THREE.CylinderGeometry(size * 0.6, size * 0.7, size * 0.2, 8);
+    const base = new THREE.Mesh(baseGeo, material.clone());
+    base.rotation.x = Math.PI / 2;
+    this.mesh.add(base);
 
-    // Barrel
-    const barrelGeo = new THREE.CylinderGeometry(size / 10, size / 10, size, 8);
-    const barrel = new THREE.Mesh(barrelGeo, material.clone());
-    barrel.position.z = size / 2;
-    barrel.rotation.x = Math.PI / 2;
-    this.mesh.add(barrel);
+    // Swivel Body - this is what looks at the player
+    this.swivelBody = new THREE.Group();
+    this.mesh.add(this.swivelBody);
+
+    const bodyGeo = new THREE.BoxGeometry(size * 0.8, size * 0.5, size * 0.8);
+    const body = new THREE.Mesh(bodyGeo, material.clone());
+    this.swivelBody.add(body);
+
+    // Two Barrels
+    const barrelGeo = new THREE.CylinderGeometry(size / 15, size / 15, size * 0.8, 8);
+    
+    const leftBarrel = new THREE.Mesh(barrelGeo, material.clone());
+    leftBarrel.position.set(-size * 0.2, 0, size * 0.4);
+    leftBarrel.rotation.x = Math.PI / 2;
+    this.swivelBody.add(leftBarrel);
+
+    const rightBarrel = new THREE.Mesh(barrelGeo, material.clone());
+    rightBarrel.position.set(size * 0.2, 0, size * 0.4);
+    rightBarrel.rotation.x = Math.PI / 2;
+    this.swivelBody.add(rightBarrel);
     
     // Dispose of original material template
     material.dispose();
@@ -80,7 +100,7 @@ export class Turret extends Entity implements Targetable {
     this.fireCooldown -= deltaTime;
 
     // Aim at player
-    this.mesh.lookAt(playerPosition);
+    this.swivelBody.lookAt(playerPosition);
 
     const worldPos = this.getWorldPosition(this.scratchVector3);
     const dist = worldPos.distanceTo(playerPosition);

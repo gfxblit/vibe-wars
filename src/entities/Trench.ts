@@ -123,6 +123,14 @@ export class Trench extends Entity {
       const y = (((Math.abs(z) / turretSpacing) % 3) - 1) * trenchHeight * 0.25;
       
       const turret = new Turret(new THREE.Vector3(x, y, z));
+      // Rotate turret so its base is against the wall
+      // The turret's default "up" is Y, and it looks towards +Z.
+      // On the left wall (x = -50), it should look towards +X by default.
+      if (isLeft) {
+        turret.mesh.rotation.y = Math.PI / 2;
+      } else {
+        turret.mesh.rotation.y = -Math.PI / 2;
+      }
       this.turrets.push(turret);
       this.mesh.add(turret.mesh);
     }
