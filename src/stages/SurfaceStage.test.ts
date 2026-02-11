@@ -86,8 +86,8 @@ describe('SurfaceStage', () => {
     
     stage.update(0.1, player);
     expect(takeDamage).toHaveBeenCalledWith(1);
-    // Should bump player up
-    expect(player.position.y).toBeGreaterThan(GameConfig.stage.surfaceFloorY);
+    // Should bump player up by the bounce amount
+    expect(player.position.y).toBe(GameConfig.stage.surfaceFloorY + GameConfig.stage.surfaceFloorBounce);
   });
 
   it('should spawn towers over time', () => {

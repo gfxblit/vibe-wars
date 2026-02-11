@@ -69,7 +69,7 @@ export class DogfightCombatStrategy extends BaseCombatStrategy {
     state.entityManager.getTieFighters().forEach(tf => {
       if (!tf.isExploded && checkAim(tf.position, input, camera)) {
         tf.explode();
-        addScore(100);
+        addScore(GameConfig.tieFighter.points);
         addKill();
       }
     });
@@ -83,7 +83,7 @@ export class SurfaceCombatStrategy extends BaseCombatStrategy {
         stage.getTowers().forEach(tower => {
             if (!tower.isDestroyed && checkAim(tower.mesh.position, input, camera)) {
                 tower.isDestroyed = true;
-                addScore(200);
+                addScore(GameConfig.stage.towerPoints);
             }
         });
     }

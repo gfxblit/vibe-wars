@@ -10,6 +10,7 @@ export class SurfaceStage extends Stage {
   public override get speed() { return GameConfig.player.forwardSpeeds.SURFACE; }
   private elapsedTime: number = 0;
   private surface: Surface;
+  private playerBox: THREE.Box3 = new THREE.Box3();
 
   constructor(private scene: THREE.Scene) {
     super();
@@ -32,18 +33,18 @@ export class SurfaceStage extends Stage {
     
     this.surface.update(deltaTime, player.position.z);
 
-    const playerBox = new THREE.Box3().setFromObject(player.mesh);
+    const playerBox = this.playerBox.setFromObject(player.mesh);
     
     const { floorHit, towerHit } = this.surface.checkCollisions(playerBox, player.position);
 
     if (floorHit) { 
-        takeDamage(1);
+        takeDamage(GameConfig.stage.surfaceCollisionDamage);
         // Bounce player up to avoid instant death loop or getting stuck
-        player.position.y = GameConfig.stage.surfaceFloorY + 2;
+        player.position.y = GameConfig.stage.surfaceFloorY + GameConfig.stage.surfaceFloorBounce;
     }
 
     if (towerHit) {
-        takeDamage(1);
+        takeDamage(GameConfig.stage.surfaceCollisionDamage);
         towerHit.isDestroyed = true; // Mark as hit so we don't hit it again immediately
     }
     

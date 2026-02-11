@@ -77,19 +77,18 @@ export class Surface extends Entity {
         }
 
         // Cleanup passed towers
-        if (tower.mesh.position.z > playerZ + 200) {
+        if (tower.mesh.position.z > playerZ + GameConfig.stage.towerCleanupDistance) {
             this.removeTower(i);
         }
     }
   }
 
   private spawnTower(playerZ: number): void {
-     const { surfaceWidth, surfaceFloorY } = GameConfig.stage;
+     const { surfaceWidth, surfaceFloorY, towerSpawnDistance, towerMarginX } = GameConfig.stage;
      
-     const spawnDist = 1000; 
-     const spawnZ = playerZ - spawnDist; 
+     const spawnZ = playerZ - towerSpawnDistance; 
      
-     const rangeX = surfaceWidth / 2 - 50; 
+     const rangeX = surfaceWidth / 2 - towerMarginX; 
      const x = (Math.random() * 2 - 1) * rangeX;
      
      const tower = new Tower(new THREE.Vector3(x, surfaceFloorY, spawnZ));
@@ -136,6 +135,8 @@ export class Surface extends Entity {
             }
         });
     }
-    [...this.towers].forEach(() => this.removeTower(0)); 
+    while (this.towers.length > 0) {
+      this.removeTower(0);
+    }
   }
 }

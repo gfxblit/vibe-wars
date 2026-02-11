@@ -109,6 +109,7 @@ describe('GameConfig', () => {
     expect(GameConfig.stage.deathStarTrenchWidth).toBe(4);
     expect(GameConfig.stage.deathStarColor).toBe(0x00ff00);
     expect(GameConfig.stage.deathStarDishColor).toBe(0xccffcc);
+    expect(GameConfig.stage.trenchKillsThreshold).toBe(10);
     expect(GameConfig.stage.deathStarDistance).toBe(1000);
     expect(GameConfig.stage.trenchWidth).toBe(100);
     expect(GameConfig.stage.catwalkColor).toBe(0xaaaaaa);
@@ -116,6 +117,10 @@ describe('GameConfig', () => {
     expect(GameConfig.stage.trenchVerticalDetailSpacing).toBe(200);
     expect(GameConfig.stage.trenchHorizontalDetailSpacing).toBe(50);
     expect(GameConfig.stage.exhaustPortColor).toBe(0xffff00);
+    expect(GameConfig.stage.trenchTransitionDistance).toBe(100);
+    expect(GameConfig.stage.surfaceFloorBounce).toBe(2);
+    expect(GameConfig.stage.towerPoints).toBe(200);
+    expect(GameConfig.stage.deathStarSpawnAngle).toBeCloseTo(Math.PI / 4);
   });
 
   test('should be immutable at the type level', () => {

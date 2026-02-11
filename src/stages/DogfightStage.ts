@@ -52,7 +52,7 @@ export class DogfightStage extends Stage {
     
     // Use player's up vector for horizontal rotation relative to player
     const axis = new THREE.Vector3(0, 1, 0).applyQuaternion(player.mesh.quaternion);
-    const angle = Math.PI / 4; // 45 degrees
+    const angle = GameConfig.stage.deathStarSpawnAngle; // 45 degrees
     spawnDir.applyAxisAngle(axis, angle);
 
     const spawnPos = player.position.clone().add(spawnDir.multiplyScalar(GameConfig.stage.deathStarDistance));
@@ -76,7 +76,7 @@ export class DogfightStage extends Stage {
     if (dist > 0) {
       const targetRotation = new THREE.Quaternion().setFromUnitVectors(
         new THREE.Vector3(0, 0, -1),
-        toDeathStar.clone().normalize()
+        toDeathStar.normalize()
       );
       player.mesh.quaternion.slerp(targetRotation, GameConfig.stage.steeringStrength * deltaTime);
     }
