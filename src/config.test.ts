@@ -112,6 +112,9 @@ describe('GameConfig', () => {
     expect(GameConfig.stage.deathStarDistance).toBe(1000);
     expect(GameConfig.stage.trenchWidth).toBe(100);
     expect(GameConfig.stage.catwalkColor).toBe(0xaaaaaa);
+    expect(GameConfig.stage.trenchWallColor).toBe(0x00ff00);
+    expect(GameConfig.stage.trenchVerticalDetailSpacing).toBe(200);
+    expect(GameConfig.stage.trenchHorizontalDetailSpacing).toBe(50);
   });
 
   test('should be immutable at the type level', () => {
