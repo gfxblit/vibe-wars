@@ -91,7 +91,12 @@ export class TrenchStage extends Stage {
     }
   }
 
-  public cleanup(): void {
+  public override cleanup(): void {
+    if (state.entityManager) {
+      this.trench.getTurrets().forEach(turret => {
+        state.entityManager!.removeTarget(turret);
+      });
+    }
     this.scene.remove(this.trench.mesh);
     this.trench.dispose();
   }

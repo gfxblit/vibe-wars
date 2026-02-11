@@ -28,4 +28,20 @@ describe('EntityManager Turret Leak', () => {
     // If it leaks, secondTurretCount will be 2 * initialTurretCount
     expect(secondTurretCount).toBe(initialTurretCount);
   });
+
+  it('should remove turrets from EntityManager when TrenchStage is cleaned up', () => {
+    // 1. Enter TRENCH stage
+    state.stage = 'TRENCH';
+    state.stageManager!.reset();
+    
+    const initialTurretCount = state.entityManager!.getTargets().filter(t => t.constructor.name === 'Turret').length;
+    expect(initialTurretCount).toBeGreaterThan(0);
+
+    // 2. Transition to DOGFIGHT stage (calls cleanup() on TrenchStage)
+    state.stage = 'DOGFIGHT';
+    state.stageManager!.reset();
+    
+    const finalTurretCount = state.entityManager!.getTargets().filter(t => t.constructor.name === 'Turret').length;
+    expect(finalTurretCount).toBe(0);
+  });
 });
