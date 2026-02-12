@@ -11,6 +11,7 @@ vi.mock('../state', () => ({
     entityManager: {
       clear: vi.fn(),
       setSpawningEnabled: vi.fn(),
+      spawnFireball: vi.fn(),
     },
     player: {
       position: new THREE.Vector3(0, 0, 0),
@@ -20,27 +21,11 @@ vi.mock('../state', () => ({
     },
   },
   goToNextStage: vi.fn(),
+  takeDamage: vi.fn(),
+  addScore: vi.fn(),
 }));
 
-import { goToNextStage } from '../state';
-
-// Mock DeathStar to avoid Three.js/Asset loading issues during test
-vi.mock('../entities/DeathStar', () => {
-  return {
-    DeathStar: class {
-      mesh: THREE.Group;
-      position: THREE.Vector3;
-      constructor(pos: THREE.Vector3) {
-        this.mesh = new THREE.Group();
-        this.mesh.name = 'DeathStar';
-        this.position = this.mesh.position;
-        this.position.copy(pos);
-      }
-      update(_deltaTime: number) {}
-      dispose() {}
-    }
-  };
-});
+import { goToNextStage, takeDamage } from '../state';
 
 describe('SurfaceStage', () => {
   let stage: SurfaceStage;
@@ -49,8 +34,16 @@ describe('SurfaceStage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     scene = new THREE.Scene();
-    state.player!.position.set(0, 0, 0);
-    state.player!.mesh.quaternion.set(0, 0, 0, 1);
+    
+    // Setup a proper player mock with real THREE objects
+    state.player = {
+      position: new THREE.Vector3(0, 0, 0),
+      mesh: new THREE.Group(),
+      update: vi.fn(),
+    } as unknown as Player;
+    
+    // Ensure quaternion is set (Group has it, but just to be safe if tests check it)
+    state.player.mesh.quaternion.set(0, 0, 0, 1);
   });
 
   it('should initialize with correct speed', () => {
@@ -64,37 +57,64 @@ describe('SurfaceStage', () => {
     expect(state.entityManager?.setSpawningEnabled).toHaveBeenCalledWith(false);
   });
 
-  it('should spawn DeathStar in the scene', () => {
+  it('should reset player position and orientation on initialization', () => {
+    state.player!.position.set(100, 200, 300);
+    state.player!.mesh.quaternion.set(0.5, 0.5, 0.5, 0.5);
+    
     stage = new SurfaceStage(scene);
-    const deathStar = scene.getObjectByName('DeathStar');
-    expect(deathStar).toBeDefined();
+    
+    expect(state.player!.position.x).toBe(0);
+    expect(state.player!.position.y).toBe(0);
+    expect(state.player!.position.z).toBe(0);
+    expect(state.player!.mesh.quaternion.x).toBe(0);
+    expect(state.player!.mesh.quaternion.y).toBe(0);
+    expect(state.player!.mesh.quaternion.z).toBe(0);
+    expect(state.player!.mesh.quaternion.w).toBe(1);
   });
 
-  it('should transition to next stage when close to DeathStar', () => {
+  it('should create a floor grid', () => {
+    stage = new SurfaceStage(scene);
+    // Scene should contain the floor group
+    expect(scene.children.length).toBeGreaterThan(0);
+    const floor = scene.children.find(c => c instanceof THREE.Group);
+    expect(floor).toBeDefined();
+  });
+
+  it('should transition to next stage after timer expires', () => {
     stage = new SurfaceStage(scene);
     
-    // Find death star position from scene
-    const deathStar = scene.getObjectByName('DeathStar');
-    expect(deathStar).toBeDefined();
-    
-    // Move player close to DS
-    // dist < trenchTransitionDistance + deathStarSize
-    const targetDist = GameConfig.stage.trenchTransitionDistance + GameConfig.stage.deathStarSize - 10;
-    
-    // Place player such that distance is targetDist
-    // DS is at some position. Player is at 0,0,0 usually.
-    // Let's just move player to DS position + offset
-    state.player!.position.copy(deathStar!.position).add(new THREE.Vector3(0, 0, targetDist)); // Z offset
-    
-    stage.update(0.1, state.player as Player);
+    // Update with delta less than duration
+    stage.update(GameConfig.stage.surfaceDuration - 0.1, state.player as Player);
+    expect(goToNextStage).not.toHaveBeenCalled();
+
+    // Update to pass the duration
+    stage.update(0.2, state.player as Player);
     expect(goToNextStage).toHaveBeenCalled();
   });
-  
-  it('should cleanup by removing DeathStar from scene', () => {
+
+  it('should damage player if they hit the floor', () => {
     stage = new SurfaceStage(scene);
-    const initialChildren = scene.children.length;
-    expect(initialChildren).toBeGreaterThan(0);
-    stage.cleanup();
-    expect(scene.children.length).toBe(initialChildren - 1);
+    const player = state.player as Player;
+    
+    // Position player below floor threshold
+    // Floor Y is -50 (default in config). Collision is < -50 + buffer
+    player.position.y = GameConfig.stage.surfaceFloorY - 10;
+    
+    stage.update(0.1, player);
+    expect(takeDamage).toHaveBeenCalledWith(1);
+    // Should bump player up by the bounce amount
+    expect(player.position.y).toBe(GameConfig.stage.surfaceFloorY + GameConfig.stage.surfaceFloorBounce);
+  });
+
+  it('should spawn towers over time', () => {
+    stage = new SurfaceStage(scene);
+    
+    // Initially no towers
+    expect(stage.getTowers().length).toBe(0);
+    
+    stage.update(0.1, state.player as Player);
+    
+    // Should have spawned a tower
+    expect(stage.getTowers().length).toBeGreaterThan(0);
   });
 });

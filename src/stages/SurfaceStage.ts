@@ -1,63 +1,70 @@
 import * as THREE from 'three';
 import { GameConfig } from '../config';
-import { state, goToNextStage } from '../state';
+import { state, goToNextStage, takeDamage } from '../state';
 import { Player } from '../entities/Player';
-import { DeathStar } from '../entities/DeathStar';
 import { Stage } from './Stage';
+import { Tower } from '../entities/Tower';
+import { Surface } from '../entities/Surface';
 
-export class SurfaceStage implements Stage {
-  public readonly speed = GameConfig.player.forwardSpeeds.SURFACE;
-  private deathStar: DeathStar;
+export class SurfaceStage extends Stage {
+  public override get speed() { return GameConfig.player.forwardSpeeds.SURFACE; }
+  private elapsedTime: number = 0;
+  private surface: Surface;
+  private playerBox: THREE.Box3 = new THREE.Box3();
 
   constructor(private scene: THREE.Scene) {
+    super();
     // Clear existing enemies for a clean transition
     if (state.entityManager) {
       state.entityManager.clear();
       state.entityManager.setSpawningEnabled(false);
     }
-
+    
+    // Reset player pose to point down the surface
     const player = state.player!;
-    const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(player.mesh.quaternion);
-
-    // Calculate a spawn position 2000 units ahead, but 45 degrees off-center
-    // We use the player's "up" vector to rotate the forward vector horizontally
-    const spawnDir = forward.clone();
-    const axis = new THREE.Vector3(0, 1, 0).applyQuaternion(player.mesh.quaternion);
-
-    // If player is turning, spawn in the direction of the turn, otherwise just to the right
-    const angle = Math.PI / 4; // 45 degrees
-    spawnDir.applyAxisAngle(axis, angle);
-
-    const spawnPos = player.position.clone().add(spawnDir.multiplyScalar(GameConfig.stage.deathStarDistance));
-
-    this.deathStar = new DeathStar(spawnPos);
-    this.scene.add(this.deathStar.mesh);
+    player.position.set(0, 0, 0);
+    player.mesh.quaternion.set(0, 0, 0, 1);
+    
+    this.surface = new Surface();
+    this.scene.add(this.surface.mesh);
   }
 
-  update(deltaTime: number, player: Player): void {
-    const toDeathStar = new THREE.Vector3().subVectors(this.deathStar.position, player.position);
-    const dist = toDeathStar.length();
+  public getTowers(): Tower[] {
+    return this.surface.getTowers();
+  }
 
-    if (dist < GameConfig.stage.trenchTransitionDistance + GameConfig.stage.deathStarSize) {
+  public update(deltaTime: number, player: Player): void {
+    this.elapsedTime += deltaTime;
+    
+    this.surface.update(deltaTime, player.position, (pos, vel) => {
+        if (state.entityManager) {
+            state.entityManager.spawnFireball(pos, vel);
+        }
+    });
+
+    const playerBox = this.playerBox.setFromObject(player.mesh);
+    
+    const { floorHit, towerHit } = this.surface.checkCollisions(playerBox, player.position);
+
+    if (floorHit) { 
+        takeDamage(GameConfig.stage.surfaceCollisionDamage);
+        // Bounce player up to avoid instant death loop or getting stuck
+        player.position.y = GameConfig.stage.surfaceFloorY + GameConfig.stage.surfaceFloorBounce;
+    }
+
+    if (towerHit) {
+        takeDamage(GameConfig.stage.surfaceCollisionDamage);
+        towerHit.isDestroyed = true; // Mark as hit so we don't hit it again immediately
+    }
+    
+    // Check End Condition
+    if (this.elapsedTime >= GameConfig.stage.surfaceDuration) {
       goToNextStage();
     }
-
-    // Magnetic Steering: Slowly rotate player towards Death Star
-    if (dist > 0) {
-      const targetRotation = new THREE.Quaternion().setFromUnitVectors(
-        new THREE.Vector3(0, 0, -1),
-        toDeathStar.normalize()
-      );
-
-      // Gradually nudge the player's orientation
-      player.mesh.quaternion.slerp(targetRotation, GameConfig.stage.steeringStrength * deltaTime);
-    }
-
-    this.deathStar.update(deltaTime);
   }
 
-  cleanup(): void {
-    this.scene.remove(this.deathStar.mesh);
-    this.deathStar.dispose();
+  public cleanup(): void {
+    this.scene.remove(this.surface.mesh);
+    this.surface.dispose();
   }
 }

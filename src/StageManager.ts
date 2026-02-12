@@ -21,7 +21,7 @@ export class StageManager {
     state.canFireTorpedo = false;
     switch (state.stage) {
       case 'DOGFIGHT':
-        this.currentStage = new DogfightStage();
+        this.currentStage = new DogfightStage(this.worldScene);
         break;
       case 'SURFACE':
         this.currentStage = new SurfaceStage(this.worldScene);

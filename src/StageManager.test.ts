@@ -23,21 +23,24 @@ describe('StageManager', () => {
     expect(state.stage).toBe('DOGFIGHT');
   });
 
-  it('should transition to SurfaceStage when kill threshold is met', () => {
+  it('should NOT transition to SurfaceStage immediately when kill threshold is met, but start approach', () => {
     state.kills = GameConfig.stage.trenchKillsThreshold;
     stageManager.update(0.1, player);
 
-    expect(state.stage).toBe('SURFACE');
+    // Should still be in DOGFIGHT stage, but in approach phase
+    expect(state.stage).toBe('DOGFIGHT');
+    
+    // Should have spawned DeathStar
     expect(scene.getObjectByName('DeathStar')).toBeTruthy();
 
     // Verify TIE fighters are cleared and spawning is disabled
     expect(state.entityManager!.getTieFighters().length).toBe(0);
   });
 
-  it('should transition to TrenchStage when player is close to DeathStar', () => {
+  it('should transition to SurfaceStage when player is close to DeathStar in Dogfight approach', () => {
     state.kills = GameConfig.stage.trenchKillsThreshold;
-    stageManager.update(0.1, player);
-    expect(state.stage).toBe('SURFACE');
+    stageManager.update(0.1, player); // Trigger approach
+    expect(state.stage).toBe('DOGFIGHT');
 
     const deathStar = scene.getObjectByName('DeathStar');
     expect(deathStar).toBeTruthy();
@@ -47,7 +50,23 @@ describe('StageManager', () => {
 
     stageManager.update(0.1, player);
 
+    expect(state.stage).toBe('SURFACE');
+  });
+
+  it('should transition to TrenchStage when SurfaceStage timer expires', () => {
+    // Manually set stage to SURFACE for this test
+    state.stage = 'SURFACE';
+    stageManager.reset(); // Re-init stage manager to pick up SURFACE stage
+    
+    stageManager.update(0.1, player);
+    expect(state.stage).toBe('SURFACE');
+
+    // Advance time past surface duration
+    stageManager.update(GameConfig.stage.surfaceDuration + 1.0, player);
+
     expect(state.stage).toBe('TRENCH');
+    
+    // Verify player reset logic for Trench
     expect(player.position.x).toBe(0);
     expect(player.position.y).toBe(0);
     expect(player.position.z).toBe(0);

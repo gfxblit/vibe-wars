@@ -84,6 +84,25 @@ export const GameConfig = deepFreeze({
     trenchVerticalDetailColor: 0x00ff00,
     trenchHorizontalDetailColor: 0x00ff00,
     exhaustPortColor: 0xffff00,
+
+    // Surface Stage
+    surfaceLength: 10000,
+    surfaceWidth: 2000,
+    surfaceGridSpacing: 100,
+    surfaceColor: 0x0000ff,
+    surfaceFloorY: -50,
+    surfaceFloorBounce: 2,
+    surfaceCollisionDamage: 1,
+    towerHeight: 50,
+    towerWidth: 30,
+    towerColor: 0xcc0000, // Red towers? Or grey? Design doc says "Red: Enemy fire". Let's stick to standard grey or red for enemies. Towers are enemies.
+    towerSpawnInterval: 1.5,
+    towerSpawnDistance: 1000,
+    towerCleanupDistance: 200,
+    towerMarginX: 50,
+    towerPoints: 200,
+    surfaceDuration: 30.0,
+    deathStarSpawnAngle: Math.PI / 4,
   },
   tieFighter: {
     speed: 50,
@@ -92,6 +111,7 @@ export const GameConfig = deepFreeze({
     distance: 60,
     meshColor: 0xff0000,
     meshSize: 1,
+    points: 100,
     explosionVelocity: 50,
     spawnInterval: 3.0,
     cleanupDistance: 600,

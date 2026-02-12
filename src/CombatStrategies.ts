@@ -4,6 +4,7 @@ import { UserInput } from './input';
 import { state, spawnLasers, addScore, addKill, spawnTorpedo } from './state';
 import { checkAim } from './collision';
 import { GameConfig } from './config';
+import { SurfaceStage } from './stages/SurfaceStage';
 
 abstract class BaseCombatStrategy implements CombatStrategy {
   protected fireCooldown: number = 0;
@@ -68,7 +69,7 @@ export class DogfightCombatStrategy extends BaseCombatStrategy {
     state.entityManager.getTieFighters().forEach(tf => {
       if (!tf.isExploded && checkAim(tf.position, input, camera)) {
         tf.explode();
-        addScore(100);
+        addScore(GameConfig.tieFighter.points);
         addKill();
       }
     });
@@ -76,8 +77,16 @@ export class DogfightCombatStrategy extends BaseCombatStrategy {
 }
 
 export class SurfaceCombatStrategy extends BaseCombatStrategy {
-  protected checkHits(_input: UserInput, _camera: THREE.Camera) {
-    // Currently no surface targets, but extensible
+  protected checkHits(input: UserInput, camera: THREE.Camera) {
+    const stage = state.stageManager?.getStage();
+    if (stage instanceof SurfaceStage) {
+        stage.getTowers().forEach(tower => {
+            if (!tower.isDestroyed && checkAim(tower.mesh.position, input, camera)) {
+                tower.isDestroyed = true;
+                addScore(GameConfig.stage.towerPoints);
+            }
+        });
+    }
   }
 }
 

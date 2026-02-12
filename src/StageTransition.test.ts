@@ -27,7 +27,7 @@ describe('Stage Transitions', () => {
     expect(state.kills).toBe(0);
   });
 
-  it('should auto-switch from DOGFIGHT to SURFACE if kills threshold already met on update', () => {
+  it('should auto-switch from DOGFIGHT to APPROACH phase if kills threshold already met on update', () => {
     state.stage = 'DOGFIGHT';
     state.kills = GameConfig.stage.trenchKillsThreshold + 1;
     state.stageManager?.reset();
@@ -35,7 +35,10 @@ describe('Stage Transitions', () => {
     expect(state.stage).toBe('DOGFIGHT');
     
     state.stageManager?.update(0.1, state.player!);
-    expect(state.stage).toBe('SURFACE');
+    
+    // Should still be DOGFIGHT, but with DeathStar spawned (Approach Phase)
+    expect(state.stage).toBe('DOGFIGHT');
+    expect(scene.getObjectByName('DeathStar')).toBeTruthy();
   });
 
   it('should reset kills when cycling back to DOGFIGHT', () => {

@@ -251,7 +251,7 @@ export class UIManager {
           this.instructionValue.classList.remove('hidden');
           break;
         case 'SURFACE':
-          this.instructionValue.textContent = 'APPROACH THE DEATH STAR';
+          this.instructionValue.textContent = 'FLY TO THE TRENCH';
           this.instructionValue.classList.remove('hidden');
           break;
         case 'TRENCH':
@@ -281,6 +281,15 @@ export class UIManager {
       this.torpedoReadyValue.classList.remove('hidden');
     } else {
       this.torpedoReadyValue.classList.add('hidden');
+    }
+
+    // Approach Death Star indicator
+    if (state.isApproachingDeathStar) {
+      this.instructionValue.textContent = 'APPROACH DEATH STAR';
+      this.instructionValue.classList.remove('hidden');
+    } else if (this.lastStage === state.stage && this.instructionValue.textContent === 'APPROACH DEATH STAR') {
+      // If we were showing it but the flag cleared (or stage changed), hide it
+      this.instructionValue.classList.add('hidden');
     }
 
     this.firstUpdate = false;

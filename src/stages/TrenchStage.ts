@@ -5,12 +5,13 @@ import { state, goToNextStage, takeDamage, addScore } from '../state';
 import { Player } from '../entities/Player';
 import { Trench } from '../entities/Trench';
 
-export class TrenchStage implements Stage {
-  public readonly speed = GameConfig.player.forwardSpeeds.TRENCH;
+export class TrenchStage extends Stage {
+  public override get speed() { return GameConfig.player.forwardSpeeds.TRENCH; }
   private trench: Trench;
   private lastCatwalkHitZ: number | null = null;
 
   constructor(private scene: THREE.Scene, private onReset: () => void) {
+    super();
     if (state.entityManager) {
       state.entityManager.clear();
       state.entityManager.setSpawningEnabled(false);
@@ -25,7 +26,7 @@ export class TrenchStage implements Stage {
     this.scene.add(this.trench.mesh);
   }
 
-  update(deltaTime: number, player: Player): void {
+  public update(deltaTime: number, player: Player): void {
     // Apply trench constraints
     const halfWidth = GameConfig.stage.trenchWidth / 2;
     const halfHeight = GameConfig.stage.trenchHeight / 2;
@@ -78,7 +79,7 @@ export class TrenchStage implements Stage {
     }
   }
 
-  cleanup(): void {
+  public cleanup(): void {
     this.scene.remove(this.trench.mesh);
     this.trench.dispose();
   }
