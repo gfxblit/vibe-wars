@@ -78,6 +78,7 @@ export class UIManager {
     const tfRow = this.createEl('div', 'flex justify-between', this.debugPanel);
     this.createEl('span', '', tfRow).textContent = 'TIE FIGHTERS:';
     this.tieFighterCountValue = this.createEl('span', '', tfRow);
+    this.tieFighterCountValue.id = 'debug-tie-fighter-count';
     this.tieFighterCountValue.textContent = '0';
 
     this.createToggleButton(

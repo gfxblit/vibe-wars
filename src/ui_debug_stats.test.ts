@@ -34,9 +34,9 @@ describe('UIManager Debug Stats', () => {
   it('should display TIE fighter count in debug panel', () => {
     const debugPanel = document.getElementById('debug-panel');
     expect(debugPanel).not.toBeNull();
-    expect(debugPanel?.textContent).toContain('STATS');
-    expect(debugPanel?.textContent).toContain('TIE FIGHTERS:');
-    expect(debugPanel?.textContent).toContain('0');
+    const countElement = document.getElementById('debug-tie-fighter-count');
+    expect(countElement).not.toBeNull();
+    expect(countElement?.textContent).toBe('0');
   });
 
   it('should update TIE fighter count', () => {
@@ -45,34 +45,8 @@ describe('UIManager Debug Stats', () => {
     
     uiManager.update(mockState);
     
-    const debugPanel = document.getElementById('debug-panel');
-    expect(debugPanel?.textContent).toContain('TIE FIGHTERS:');
-    
-    // Check specific element value if possible, or just text content
-    // We didn't set an ID for the value span, but we can verify the text content of the panel
-    // It should contain '5' now.
-    expect(debugPanel?.textContent).toContain('5');
-    
-    // More robust check:
-    // Find the span that contains the value.
-    // In our implementation: 
-    // const tfRow = ...
-    // ... textContent = 'TIE FIGHTERS:'
-    // this.tieFighterCountValue = ...
-    
-    // We can traverse the DOM to find it
-    
-    // Since we know the implementation puts them in a flex row:
-    // <div><span>TIE FIGHTERS:</span><span>5</span></div>
-    
-    const rows = debugPanel?.querySelectorAll('div.flex.justify-between');
-    let found = false;
-    rows?.forEach(row => {
-        if (row.textContent?.includes('TIE FIGHTERS:')) {
-            expect(row.textContent).toContain('5');
-            found = true;
-        }
-    });
-    expect(found).toBe(true);
+    const countElement = document.getElementById('debug-tie-fighter-count');
+    expect(countElement).not.toBeNull();
+    expect(countElement?.textContent).toBe('5');
   });
 });
