@@ -51,7 +51,7 @@ export const GameConfig = deepFreeze({
     damageFlashDuration: 150,
   },
   stage: {
-    trenchKillsThreshold: 2,
+    trenchKillsThreshold: 10,
     deathStarDistance: 1000,
     trenchTransitionDistance: 100,
     trenchWidth: 100,
