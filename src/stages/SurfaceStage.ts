@@ -36,7 +36,11 @@ export class SurfaceStage extends Stage {
   public update(deltaTime: number, player: Player): void {
     this.elapsedTime += deltaTime;
     
-    this.surface.update(deltaTime, player.position.z);
+    this.surface.update(deltaTime, player.position, (pos, vel) => {
+        if (state.entityManager) {
+            state.entityManager.spawnFireball(pos, vel);
+        }
+    });
 
     const playerBox = this.playerBox.setFromObject(player.mesh);
     

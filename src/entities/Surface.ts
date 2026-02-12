@@ -61,8 +61,9 @@ export class Surface extends Entity {
     this.floor.add(gridMesh);
   }
 
-  public update(deltaTime: number, playerZ: number): void {
+  public update(deltaTime: number, playerPosition: THREE.Vector3, spawnFireball?: (pos: THREE.Vector3, vel: THREE.Vector3) => void): void {
     this.elapsedTime += deltaTime;
+    const playerZ = playerPosition.z;
     
     // Spawn Towers
     if (this.elapsedTime >= this.nextTowerSpawnTime) {
@@ -77,14 +78,24 @@ export class Surface extends Entity {
     for (let i = this.towers.length - 1; i >= 0; i--) {
         const tower = this.towers[i];
         
-        if (tower.isDestroyed) {
+        // Cleanup passed towers
+        if (tower.mesh.position.z > playerZ + GameConfig.stage.towerCleanupDistance) {
             this.removeTower(i);
             continue;
         }
 
-        // Cleanup passed towers
-        if (tower.mesh.position.z > playerZ + GameConfig.stage.towerCleanupDistance) {
-            this.removeTower(i);
+        // Firing logic
+        if (!tower.isDestroyed && spawnFireball) {
+          const fireDir = tower.update(deltaTime, playerPosition);
+          if (fireDir) {
+            const vel = fireDir.multiplyScalar(GameConfig.fireball.relativeSpeed);
+            spawnFireball(tower.mesh.position.clone(), vel);
+          }
+        } else {
+             // Still need to update cooldown if we want consistent timing? 
+             // Or just update if destroyed?
+             // tower.update checks isDestroyed internally.
+             tower.update(deltaTime, playerPosition);
         }
     }
   }

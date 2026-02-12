@@ -3,35 +3,73 @@ import { Entity } from './Entity';
 import { GameConfig } from '../config';
 
 export class Tower extends Entity {
-  public mesh: THREE.Group;
-  private collisionBox: THREE.Box3;
-  public isDestroyed: boolean = false;
+    public mesh: THREE.Group;
+    private collisionBox: THREE.Box3;
+    private _isDestroyed: boolean = false;
+    private topMesh!: THREE.Mesh;
+    private fireCooldown: number = 0;
+  
+    public get isDestroyed(): boolean {
+      return this._isDestroyed;
+    }
+  
+    public set isDestroyed(value: boolean) {
+      this._isDestroyed = value;
+      if (this.topMesh) {
+        this.topMesh.visible = !value;
+      }
+    }
+  
+    constructor(position: THREE.Vector3) {
+      super();
+      this.mesh = new THREE.Group();
+      this.mesh.position.copy(position);
+  
+      // Initialize random cooldown so they don't all fire at once
+      this.fireCooldown = Math.random() * GameConfig.fireball.fireRate;
+  
+      const { towerWidth, towerHeight, towerColor } = GameConfig.stage;
+  
+      // Split into Base and Top
+      const baseHeight = towerHeight * 0.7;
+      const topHeight = towerHeight * 0.3;
+  
+      // Base
+      const baseGeo = new THREE.BoxGeometry(towerWidth, baseHeight, towerWidth);
+      const material = new THREE.MeshBasicMaterial({ 
+        color: towerColor,
+        wireframe: true 
+      });
+      const base = new THREE.Mesh(baseGeo, material);
+      base.position.y = baseHeight / 2;
+      this.mesh.add(base);
+  
+      // Top
+      const topGeo = new THREE.BoxGeometry(towerWidth * 0.8, topHeight, towerWidth * 0.8);
+      this.topMesh = new THREE.Mesh(topGeo, material);
+      this.topMesh.position.y = baseHeight + topHeight / 2;
+      this.mesh.add(this.topMesh);
+  
+      // Initial collision box calculation
+      this.collisionBox = new THREE.Box3();
+      this.updateCollisionBox();
+    }
 
-  constructor(position: THREE.Vector3) {
-    super();
-    this.mesh = new THREE.Group();
-    this.mesh.position.copy(position);
+  update(deltaTime: number, playerPosition?: THREE.Vector3): THREE.Vector3 | null {
+    if (this.isDestroyed) return null;
 
-    const { towerWidth, towerHeight, towerColor } = GameConfig.stage;
-
-    // Tower Body
-    const geometry = new THREE.BoxGeometry(towerWidth, towerHeight, towerWidth);
-    const material = new THREE.MeshBasicMaterial({ 
-      color: towerColor,
-      wireframe: true 
-    });
-    const body = new THREE.Mesh(geometry, material);
-    // Pivot at bottom so position.y is the base
-    body.position.y = towerHeight / 2;
-    this.mesh.add(body);
-
-    // Initial collision box calculation
-    this.collisionBox = new THREE.Box3();
-    this.updateCollisionBox();
-  }
-
-  update(_deltaTime: number): void {
-    // Towers are static in the world, but we might want to animate them later
+    if (playerPosition) {
+      this.fireCooldown -= deltaTime;
+      if (this.fireCooldown <= 0) {
+        this.fireCooldown = GameConfig.fireball.fireRate;
+        // Aim at player
+        // Simple prediction: just aim at current position
+        // Since player moves fast forward (-Z), maybe lead?
+        // But for now, direct aim is fine.
+        return new THREE.Vector3().subVectors(playerPosition, this.mesh.position).normalize();
+      }
+    }
+    return null;
   }
 
   private updateCollisionBox(): void {

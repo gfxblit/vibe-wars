@@ -11,6 +11,7 @@ vi.mock('../state', () => ({
     entityManager: {
       clear: vi.fn(),
       setSpawningEnabled: vi.fn(),
+      spawnFireball: vi.fn(),
     },
     player: {
       position: new THREE.Vector3(0, 0, 0),
