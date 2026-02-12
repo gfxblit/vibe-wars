@@ -51,7 +51,7 @@ export const GameConfig = deepFreeze({
     damageFlashDuration: 150,
   },
   stage: {
-    trenchKillsThreshold: 10,
+    trenchKillsThreshold: 2,
     deathStarDistance: 1000,
     trenchTransitionDistance: 100,
     trenchWidth: 100,
@@ -84,7 +84,7 @@ export const GameConfig = deepFreeze({
     trenchVerticalDetailColor: 0x00ff00,
     trenchHorizontalDetailColor: 0x00ff00,
     exhaustPortColor: 0xffff00,
-    
+
     // Surface Stage
     surfaceLength: 10000,
     surfaceWidth: 2000,

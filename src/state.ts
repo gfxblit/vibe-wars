@@ -38,6 +38,7 @@ export interface GameState {
   showChassis: boolean;
   canFireTorpedo: boolean;
   hasFiredTorpedo: boolean;
+  isApproachingDeathStar: boolean;
 }
 
 const initialWidth = typeof window !== 'undefined' ? window.innerWidth : 1024;
@@ -66,6 +67,7 @@ export const state: GameState = {
   showChassis: false,
   canFireTorpedo: false,
   hasFiredTorpedo: false,
+  isApproachingDeathStar: false,
 };
 
 export function initGame(worldScene: THREE.Scene, hudScene: THREE.Scene) {
@@ -82,6 +84,7 @@ export function initGame(worldScene: THREE.Scene, hudScene: THREE.Scene) {
   state.gunColorToggles = GameConfig.laser.offsets.map(() => false);
   state.canFireTorpedo = false;
   state.hasFiredTorpedo = false;
+  state.isApproachingDeathStar = false;
 
   state.player = new Player();
 

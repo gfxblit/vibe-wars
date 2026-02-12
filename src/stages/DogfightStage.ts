@@ -42,6 +42,7 @@ export class DogfightStage extends Stage {
 
   private startApproach(player: Player): void {
     this.phase = DogfightPhase.APPROACH;
+    state.isApproachingDeathStar = true;
     
     if (state.entityManager) {
       state.entityManager.clear();
@@ -89,6 +90,7 @@ export class DogfightStage extends Stage {
   }
 
   public cleanup(): void {
+    state.isApproachingDeathStar = false;
     if (this.deathStar) {
       this.scene.remove(this.deathStar.mesh);
       this.deathStar.dispose();

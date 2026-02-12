@@ -283,6 +283,15 @@ export class UIManager {
       this.torpedoReadyValue.classList.add('hidden');
     }
 
+    // Approach Death Star indicator
+    if (state.isApproachingDeathStar) {
+      this.instructionValue.textContent = 'APPROACH DEATH STAR';
+      this.instructionValue.classList.remove('hidden');
+    } else if (this.lastStage === state.stage && this.instructionValue.textContent === 'APPROACH DEATH STAR') {
+      // If we were showing it but the flag cleared (or stage changed), hide it
+      this.instructionValue.classList.add('hidden');
+    }
+
     this.firstUpdate = false;
   }
 

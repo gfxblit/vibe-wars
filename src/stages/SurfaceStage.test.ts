@@ -56,6 +56,21 @@ describe('SurfaceStage', () => {
     expect(state.entityManager?.setSpawningEnabled).toHaveBeenCalledWith(false);
   });
 
+  it('should reset player position and orientation on initialization', () => {
+    state.player!.position.set(100, 200, 300);
+    state.player!.mesh.quaternion.set(0.5, 0.5, 0.5, 0.5);
+    
+    stage = new SurfaceStage(scene);
+    
+    expect(state.player!.position.x).toBe(0);
+    expect(state.player!.position.y).toBe(0);
+    expect(state.player!.position.z).toBe(0);
+    expect(state.player!.mesh.quaternion.x).toBe(0);
+    expect(state.player!.mesh.quaternion.y).toBe(0);
+    expect(state.player!.mesh.quaternion.z).toBe(0);
+    expect(state.player!.mesh.quaternion.w).toBe(1);
+  });
+
   it('should create a floor grid', () => {
     stage = new SurfaceStage(scene);
     // Scene should contain the floor group

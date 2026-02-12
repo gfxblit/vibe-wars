@@ -20,6 +20,11 @@ export class SurfaceStage extends Stage {
       state.entityManager.setSpawningEnabled(false);
     }
     
+    // Reset player pose to point down the surface
+    const player = state.player!;
+    player.position.set(0, 0, 0);
+    player.mesh.quaternion.set(0, 0, 0, 1);
+    
     this.surface = new Surface();
     this.scene.add(this.surface.mesh);
   }
