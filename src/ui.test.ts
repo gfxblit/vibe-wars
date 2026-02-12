@@ -218,7 +218,7 @@ describe('UIManager', () => {
     // Change to SURFACE
     mockState.stage = 'SURFACE';
     uiManager.update(mockState);
-    expect(hud?.textContent).toContain('APPROACH THE DEATH STAR');
+    expect(hud?.textContent).toContain('FLY TO THE TRENCH');
     expect(hud?.textContent).toContain('STAGE: SURFACE');
 
     // Change to TRENCH

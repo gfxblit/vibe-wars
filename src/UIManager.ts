@@ -251,7 +251,7 @@ export class UIManager {
           this.instructionValue.classList.remove('hidden');
           break;
         case 'SURFACE':
-          this.instructionValue.textContent = 'APPROACH THE DEATH STAR';
+          this.instructionValue.textContent = 'FLY TO THE TRENCH';
           this.instructionValue.classList.remove('hidden');
           break;
         case 'TRENCH':
