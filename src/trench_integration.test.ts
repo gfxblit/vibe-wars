@@ -19,7 +19,7 @@ describe('Trench Integration', () => {
     expect(state.kills).toBe(0);
 
     // 1. Reaching kill threshold
-    for (let i = 0; i < GameConfig.stage.trenchKillsThreshold; i++) {
+    for (let i = 0; i < GameConfig.stage.dogfightKillsThreshold; i++) {
       addKill();
     }
     

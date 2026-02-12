@@ -38,6 +38,7 @@ describe('UIManager', () => {
       canFireTorpedo: false,
       hasFiredTorpedo: false,
       isApproachingDeathStar: false,
+      debugKillsThreshold: undefined,
     };
 
     // Clean up body
@@ -345,6 +346,28 @@ describe('UIManager', () => {
 
       expect(state.stage).toBe('SURFACE');
       expect(mockReset).toHaveBeenCalled();
+    });
+
+    it('should have KILLS TO ADVANCE input', () => {
+      const input = document.getElementById('debug-kills-input') as HTMLInputElement;
+      expect(input).not.toBeNull();
+      expect(input.type).toBe('number');
+
+      // Simulate input change
+      input.value = '5';
+      input.dispatchEvent(new Event('change'));
+
+      expect(state.debugKillsThreshold).toBe(5);
+      
+      // Test invalid input
+      input.value = '-1'; 
+      input.dispatchEvent(new Event('change'));
+      expect(state.debugKillsThreshold).toBe(0); 
+
+      // Test clearing input
+      input.value = ''; 
+      input.dispatchEvent(new Event('change'));
+      expect(state.debugKillsThreshold).toBeUndefined();
     });
   });
 });
