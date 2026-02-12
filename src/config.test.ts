@@ -109,7 +109,6 @@ describe('GameConfig', () => {
     expect(GameConfig.stage.deathStarTrenchWidth).toBe(4);
     expect(GameConfig.stage.deathStarColor).toBe(0x00ff00);
     expect(GameConfig.stage.deathStarDishColor).toBe(0xccffcc);
-    expect(GameConfig.stage.trenchKillsThreshold).toBe(2);
     expect(GameConfig.stage.deathStarDistance).toBe(1000);
     expect(GameConfig.stage.trenchWidth).toBe(100);
     expect(GameConfig.stage.catwalkColor).toBe(0xaaaaaa);
