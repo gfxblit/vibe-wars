@@ -37,6 +37,7 @@ describe('UIManager', () => {
       showChassis: false,
       canFireTorpedo: false,
       hasFiredTorpedo: false,
+      isApproachingDeathStar: false,
     };
 
     // Clean up body
@@ -265,6 +266,14 @@ describe('UIManager', () => {
     
     const hud = document.getElementById('hud');
     expect(hud?.textContent).toContain('TORPEDO READY');
+  });
+
+  it('should show APPROACH DEATH STAR indicator when isApproachingDeathStar is true', () => {
+    mockState.isApproachingDeathStar = true;
+    uiManager.update(mockState);
+    
+    const hud = document.getElementById('hud');
+    expect(hud?.textContent).toContain('APPROACH DEATH STAR');
   });
 
   describe('Debug Panel - Stage Switcher', () => {
