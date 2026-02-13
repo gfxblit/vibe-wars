@@ -8,6 +8,7 @@ import { Stage } from './stages/Stage';
 import { DogfightStage } from './stages/DogfightStage';
 import { SurfaceStage } from './stages/SurfaceStage';
 import { TrenchStage } from './stages/TrenchStage';
+import { ExplosionStage } from './stages/ExplosionStage';
 
 export class StageManager {
   private currentStage: Stage | null = null;
@@ -33,6 +34,9 @@ export class StageManager {
       case 'TRENCH':
         this.currentStage = new TrenchStage(this.worldScene, onComplete, onReset);
         break;
+      case 'EXPLOSION':
+        this.currentStage = new ExplosionStage(this.worldScene);
+        break;
     }
   }
 
@@ -53,9 +57,9 @@ export class StageManager {
     return this.currentStage;
   }
 
-  public update(deltaTime: number, player: Player): void {
+  public update(deltaTime: number, player: Player, camera: THREE.Camera): void {
     if (this.currentStage) {
-      this.currentStage.update(deltaTime, player);
+      this.currentStage.update(deltaTime, player, camera);
     }
   }
 

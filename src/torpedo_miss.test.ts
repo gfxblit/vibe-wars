@@ -10,10 +10,12 @@ describe('Torpedo Miss', () => {
   let hudScene: THREE.Scene;
   let stageManager: StageManager;
   let player: Player;
+  let mockCamera: THREE.Camera;
 
   beforeEach(() => {
     scene = new THREE.Scene();
     hudScene = new THREE.Scene();
+    mockCamera = new THREE.PerspectiveCamera();
     initGame(scene, hudScene);
     stageManager = state.stageManager!;
     player = state.player!;
@@ -30,7 +32,7 @@ describe('Torpedo Miss', () => {
     player.position.z = -GameConfig.stage.trenchLength - 10;
     
     // Update stage manager
-    stageManager.update(0.1, player);
+    stageManager.update(0.1, player, mockCamera);
     
     // Should still be in TRENCH stage (because it restarted)
     expect(state.stage).toBe('TRENCH');
@@ -53,7 +55,7 @@ describe('Torpedo Miss', () => {
       new THREE.Vector3(0, 0, 0)
     );
     
-    stageManager.update(0.1, player);
+    stageManager.update(0.1, player, mockCamera);
     
     // If the torpedo hit the "back wall", it should trigger failure
     expect(state.stage).toBe('TRENCH');
@@ -71,7 +73,7 @@ describe('Torpedo Miss', () => {
       new THREE.Vector3(0, 0, 0)
     );
     
-    stageManager.update(0.1, player);
+    stageManager.update(0.1, player, mockCamera);
     
     expect(state.stage).toBe('TRENCH');
     expect(state.shields).toBe(initialShields - 1);
@@ -88,7 +90,7 @@ describe('Torpedo Miss', () => {
     // Move player to the port position
     player.position.set(0, portY, portZ);
     
-    stageManager.update(0.1, player);
+    stageManager.update(0.1, player, mockCamera);
     
     expect(state.stage).toBe('TRENCH');
     expect(state.shields).toBe(initialShields - 1);

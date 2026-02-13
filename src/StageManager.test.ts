@@ -5,16 +5,19 @@ import { TrenchStage } from './stages/TrenchStage';
 import { Player } from './entities/Player';
 import { GameConfig } from './config';
 import { state, initGame } from './state';
+import { ExplosionStage } from './stages/ExplosionStage';
 
 describe('StageManager', () => {
   let scene: THREE.Scene;
   let hudScene: THREE.Scene;
   let stageManager: StageManager;
   let player: Player;
+  let mockCamera: THREE.Camera;
 
   beforeEach(() => {
     scene = new THREE.Scene();
     hudScene = new THREE.Scene();
+    mockCamera = new THREE.PerspectiveCamera();
     initGame(scene, hudScene);
     stageManager = state.stageManager!;
     player = state.player!;
@@ -26,7 +29,7 @@ describe('StageManager', () => {
 
   it('should NOT transition to SurfaceStage immediately when kill threshold is met, but start approach', () => {
     state.kills = GameConfig.stage.dogfightKillsThreshold;
-    stageManager.update(0.1, player);
+    stageManager.update(0.1, player, mockCamera);
 
     // Should still be in DOGFIGHT stage, but in approach phase
     expect(state.stage).toBe('DOGFIGHT');
@@ -58,7 +61,7 @@ describe('StageManager', () => {
   it('should transition to SURFACE when player is close to DeathStar in Wave 2+', () => {
     state.wave = 2;
     state.kills = GameConfig.stage.dogfightKillsThreshold;
-    stageManager.update(0.1, player); // Trigger approach
+    stageManager.update(0.1, player, mockCamera); // Trigger approach
     expect(state.stage).toBe('DOGFIGHT');
 
     const deathStar = scene.getObjectByName('DeathStar');
@@ -67,7 +70,7 @@ describe('StageManager', () => {
     const dsPos = deathStar!.position.clone();
     player.position.copy(dsPos).add(new THREE.Vector3(0, 0, GameConfig.stage.deathStarSize + GameConfig.stage.trenchTransitionDistance - 10));
 
-    stageManager.update(0.1, player);
+    stageManager.update(0.1, player, mockCamera);
 
     expect(state.stage).toBe('SURFACE');
   });
@@ -78,11 +81,11 @@ describe('StageManager', () => {
     state.stage = 'SURFACE';
     stageManager.reset(); // Re-init stage manager to pick up SURFACE stage
     
-    stageManager.update(0.1, player);
+    stageManager.update(0.1, player, mockCamera);
     expect(state.stage).toBe('SURFACE');
 
     // Advance time past surface duration
-    stageManager.update(GameConfig.stage.surfaceDuration + 1.0, player);
+    stageManager.update(GameConfig.stage.surfaceDuration + 1.0, player, mockCamera);
 
     expect(state.stage).toBe('TRENCH');
     
@@ -101,13 +104,13 @@ describe('StageManager', () => {
     const halfHeight = GameConfig.stage.trenchHeight / 2;
 
     player.position.set(halfWidth + 10, halfHeight + 10, 0);
-    stageManager.update(0.1, player);
+    stageManager.update(0.1, player, mockCamera);
 
     expect(player.position.x).toBeLessThanOrEqual(halfWidth);
     expect(player.position.y).toBeLessThanOrEqual(halfHeight);
 
     player.position.set(-halfWidth - 10, -halfHeight - 10, 0);
-    stageManager.update(0.1, player);
+    stageManager.update(0.1, player, mockCamera);
 
     expect(player.position.x).toBeGreaterThanOrEqual(-halfWidth);
     expect(player.position.y).toBeGreaterThanOrEqual(-halfHeight);
@@ -119,15 +122,15 @@ describe('StageManager', () => {
     const initialShields = state.shields;
 
     player.position.set(0, -20, -500);
-    stageManager.update(0.1, player);
+    stageManager.update(0.1, player, mockCamera);
     expect(state.shields).toBe(initialShields - 1);
 
-    stageManager.update(0.1, player);
+    stageManager.update(0.1, player, mockCamera);
     expect(state.shields).toBe(initialShields - 1);
 
     const currentShields = state.shields;
     player.position.set(0, 20, -1000);
-    stageManager.update(0.1, player);
+    stageManager.update(0.1, player, mockCamera);
     expect(state.shields).toBe(currentShields - 1);
   });
 
@@ -137,11 +140,11 @@ describe('StageManager', () => {
     const initialShields = state.shields;
 
     player.position.set(0, 20, -500);
-    stageManager.update(0.1, player);
+    stageManager.update(0.1, player, mockCamera);
     expect(state.shields).toBe(initialShields);
 
     player.position.set(0, -20, -1000);
-    stageManager.update(0.1, player);
+    stageManager.update(0.1, player, mockCamera);
     expect(state.shields).toBe(initialShields);
   });
 
@@ -151,7 +154,7 @@ describe('StageManager', () => {
     const initialShields = state.shields;
 
     player.position.set(0, 0, -GameConfig.stage.trenchLength - 100);
-    stageManager.update(0.1, player);
+    stageManager.update(0.1, player, mockCamera);
 
     expect(state.stage).toBe('TRENCH');
     expect(state.shields).toBe(initialShields - 1);
@@ -168,7 +171,7 @@ describe('StageManager', () => {
     const portY = -trenchHeight / 2 + 10;
 
     player.position.set(0, portY, portZ);
-    stageManager.update(0.1, player);
+    stageManager.update(0.1, player, mockCamera);
 
     expect(state.stage).toBe('TRENCH');
     expect(state.shields).toBe(initialShields - 1);
@@ -188,7 +191,7 @@ describe('StageManager', () => {
       new THREE.Vector3(0, 0, 0)
     );
     
-    stageManager.update(0.1, player);
+    stageManager.update(0.1, player, mockCamera);
     
     expect(state.stage).not.toBe('TRENCH');
   });
@@ -202,7 +205,7 @@ describe('StageManager', () => {
       new THREE.Vector3(0, 0, 0)
     );
     
-    stageManager.update(0.1, player);
+    stageManager.update(0.1, player, mockCamera);
     
     expect(torpedo.isExploded).toBe(true);
   });
@@ -225,9 +228,28 @@ describe('StageManager', () => {
     player.position.set(0, 0, -400);
     
     state.entityManager!.update(0.1, player.position, player.mesh.quaternion, true, new THREE.Camera(), 100);
-    stageManager.update(0.1, player);
+    stageManager.update(0.1, player, mockCamera);
     
     const fireballs = state.entityManager!.getFireballs();
     expect(fireballs.length).toBeGreaterThan(0);
+  });
+
+  it('should transition to EXPLOSION stage when torpedo hits port', () => {
+    state.stage = 'TRENCH';
+    stageManager.reset();
+    
+    const { catwalkEndZ, exhaustPortZOffset, trenchHeight } = GameConfig.stage;
+    const portZ = catwalkEndZ - exhaustPortZOffset;
+    const portY = -trenchHeight / 2 + 10;
+    
+    state.entityManager!.spawnTorpedo(
+      new THREE.Vector3(0, portY, portZ),
+      new THREE.Vector3(0, 0, 0)
+    );
+    
+    stageManager.update(0.1, player, mockCamera);
+    
+    expect(state.stage).toBe('EXPLOSION');
+    expect(stageManager.getStage()).toBeInstanceOf(ExplosionStage);
   });
 });

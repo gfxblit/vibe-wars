@@ -6,10 +6,12 @@ import { GameConfig } from './config';
 describe('Stage Transitions', () => {
   let scene: THREE.Scene;
   let hudScene: THREE.Scene;
+  let mockCamera: THREE.Camera;
 
   beforeEach(() => {
     scene = new THREE.Scene();
     hudScene = new THREE.Scene();
+    mockCamera = new THREE.PerspectiveCamera();
     initGame(scene, hudScene);
   });
 
@@ -45,7 +47,7 @@ describe('Stage Transitions', () => {
     
     expect(state.stage).toBe('DOGFIGHT');
     
-    state.stageManager?.update(0.1, state.player!);
+    state.stageManager?.update(0.1, state.player!, mockCamera);
     
     // Should still be DOGFIGHT, but with DeathStar spawned (Approach Phase)
     expect(state.stage).toBe('DOGFIGHT');
@@ -55,8 +57,12 @@ describe('Stage Transitions', () => {
   it('should reset kills when cycling back to DOGFIGHT', () => {
     state.stage = 'TRENCH';
     state.kills = 10;
-    goToNextStage(); // Should go to DOGFIGHT and increment wave
     
+    goToNextStage(); // Should go to EXPLOSION
+    expect(state.stage).toBe('EXPLOSION');
+    expect(state.kills).toBe(0);
+
+    goToNextStage(); // Should go to DOGFIGHT and increment wave
     expect(state.stage).toBe('DOGFIGHT');
     expect(state.wave).toBe(2);
     expect(state.kills).toBe(0);

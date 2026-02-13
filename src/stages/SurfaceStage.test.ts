@@ -33,10 +33,12 @@ import { goToNextStage, takeDamage } from '../state';
 describe('SurfaceStage', () => {
   let stage: SurfaceStage;
   let scene: THREE.Scene;
+  let mockCamera: THREE.Camera;
 
   beforeEach(() => {
     vi.clearAllMocks();
     scene = new THREE.Scene();
+    mockCamera = new THREE.PerspectiveCamera();
     
     // Setup a proper player mock with real THREE objects
     state.player = {
@@ -87,11 +89,11 @@ describe('SurfaceStage', () => {
     stage = new SurfaceStage(scene, goToNextStage);
     
     // Update with delta less than duration
-    stage.update(GameConfig.stage.surfaceDuration - 0.1, state.player as Player);
+    stage.update(GameConfig.stage.surfaceDuration - 0.1, state.player as Player, mockCamera);
     expect(goToNextStage).not.toHaveBeenCalled();
 
     // Update to pass the duration
-    stage.update(0.2, state.player as Player);
+    stage.update(0.2, state.player as Player, mockCamera);
     expect(goToNextStage).toHaveBeenCalled();
   });
 
@@ -103,7 +105,7 @@ describe('SurfaceStage', () => {
     // Floor Y is -50 (default in config). Collision is < -50 + buffer
     player.position.y = GameConfig.stage.surfaceFloorY - GameConfig.stage.surfaceFloorClampBuffer;
     
-    stage.update(0.1, player);
+    stage.update(0.1, player, mockCamera);
     expect(takeDamage).toHaveBeenCalledWith(GameConfig.stage.surfaceCollisionDamage);
     // Should bump player up by the bounce amount
     expect(player.position.y).toBe(GameConfig.stage.surfaceFloorY + GameConfig.stage.surfaceFloorBounce);
@@ -115,7 +117,7 @@ describe('SurfaceStage', () => {
     // Initially no towers
     expect(stage.getTowers().length).toBe(0);
     
-    stage.update(0.1, state.player as Player);
+    stage.update(0.1, state.player as Player, mockCamera);
     
     // Should have spawned a tower
     expect(stage.getTowers().length).toBeGreaterThan(0);
@@ -147,7 +149,7 @@ describe('SurfaceStage', () => {
     stage = new SurfaceStage(scene, vi.fn(), mockSurface);
     const player = state.player as Player;
     
-    stage.update(0.1, player);
+    stage.update(0.1, player, mockCamera);
     
     expect(takeDamage).toHaveBeenCalledWith(GameConfig.stage.surfaceCollisionDamage);
     expect(mockTower.isExploded).toBe(true);

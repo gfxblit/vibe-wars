@@ -46,7 +46,7 @@ export class TrenchStage extends Stage {
     };
   }
 
-  public update(deltaTime: number, player: Player): void {
+  public update(deltaTime: number, player: Player, _camera: THREE.Camera): void {
     // Apply trench constraints
     const halfWidth = GameConfig.stage.trenchWidth / 2;
     const halfHeight = GameConfig.stage.trenchHeight / 2;

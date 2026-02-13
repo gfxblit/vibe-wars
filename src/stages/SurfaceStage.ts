@@ -41,7 +41,7 @@ export class SurfaceStage extends Stage {
     };
   }
 
-  public update(deltaTime: number, player: Player): void {
+  public update(deltaTime: number, player: Player, _camera: THREE.Camera): void {
     this.elapsedTime += deltaTime;
 
     // Apply surface constraints

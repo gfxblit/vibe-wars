@@ -74,4 +74,26 @@ describe('DeathStar', () => {
     expect(dish.position.y).toBeCloseTo(expectedY);
     expect(dish.position.z).toBeCloseTo(expectedZ);
   });
+
+  it('should explode and set isExploded to true', () => {
+    const deathStar = new DeathStar(new THREE.Vector3(0, 0, 0));
+    expect(deathStar.isExploded).toBe(false);
+    deathStar.explode();
+    expect(deathStar.isExploded).toBe(true);
+  });
+
+  it('should move fragments after explosion', () => {
+    const deathStar = new DeathStar(new THREE.Vector3(0, 0, 0));
+    deathStar.explode();
+    
+    const children = deathStar.mesh.children;
+    const initialPositions = children.map(c => c.position.clone());
+
+    deathStar.update(1.0); // 1 second update
+
+    children.forEach((child, i) => {
+        // We expect them to move
+        expect(child.position.equals(initialPositions[i])).toBe(false);
+    });
+  });
 });

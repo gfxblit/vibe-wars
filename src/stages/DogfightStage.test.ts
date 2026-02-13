@@ -47,10 +47,12 @@ describe('DogfightStage', () => {
   let stage: DogfightStage;
   let scene: THREE.Scene;
   let player: Player;
+  let mockCamera: THREE.Camera;
 
   beforeEach(() => {
     vi.clearAllMocks();
     scene = new THREE.Scene();
+    mockCamera = new THREE.PerspectiveCamera();
     player = state.player as Player;
     (state.entityManager?.setSpawningEnabled as Mock).mockClear();
     (state.entityManager?.clear as Mock).mockClear();
@@ -74,7 +76,7 @@ describe('DogfightStage', () => {
     stage = new DogfightStage(scene, goToNextStage);
     state.kills = GameConfig.stage.dogfightKillsThreshold;
     
-    stage.update(0.1, player);
+    stage.update(0.1, player, mockCamera);
 
     // Should clear enemies and disable spawning
     expect(state.entityManager?.clear).toHaveBeenCalled();
@@ -92,7 +94,7 @@ describe('DogfightStage', () => {
     stage = new DogfightStage(scene, goToNextStage);
     state.kills = GameConfig.stage.dogfightKillsThreshold;
     
-    stage.update(0.1, player);
+    stage.update(0.1, player, mockCamera);
     expect(goToNextStage).not.toHaveBeenCalled();
   });
 
@@ -101,7 +103,7 @@ describe('DogfightStage', () => {
     state.kills = GameConfig.stage.dogfightKillsThreshold;
     
     // Trigger transition to approach phase
-    stage.update(0.1, player);
+    stage.update(0.1, player, mockCamera);
     
     // Find DeathStar
     const deathStar = scene.children.find(c => c.type === 'Mesh' && (c as THREE.Mesh).geometry.type === 'SphereGeometry') as THREE.Mesh;
@@ -110,14 +112,14 @@ describe('DogfightStage', () => {
     const targetDist = GameConfig.stage.trenchTransitionDistance + GameConfig.stage.deathStarSize - 10;
     player.position.copy(deathStar.position).add(new THREE.Vector3(0, 0, targetDist));
 
-    stage.update(0.1, player);
+    stage.update(0.1, player, mockCamera);
     expect(goToNextStage).toHaveBeenCalled();
   });
 
   it('should cleanup DeathStar on cleanup', () => {
     stage = new DogfightStage(scene, goToNextStage);
     state.kills = GameConfig.stage.dogfightKillsThreshold;
-    stage.update(0.1, player); // Spawn DeathStar
+    stage.update(0.1, player, mockCamera); // Spawn DeathStar
 
     const initialChildren = scene.children.length;
     expect(initialChildren).toBeGreaterThan(0);
@@ -130,7 +132,7 @@ describe('DogfightStage', () => {
     stage = new DogfightStage(scene, goToNextStage);
     state.kills = GameConfig.stage.dogfightKillsThreshold - 1;
     
-    stage.update(0.1, player);
+    stage.update(0.1, player, mockCamera);
     expect(state.entityManager?.clear).not.toHaveBeenCalled();
   });
 
@@ -140,7 +142,7 @@ describe('DogfightStage', () => {
     state.debugKillsThreshold = debugThreshold;
     state.kills = debugThreshold;
     
-    stage.update(0.1, player);
+    stage.update(0.1, player, mockCamera);
     expect(state.entityManager?.clear).toHaveBeenCalled();
   });
 });

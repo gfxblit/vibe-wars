@@ -53,10 +53,12 @@ describe('TrenchStage', () => {
   let stage: TrenchStage;
   let scene: THREE.Scene;
   let mockTrenchInstance: any;
+  let mockCamera: THREE.Camera;
 
   beforeEach(() => {
     vi.clearAllMocks();
     scene = new THREE.Scene();
+    mockCamera = new THREE.PerspectiveCamera();
     state.player!.position.set(0, 0, 0);
     state.player!.mesh.quaternion.set(0, 0, 0, 1);
     state.shields = 3;
@@ -92,7 +94,7 @@ describe('TrenchStage', () => {
 
     state.player!.position.set(halfWidth + 100, halfHeight + 100, 0);
     
-    stage.update(0.1, state.player as Player);
+    stage.update(0.1, state.player as Player, mockCamera);
     
     expect(state.player!.position.x).toBe(halfWidth);
     expect(state.player!.position.y).toBe(halfHeight);
@@ -101,19 +103,19 @@ describe('TrenchStage', () => {
   it('should handle catwalk collisions (take damage)', () => {
     mockTrenchInstance.checkObstacleCollision.mockReturnValue(-500); // Hit at Z=-500
 
-    stage.update(0.1, state.player as Player);
+    stage.update(0.1, state.player as Player, mockCamera);
     
     expect(takeDamage).toHaveBeenCalledWith(1);
     expect(state.shields).toBe(2);
     
     // Should debounce (no damage on next frame if same hitZ)
     vi.clearAllMocks(); // Clear calls to takeDamage
-    stage.update(0.1, state.player as Player);
+    stage.update(0.1, state.player as Player, mockCamera);
     expect(takeDamage).not.toHaveBeenCalled();
     
     // New hit
     mockTrenchInstance.checkObstacleCollision.mockReturnValue(-600);
-    stage.update(0.1, state.player as Player);
+    stage.update(0.1, state.player as Player, mockCamera);
     expect(takeDamage).toHaveBeenCalledWith(1);
   });
 
@@ -121,7 +123,7 @@ describe('TrenchStage', () => {
     const onReset = vi.fn();
     stage = new TrenchStage(scene, goToNextStage, onReset);
     state.player!.position.z = -GameConfig.stage.trenchLength - 10;
-    stage.update(0.1, state.player as Player);
+    stage.update(0.1, state.player as Player, mockCamera);
     expect(takeDamage).toHaveBeenCalledWith(1);
     expect(onReset).toHaveBeenCalled();
     expect(goToNextStage).not.toHaveBeenCalled();
@@ -131,7 +133,7 @@ describe('TrenchStage', () => {
     const onReset = vi.fn();
     stage = new TrenchStage(scene, goToNextStage, onReset);
     mockTrenchInstance.checkPortCollision.mockReturnValue(true);
-    stage.update(0.1, state.player as Player);
+    stage.update(0.1, state.player as Player, mockCamera);
     expect(takeDamage).toHaveBeenCalledWith(1);
     expect(onReset).toHaveBeenCalled();
     expect(goToNextStage).not.toHaveBeenCalled();
@@ -142,7 +144,7 @@ describe('TrenchStage', () => {
     (state.entityManager?.getTorpedoes as Mock).mockReturnValue([torpedo]);
     mockTrenchInstance.checkPortCollision.mockImplementation((pos: THREE.Vector3) => pos.z === -100);
 
-    stage.update(0.1, state.player as Player);
+    stage.update(0.1, state.player as Player, mockCamera);
     
     expect(goToNextStage).toHaveBeenCalled();
     expect(torpedo.explode).toHaveBeenCalled();
