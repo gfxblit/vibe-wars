@@ -39,11 +39,11 @@ describe('SurfaceStage Control Stability', () => {
     }
     
     const euler = new THREE.Euler().setFromQuaternion(player.mesh.quaternion, 'YXZ');
-    // If unrestricted, it would be around 10 * turnSpeedPitch (~21 radians)
-    // We expect it to be capped at some value, e.g., Math.PI / 4
     
-    // For now, it's UNRESTRICTED, so this test should FAIL if we assert it's restricted.
-    expect(Math.abs(euler.x)).toBeLessThanOrEqual(Math.PI / 3); // Capped at 60 deg for example
+    // Use a small epsilon for floating point comparison
+    const EPSILON = 1e-6;
+    expect(Math.abs(euler.x)).toBeLessThanOrEqual(GameConfig.stage.surfaceMaxPitch + EPSILON);
+    expect(Math.abs(euler.y)).toBeLessThanOrEqual(GameConfig.stage.surfaceMaxYaw + EPSILON);
   });
 
   it('should keep player upright (roll = 0) in Surface stage', () => {
@@ -75,5 +75,10 @@ describe('SurfaceStage Control Stability', () => {
     player.position.set(0, 500, 0);
     stage.update(0.1, player);
     expect(player.position.y).toBeLessThanOrEqual(GameConfig.stage.surfaceMaxHeight);
+    
+    // Test Y clamping (floor)
+    player.position.set(0, -100, 0);
+    stage.update(0.1, player);
+    expect(player.position.y).toBeGreaterThanOrEqual(GameConfig.stage.surfaceFloorY - GameConfig.stage.surfaceFloorClampBuffer);
   });
 });

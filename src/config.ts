@@ -95,6 +95,7 @@ export const GameConfig = deepFreeze({
     surfaceColor: 0x0000ff,
     surfaceFloorY: -50,
     surfaceFloorBounce: 2,
+    surfaceFloorClampBuffer: 10,
     surfaceCollisionDamage: 1,
     towerHeight: 50,
     towerWidth: 30,
