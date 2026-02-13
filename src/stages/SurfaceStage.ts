@@ -54,7 +54,7 @@ export class SurfaceStage extends Stage {
 
     if (towerHit) {
         takeDamage(GameConfig.stage.surfaceCollisionDamage);
-        towerHit.isDestroyed = true; // Mark as hit so we don't hit it again immediately
+        towerHit.isExploded = true; // Mark as hit so we don't hit it again immediately
     }
     
     // Check End Condition

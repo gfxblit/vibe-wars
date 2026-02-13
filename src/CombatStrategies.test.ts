@@ -1,9 +1,11 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import * as THREE from 'three';
-import { DogfightCombatStrategy, TrenchCombatStrategy } from './CombatStrategies';
+import { DogfightCombatStrategy, TrenchCombatStrategy, SurfaceCombatStrategy } from './CombatStrategies';
 import { state, initGame } from './state';
 import * as StateModule from './state';
 import { GameConfig } from './config';
+import { Tower } from './entities/Tower';
+import { checkAim } from './collision';
 
 vi.mock('./state', async (importOriginal) => {
   const actual = await importOriginal<typeof import('./state')>();
@@ -107,5 +109,37 @@ describe('TrenchCombatStrategy', () => {
     strategy.update(0.01, input, camera);
 
     expect(StateModule.spawnTorpedo).not.toHaveBeenCalled();
+  });
+});
+
+describe('SurfaceCombatStrategy', () => {
+  let camera: THREE.Camera;
+  let strategy: SurfaceCombatStrategy;
+
+  beforeEach(() => {
+    const scene = new THREE.Scene();
+    const hudScene = new THREE.Scene();
+    initGame(scene, hudScene);
+    camera = new THREE.PerspectiveCamera();
+    camera.updateMatrixWorld();
+    strategy = new SurfaceCombatStrategy();
+    vi.clearAllMocks();
+  });
+
+  it('detects hits on towers', () => {
+    state.entityManager!.clear();
+    const tower = new Tower(new THREE.Vector3(0, 0, -50));
+    state.entityManager!.addTarget(tower);
+    
+    const input = { x: 0, y: 0, isFiring: true };
+    
+    // Mock checkAim to return true for this target
+    vi.mocked(checkAim).mockReturnValue(true);
+
+    const initialScore = state.score;
+    strategy.update(0.01, input, camera);
+
+    expect(tower.isExploded).toBe(true);
+    expect(state.score).toBeGreaterThan(initialScore);
   });
 });

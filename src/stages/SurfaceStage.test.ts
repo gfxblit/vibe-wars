@@ -12,6 +12,8 @@ vi.mock('../state', () => ({
       clear: vi.fn(),
       setSpawningEnabled: vi.fn(),
       spawnFireball: vi.fn(),
+      addTarget: vi.fn(),
+      removeTarget: vi.fn(),
     },
     player: {
       position: new THREE.Vector3(0, 0, 0),

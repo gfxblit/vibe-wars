@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { Entity } from './Entity';
 import { GameConfig } from '../config';
 import { Tower } from './Tower';
+import { state } from '../state';
 
 export interface CollisionResult {
   floorHit: boolean;
@@ -97,7 +98,7 @@ export class Surface extends Entity {
         }
 
         // Firing logic
-        if (!tower.isDestroyed && spawnFireball) {
+        if (!tower.isExploded && spawnFireball) {
           const fireDir = tower.update(deltaTime, playerPosition);
           if (fireDir) {
             const vel = fireDir.multiplyScalar(GameConfig.fireball.relativeSpeed);
@@ -106,7 +107,7 @@ export class Surface extends Entity {
         } else {
              // Still need to update cooldown if we want consistent timing? 
              // Or just update if destroyed?
-             // tower.update checks isDestroyed internally.
+             // tower.update checks isExploded internally.
              tower.update(deltaTime, playerPosition);
         }
     }
@@ -123,11 +124,18 @@ export class Surface extends Entity {
      const tower = new Tower(new THREE.Vector3(x, surfaceFloorY, spawnZ));
      this.towers.push(tower);
      this.mesh.add(tower.mesh);
+
+     if (state.entityManager) {
+       state.entityManager.addTarget(tower);
+     }
   }
 
   private removeTower(index: number): void {
       const tower = this.towers[index];
       if (tower) {
+        if (state.entityManager) {
+          state.entityManager.removeTarget(tower);
+        }
         this.mesh.remove(tower.mesh);
         tower.dispose();
         this.towers.splice(index, 1);
