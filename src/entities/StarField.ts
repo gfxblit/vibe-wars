@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { Entity } from './Entity';
 import { GameConfig } from '../config';
+import { GameStage } from '../state';
 
 export class StarField extends Entity {
   public readonly points: THREE.Points;
@@ -61,7 +62,7 @@ export class StarField extends Entity {
     this.geometry.attributes.position.needsUpdate = true;
   }
 
-  public updateVisibility(stage: string) {
+  public updateVisibility(stage: GameStage) {
     this.points.visible = stage === 'DOGFIGHT' || stage === 'TRENCH';
   }
 }
