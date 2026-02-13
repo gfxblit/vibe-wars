@@ -60,4 +60,8 @@ export class StarField extends Entity {
     }
     this.geometry.attributes.position.needsUpdate = true;
   }
+
+  public updateVisibility(stage: string) {
+    this.points.visible = stage === 'DOGFIGHT' || stage === 'TRENCH';
+  }
 }
