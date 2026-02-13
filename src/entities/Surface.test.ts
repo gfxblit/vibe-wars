@@ -145,7 +145,24 @@ describe('Surface Entity', () => {
     const halfWidth = (bbox.max.x - bbox.min.x) / 2;
     const halfLength = (bbox.max.z - bbox.min.z) / 2;
     
-    expect(halfWidth).toBeGreaterThanOrEqual(far + spacing);
-    expect(halfLength).toBeGreaterThanOrEqual(far + spacing);
+    expect(halfWidth).toBeGreaterThanOrEqual(far + spacing * 2);
+    expect(halfLength).toBeGreaterThanOrEqual(far + spacing * 2);
+  });
+
+  it('should dispose resources correctly', () => {
+    // Spawn some towers first
+    surface.update(0.1, new THREE.Vector3(0, 0, 0));
+    expect(surface.getTowers().length).toBeGreaterThan(0);
+    
+    const floor = (surface as any).floor as THREE.Group;
+    const gridMesh = floor.children[0] as THREE.LineSegments;
+    const geometryDisposeSpy = vi.spyOn(gridMesh.geometry, 'dispose');
+    const materialDisposeSpy = vi.spyOn(gridMesh.material as THREE.Material, 'dispose');
+    
+    surface.dispose();
+    
+    expect(geometryDisposeSpy).toHaveBeenCalled();
+    expect(materialDisposeSpy).toHaveBeenCalled();
+    expect(surface.getTowers().length).toBe(0);
   });
 });
