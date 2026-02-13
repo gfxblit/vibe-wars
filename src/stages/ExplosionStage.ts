@@ -49,6 +49,7 @@ export class ExplosionStage extends Stage {
     if (!this.hasExploded && this.elapsedTime >= GameConfig.explosionStage.shatterDelay) {
       this.deathStar.explode();
       this.hasExploded = true;
+      state.isDeathStarDestroyed = true;
 
       // Spawn particles (Fireballs)
       if (state.entityManager) {
@@ -84,6 +85,7 @@ export class ExplosionStage extends Stage {
 
     this.scene.remove(this.deathStar.mesh);
     this.deathStar.dispose();
+    state.isDeathStarDestroyed = false;
     
     // Reset Player for next stage
     if (state.player) {

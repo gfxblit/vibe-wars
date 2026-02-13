@@ -196,6 +196,8 @@ describe('Game State', () => {
     goToNextStage();
     expect(state.stage).toBe('TRENCH');
     goToNextStage();
+    expect(state.stage).toBe('EXPLOSION');
+    goToNextStage();
     expect(state.stage).toBe('DOGFIGHT');
     expect(state.wave).toBe(3);
   })

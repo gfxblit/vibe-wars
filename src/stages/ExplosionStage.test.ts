@@ -19,6 +19,7 @@ vi.mock('../state', () => ({
         lookAt: vi.fn(),
       },
     },
+    isDeathStarDestroyed: false,
   },
   goToNextStage: vi.fn(),
 }));
@@ -152,6 +153,7 @@ describe('ExplosionStage', () => {
     
     stage.update(0.2, state.player as any, mockCamera); // total 2.1
     expect(mockDeathStar.explode).toHaveBeenCalled();
+    expect(state.isDeathStarDestroyed).toBe(true);
     expect(state.entityManager?.spawnFireball).toHaveBeenCalled();
   });
 
@@ -173,5 +175,6 @@ describe('ExplosionStage', () => {
     stage.cleanup();
     expect(scene.children).not.toContain(mockDeathStar.mesh);
     expect(mockDeathStar.dispose).toHaveBeenCalled();
+    expect(state.isDeathStarDestroyed).toBe(false);
   });
 });
