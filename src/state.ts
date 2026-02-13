@@ -204,9 +204,15 @@ export function takeDamage(amount: number = 1) {
 
 export function goToNextStage() {
   const stages: GameStage[] = ['DOGFIGHT', 'SURFACE', 'TRENCH'];
-  const currentIndex = stages.indexOf(state.stage);
-  if (currentIndex < stages.length - 1) {
-    setStage(stages[currentIndex + 1]);
+  let nextStageIndex = stages.indexOf(state.stage) + 1;
+
+  // Wave 1 skips SURFACE
+  if (state.wave === 1 && stages[nextStageIndex] === 'SURFACE') {
+    nextStageIndex++;
+  }
+
+  if (nextStageIndex < stages.length) {
+    setStage(stages[nextStageIndex]);
   } else {
     state.wave++;
     // Award shield bonus (up to max) for completing a full run

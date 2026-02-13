@@ -177,7 +177,19 @@ describe('Game State', () => {
     expect(state.isGameOver).toBe(true);
   })
 
-  test('goToNextStage transitions through stages', () => {
+  test('goToNextStage transitions through stages (Wave 1 skips SURFACE)', () => {
+    state.wave = 1;
+    expect(state.stage).toBe('DOGFIGHT');
+    goToNextStage();
+    expect(state.stage).toBe('TRENCH');
+    goToNextStage();
+    expect(state.stage).toBe('DOGFIGHT');
+    expect(state.wave).toBe(2);
+  })
+
+  test('goToNextStage transitions through stages (Wave 2+ includes SURFACE)', () => {
+    state.wave = 2;
+    state.stage = 'DOGFIGHT';
     expect(state.stage).toBe('DOGFIGHT');
     goToNextStage();
     expect(state.stage).toBe('SURFACE');
@@ -185,7 +197,7 @@ describe('Game State', () => {
     expect(state.stage).toBe('TRENCH');
     goToNextStage();
     expect(state.stage).toBe('DOGFIGHT');
-    expect(state.wave).toBe(2);
+    expect(state.wave).toBe(3);
   })
 
   test('updateState spawns new TIE fighters over time', () => {

@@ -37,7 +37,25 @@ describe('StageManager', () => {
     expect(state.entityManager!.getTieFighters().length).toBe(0);
   });
 
-  it('should transition to SurfaceStage when player is close to DeathStar in Dogfight approach', () => {
+  it('should transition to TRENCH when player is close to DeathStar in Wave 1', () => {
+    state.wave = 1;
+    state.kills = GameConfig.stage.dogfightKillsThreshold;
+    stageManager.update(0.1, player); // Trigger approach
+    expect(state.stage).toBe('DOGFIGHT');
+
+    const deathStar = scene.getObjectByName('DeathStar');
+    expect(deathStar).toBeTruthy();
+
+    const dsPos = deathStar!.position.clone();
+    player.position.copy(dsPos).add(new THREE.Vector3(0, 0, GameConfig.stage.deathStarSize + GameConfig.stage.trenchTransitionDistance - 10));
+
+    stageManager.update(0.1, player);
+
+    expect(state.stage).toBe('TRENCH');
+  });
+
+  it('should transition to SURFACE when player is close to DeathStar in Wave 2+', () => {
+    state.wave = 2;
     state.kills = GameConfig.stage.dogfightKillsThreshold;
     stageManager.update(0.1, player); // Trigger approach
     expect(state.stage).toBe('DOGFIGHT');

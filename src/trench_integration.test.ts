@@ -13,7 +13,8 @@ describe('Trench Integration', () => {
     initGame(worldScene, hudScene);
   });
 
-  it('should transition from DOGFIGHT to SURFACE to TRENCH', () => {
+  it('should transition from DOGFIGHT to SURFACE to TRENCH (Wave 2+)', () => {
+    state.wave = 2;
     const camera = new THREE.PerspectiveCamera();
     expect(state.stage).toBe('DOGFIGHT');
     expect(state.kills).toBe(0);
@@ -70,5 +71,24 @@ describe('Trench Integration', () => {
     expect(euler.y).toBeCloseTo(-GameConfig.stage.trenchMaxYaw);
     // Roll (z) should be exactly 0
     expect(euler.z).toBeCloseTo(0);
+  });
+
+  it('should transition directly from DOGFIGHT to TRENCH in Wave 1', () => {
+    state.wave = 1;
+    const camera = new THREE.PerspectiveCamera();
+    
+    // Reaching kill threshold
+    for (let i = 0; i < GameConfig.stage.dogfightKillsThreshold; i++) {
+      addKill();
+    }
+    updateState(0.1, camera);
+    
+    const deathStar = worldScene.getObjectByName('DeathStar');
+    const dsPos = deathStar!.position.clone();
+    state.player!.position.copy(dsPos).add(new THREE.Vector3(0, 0, GameConfig.stage.deathStarSize + GameConfig.stage.trenchTransitionDistance - 10));
+    
+    updateState(0.1, camera);
+    
+    expect(state.stage).toBe('TRENCH');
   });
 });
