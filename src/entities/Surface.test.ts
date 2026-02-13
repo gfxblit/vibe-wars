@@ -100,4 +100,52 @@ describe('Surface Entity', () => {
     
     expect(spawnFireball).toHaveBeenCalled();
   });
+
+  it('should spawn towers relative to the player X position', () => {
+    const playerX = 5000;
+    const playerPos = new THREE.Vector3(playerX, 0, 0);
+    
+    // Force spawn
+    surface.update(0.1, playerPos);
+    
+    const towers = surface.getTowers();
+    expect(towers.length).toBeGreaterThan(0);
+    
+    const tower = towers[0];
+    const { surfaceWidth } = GameConfig.stage;
+    
+    // Tower X should be within range of playerX
+    // Implementation uses relative positioning based on playerX
+    // Towers spawn within range: playerX +/- (surfaceWidth/2 - margin)
+    expect(tower.mesh.position.x).toBeGreaterThan(playerX - surfaceWidth / 2);
+    expect(tower.mesh.position.x).toBeLessThan(playerX + surfaceWidth / 2);
+  });
+
+  it('should have the floor follow the player with snapping', () => {
+    const spacing = GameConfig.stage.surfaceGridSpacing;
+    const playerPos = new THREE.Vector3(spacing * 1.2, 0, -spacing * 2.7);
+    
+    surface.update(0.1, playerPos);
+    
+    const floor = (surface as any).floor as THREE.Group;
+    expect(floor.position.x).toBe(spacing);
+    expect(floor.position.z).toBe(-spacing * 3);
+  });
+
+  it('should have a grid large enough to cover the camera far plane plus snapping buffer', () => {
+    const far = GameConfig.camera.far;
+    const spacing = GameConfig.stage.surfaceGridSpacing;
+    
+    const floor = (surface as any).floor as THREE.Group;
+    const gridMesh = floor.children[0] as THREE.LineSegments;
+    const geometry = gridMesh.geometry;
+    geometry.computeBoundingBox();
+    const bbox = geometry.boundingBox!;
+    
+    const halfWidth = (bbox.max.x - bbox.min.x) / 2;
+    const halfLength = (bbox.max.z - bbox.min.z) / 2;
+    
+    expect(halfWidth).toBeGreaterThanOrEqual(far + spacing);
+    expect(halfLength).toBeGreaterThanOrEqual(far + spacing);
+  });
 });
