@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { GameConfig } from '../config';
 import { state, takeDamage } from '../state';
-import { Player } from '../entities/Player';
+import { Player, PlayerUpdateOptions } from '../entities/Player';
 import { Stage } from './Stage';
 import { Tower } from '../entities/Tower';
 import { Surface } from '../entities/Surface';
@@ -31,6 +31,14 @@ export class SurfaceStage extends Stage {
 
   public getTowers(): Tower[] {
     return this.surface.getTowers();
+  }
+
+  public override getPlayerOptions(): PlayerUpdateOptions | undefined {
+    return {
+      lockUpright: true,
+      maxPitch: GameConfig.stage.surfaceMaxPitch,
+      maxYaw: GameConfig.stage.surfaceMaxYaw,
+    };
   }
 
   public update(deltaTime: number, player: Player): void {

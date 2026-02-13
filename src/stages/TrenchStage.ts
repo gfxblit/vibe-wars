@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { Stage } from './Stage';
 import { GameConfig } from '../config';
 import { state, takeDamage, addScore } from '../state';
-import { Player } from '../entities/Player';
+import { Player, PlayerUpdateOptions } from '../entities/Player';
 import { Trench } from '../entities/Trench';
 import { Turret } from '../entities/Turret';
 
@@ -36,6 +36,14 @@ export class TrenchStage extends Stage {
 
   public getTurrets(): Turret[] {
     return this.trench.getTurrets();
+  }
+
+  public override getPlayerOptions(): PlayerUpdateOptions | undefined {
+    return {
+      lockUpright: true,
+      maxPitch: GameConfig.stage.trenchMaxPitch,
+      maxYaw: GameConfig.stage.trenchMaxYaw,
+    };
   }
 
   public update(deltaTime: number, player: Player): void {

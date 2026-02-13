@@ -21,6 +21,9 @@ describe('SurfaceStage Control Stability', () => {
     
     initGame(scene, new THREE.Scene());
     state.stage = 'SURFACE';
+    if (state.stageManager) {
+        state.stageManager.reset();
+    }
   });
 
   it('should restrict player pitch and yaw in Surface stage via updateState', () => {

@@ -1,4 +1,4 @@
-import { Player } from '../entities/Player';
+import { Player, PlayerUpdateOptions } from '../entities/Player';
 import { Turret } from '../entities/Turret';
 
 export abstract class Stage {
@@ -7,5 +7,8 @@ export abstract class Stage {
   public abstract cleanup(): void;
   public getTurrets(): Turret[] {
     return [];
+  }
+  public getPlayerOptions(): PlayerUpdateOptions | undefined {
+    return undefined;
   }
 }
