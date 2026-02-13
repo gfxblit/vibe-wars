@@ -55,9 +55,9 @@ export class ExplosionStage extends Stage {
       if (state.entityManager) {
         for (let i = 0; i < GameConfig.deathStarExplosion.particleCount; i++) {
           const pos = new THREE.Vector3(
-            (Math.random() - 0.5) * GameConfig.stage.deathStarSize,
-            (Math.random() - 0.5) * GameConfig.stage.deathStarSize,
-            (Math.random() - 0.5) * GameConfig.stage.deathStarSize
+            (Math.random() - 0.5) * GameConfig.stage.deathStarSize * 2,
+            (Math.random() - 0.5) * GameConfig.stage.deathStarSize * 2,
+            (Math.random() - 0.5) * GameConfig.stage.deathStarSize * 2
           );
           const vel = pos.clone().normalize().multiplyScalar(GameConfig.deathStarExplosion.fragmentVelocity * (0.5 + Math.random()));
           state.entityManager.spawnFireball(pos, vel);
@@ -76,11 +76,9 @@ export class ExplosionStage extends Stage {
   public cleanup(): void {
     // Reset Camera to default local position
     if (this.camera) {
-        const { position, lookAt } = GameConfig.camera;
+        const { position } = GameConfig.camera;
         this.camera.position.set(position.x, position.y, position.z);
-        // LookAt in local space for attached camera is usually (0,0,-1) or similar.
-        // GameConfig.camera.lookAt is {x:0, y:0.5, z:-1}.
-        this.camera.lookAt(lookAt.x, lookAt.y, lookAt.z);
+        this.camera.quaternion.set(0, 0, 0, 1);
     }
 
     this.scene.remove(this.deathStar.mesh);
