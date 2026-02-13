@@ -168,4 +168,38 @@ describe('CombatSystem', () => {
     const velocity = (StateModule.spawnTorpedo as any).mock.calls[0][1];
     expect(velocity.x).toBeGreaterThan(0);
   });
+
+  it('detects turret hits in TRENCH stage', () => {
+    state.stage = 'TRENCH';
+    state.stageManager!.reset();
+    
+    // Clear TIE fighters to avoid interference
+    state.entityManager!.clear();
+
+    // Re-register turrets since we cleared
+    state.stageManager!.reset();
+
+    const targets = state.entityManager!.getTargets();
+    const turret = targets.find(t => t.getScore() === 200)!;
+    expect(turret).toBeDefined();
+
+    const turretPos = new THREE.Vector3();
+    turret.getWorldPosition(turretPos);
+
+    // Position player and camera to look at the turret
+    state.player!.position.set(turretPos.x, turretPos.y, turretPos.z + 50);
+    camera.position.copy(state.player!.position);
+    camera.lookAt(turretPos);
+    camera.updateMatrixWorld();
+
+    const input = { x: 0, y: 0, isFiring: true };
+    const initialScore = state.score;
+    const initialKills = state.kills;
+
+    combatSystem.update(0.01, input);
+
+    expect(turret!.isExploded).toBe(true);
+    expect(state.score).toBe(initialScore + 200);
+    expect(state.kills).toBe(initialKills + 1);
+  });
 });

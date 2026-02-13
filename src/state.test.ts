@@ -105,6 +105,11 @@ describe('Game State', () => {
   })
 
   test('updateState expires fireballs that are far behind', () => {
+    // Clear TIE fighters to prevent them from spawning new fireballs during the test
+    while (state.entityManager!.getTieFighters().length > 0) {
+      state.entityManager!.removeTieFighter(0);
+    }
+
     // Player at origin, facing forward (-Z)
     state.player!.position.set(0, 0, 0);
     state.player!.mesh.quaternion.set(0, 0, 0, 1);

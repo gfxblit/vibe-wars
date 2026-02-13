@@ -91,13 +91,16 @@ export function initGame(worldScene: THREE.Scene, hudScene: THREE.Scene) {
 
   state.player = new Player();
 
+  if (state.stageManager) {
+    state.stageManager.destroy();
+  }
+  state.stageManager = new StageManager(worldScene);
+
   if (state.entityManager) {
     state.entityManager.clear();
   }
   state.entityManager = new EntityManager(worldScene, hudScene);
   state.entityManager.spawnTieFighter(state.isSmartAI);
-
-  state.stageManager = new StageManager(worldScene);
 
   console.log('Game initialized', { debug: state.debug, stage: state.stage });
 }
@@ -206,6 +209,8 @@ export function goToNextStage() {
     setStage(stages[currentIndex + 1]);
   } else {
     state.wave++;
+    // Award shield bonus (up to max) for completing a full run
+    state.shields = Math.min(GameConfig.player.maxShields, state.shields + 1);
     setStage('DOGFIGHT');
   }
 }

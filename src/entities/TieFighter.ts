@@ -1,10 +1,10 @@
 import * as THREE from 'three';
-import { Entity } from './Entity';
+import { Entity, Targetable } from './Entity';
 import { GameConfig } from '../config';
 import { AIStrategy } from './AIStrategy';
 import { state } from '../state';
 
-export class TieFighter extends Entity {
+export class TieFighter extends Entity implements Targetable {
   public readonly mesh: THREE.Group;
   private strategy: AIStrategy;
 
@@ -16,6 +16,10 @@ export class TieFighter extends Entity {
   private static wingGeo: THREE.PlaneGeometry;
 
   private fireCooldown: number = Math.random() * GameConfig.fireball.fireRate;
+
+  public getWorldPosition(target: THREE.Vector3): THREE.Vector3 {
+    return this.mesh.getWorldPosition(target);
+  }
 
   public get position(): THREE.Vector3 {
     return this.mesh.position;
@@ -110,6 +114,14 @@ export class TieFighter extends Entity {
     }
 
     return null;
+  }
+
+  public getScore(): number {
+    return 100;
+  }
+
+  public getVelocity(playerForward: THREE.Vector3, playerSpeed: number): THREE.Vector3 {
+    return playerForward.clone().multiplyScalar(playerSpeed);
   }
 
   public setStrategy(strategy: AIStrategy): void {

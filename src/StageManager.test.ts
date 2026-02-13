@@ -186,4 +186,28 @@ describe('StageManager', () => {
     
     expect(torpedo.isExploded).toBe(true);
   });
+
+  it('should spawn fireballs from turrets in TRENCH stage', () => {
+    state.stage = 'TRENCH';
+    stageManager.reset();
+    
+    // Clear any existing fireballs
+    state.entityManager!.clear();
+    
+    // Re-register turrets after clear()
+    const trench = (stageManager.getStage() as any).trench;
+    trench.getTurrets().forEach((t: any) => {
+      state.entityManager!.addTarget(t);
+      t.fireCooldown = 0; // Set fire cooldown of all turrets to 0
+    });
+
+    // Player position near some turrets (turrets are at -500, -1500, etc. based on 1000 spacing)
+    player.position.set(0, 0, -400);
+    
+    state.entityManager!.update(0.1, player.position, player.mesh.quaternion, true, new THREE.Camera(), 100);
+    stageManager.update(0.1, player);
+    
+    const fireballs = state.entityManager!.getFireballs();
+    expect(fireballs.length).toBeGreaterThan(0);
+  });
 });

@@ -69,4 +69,10 @@ export class StageManager {
     }
     this.initStage();
   }
+
+  public destroy(): void {
+    if (this.currentStage) {
+      this.currentStage.cleanup();
+    }
+  }
 }

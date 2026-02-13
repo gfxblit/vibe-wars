@@ -160,7 +160,7 @@ export const GameConfig = deepFreeze({
   },
   fireball: {
     meshSize: 3.0,
-    meshColor: 0xff4500, // Orange-red
+    meshColor: 0xff4500, // OrangeRed
     relativeSpeed: 40,
     fireRate: 2.0, // Seconds between shots
     collisionRadiusWorld: 2.0,
@@ -185,5 +185,13 @@ export const GameConfig = deepFreeze({
     sparkleSize: 4.0,
     explosionVelocity: 30,
     explosionDuration: 0.5,
+  },
+  turret: {
+    meshSize: 5.0,
+    meshColor: 0xff0000,
+    fireRate: 3.0,
+    range: 1500,
+    spacing: 400,
+    points: 200,
   },
 } as const);

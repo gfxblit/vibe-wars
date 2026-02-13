@@ -33,6 +33,7 @@ import { goToNextStage, takeDamage } from '../state';
 vi.mock('../entities/Trench', () => {
   const checkObstacleCollision = vi.fn().mockReturnValue(null);
   const checkPortCollision = vi.fn().mockReturnValue(false);
+  const getTurrets = vi.fn().mockReturnValue([]);
   const update = vi.fn();
   const dispose = vi.fn();
 
@@ -41,6 +42,7 @@ vi.mock('../entities/Trench', () => {
       mesh: new THREE.Mesh(),
       checkObstacleCollision,
       checkPortCollision,
+      getTurrets,
       update,
       dispose,
     }))

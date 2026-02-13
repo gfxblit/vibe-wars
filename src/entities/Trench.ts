@@ -1,9 +1,11 @@
 import * as THREE from 'three';
 import { Entity } from './Entity';
 import { GameConfig } from '../config';
+import { Turret } from './Turret';
 
 export class Trench extends Entity {
   public mesh: THREE.Group;
+  private turrets: Turret[] = [];
 
   constructor() {
     super();
@@ -108,6 +110,31 @@ export class Trench extends Entity {
       this.mesh.add(catwalk);
     }
 
+    // Add Turrets along the walls
+    const { spacing: turretSpacing } = GameConfig.turret;
+    const halfWidth = trenchWidth / 2;
+
+    for (let z = catwalkStartZ; z > catwalkEndZ; z -= turretSpacing) {
+      // Alternate sides
+      const isLeft = Math.floor(Math.abs(z) / turretSpacing) % 2 === 0;
+      const x = isLeft ? -halfWidth : halfWidth;
+      // Deterministic height within trench walls based on z
+      // This creates a pattern player can learn (e.g. high, low, middle)
+      const y = (((Math.abs(z) / turretSpacing) % 3) - 1) * trenchHeight * 0.25;
+      
+      const turret = new Turret(new THREE.Vector3(x, y, z));
+      // Rotate turret so its base is against the wall
+      // The turret's default "up" is Y, and it looks towards +Z.
+      // On the left wall (x = -50), it should look towards +X by default.
+      if (isLeft) {
+        turret.mesh.rotation.y = Math.PI / 2;
+      } else {
+        turret.mesh.rotation.y = -Math.PI / 2;
+      }
+      this.turrets.push(turret);
+      this.mesh.add(turret.mesh);
+    }
+
     boxGeometry.dispose();
 
     // Add Exhaust Port at the end
@@ -180,13 +207,16 @@ export class Trench extends Entity {
     );
   }
 
+  public getTurrets(): Turret[] {
+    return this.turrets;
+  }
+
   update(_deltaTime: number) {
-    // Keep the trench centered on Z but far enough to cover the run
-    // For now it's static at origin, we might want to move it with the player or tile it.
-    // The plan says "procedural valley of walls".
+    // Turrets are updated by the EntityManager as registered targets.
   }
 
   dispose() {
+    this.turrets.forEach(t => t.dispose());
     this.mesh.traverse(child => {
       if (child instanceof THREE.Mesh || child instanceof THREE.LineSegments || child instanceof THREE.Line) {
         child.geometry.dispose();

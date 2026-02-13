@@ -4,7 +4,6 @@ import { UserInput } from './input';
 import { state, spawnLasers, addScore, addKill, spawnTorpedo } from './state';
 import { checkAim } from './collision';
 import { GameConfig } from './config';
-import { SurfaceStage } from './stages/SurfaceStage';
 
 abstract class BaseCombatStrategy implements CombatStrategy {
   protected fireCooldown: number = 0;
@@ -30,6 +29,31 @@ abstract class BaseCombatStrategy implements CombatStrategy {
   }
 
   protected abstract checkHits(input: UserInput, camera: THREE.Camera): void;
+
+  protected checkTargets(input: UserInput, camera: THREE.Camera) {
+    if (!state.entityManager) return;
+
+    let closestTarget: any = null;
+    let closestDist = Infinity;
+    const cameraPos = camera.getWorldPosition(new THREE.Vector3());
+
+    state.entityManager.getTargets().forEach(target => {
+      const worldPos = target.getWorldPosition(this.tempVector3);
+      if (!target.isExploded && checkAim(worldPos, input, camera)) {
+        const dist = worldPos.distanceTo(cameraPos);
+        if (dist < closestDist) {
+          closestDist = dist;
+          closestTarget = target;
+        }
+      }
+    });
+
+    if (closestTarget) {
+      closestTarget.explode();
+      addScore(closestTarget.getScore());
+      addKill();
+    }
+  }
 
   protected updateSpecial(_deltaTime: number, _input: UserInput, _camera: THREE.Camera): void {
     // Override in subclasses for special weapons
@@ -64,35 +88,19 @@ abstract class BaseCombatStrategy implements CombatStrategy {
 
 export class DogfightCombatStrategy extends BaseCombatStrategy {
   protected checkHits(input: UserInput, camera: THREE.Camera) {
-    if (!state.entityManager) return;
-
-    state.entityManager.getTieFighters().forEach(tf => {
-      if (!tf.isExploded && checkAim(tf.position, input, camera)) {
-        tf.explode();
-        addScore(GameConfig.tieFighter.points);
-        addKill();
-      }
-    });
+    this.checkTargets(input, camera);
   }
 }
 
 export class SurfaceCombatStrategy extends BaseCombatStrategy {
   protected checkHits(input: UserInput, camera: THREE.Camera) {
-    const stage = state.stageManager?.getStage();
-    if (stage instanceof SurfaceStage) {
-        stage.getTowers().forEach(tower => {
-            if (!tower.isDestroyed && checkAim(tower.mesh.position, input, camera)) {
-                tower.isDestroyed = true;
-                addScore(GameConfig.stage.towerPoints);
-            }
-        });
-    }
+    this.checkTargets(input, camera);
   }
 }
 
 export class TrenchCombatStrategy extends BaseCombatStrategy {
-  protected checkHits(_input: UserInput, _camera: THREE.Camera) {
-    // Trench specific hits if any (other than exhaust port)
+  protected checkHits(input: UserInput, camera: THREE.Camera) {
+    this.checkTargets(input, camera);
   }
 
   protected updateSpecial(_deltaTime: number, input: UserInput, camera: THREE.Camera): void {

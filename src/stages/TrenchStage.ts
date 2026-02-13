@@ -4,6 +4,7 @@ import { GameConfig } from '../config';
 import { state, goToNextStage, takeDamage, addScore } from '../state';
 import { Player } from '../entities/Player';
 import { Trench } from '../entities/Trench';
+import { Turret } from '../entities/Turret';
 
 export class TrenchStage extends Stage {
   public override get speed() { return GameConfig.player.forwardSpeeds.TRENCH; }
@@ -24,6 +25,17 @@ export class TrenchStage extends Stage {
 
     this.trench = new Trench();
     this.scene.add(this.trench.mesh);
+
+    // Register turrets with EntityManager
+    if (state.entityManager) {
+      this.trench.getTurrets().forEach(turret => {
+        state.entityManager!.addTarget(turret);
+      });
+    }
+  }
+
+  public getTurrets(): Turret[] {
+    return this.trench.getTurrets();
   }
 
   public update(deltaTime: number, player: Player): void {
@@ -79,7 +91,12 @@ export class TrenchStage extends Stage {
     }
   }
 
-  public cleanup(): void {
+  public override cleanup(): void {
+    if (state.entityManager) {
+      this.trench.getTurrets().forEach(turret => {
+        state.entityManager!.removeTarget(turret);
+      });
+    }
     this.scene.remove(this.trench.mesh);
     this.trench.dispose();
   }
