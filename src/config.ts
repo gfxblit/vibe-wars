@@ -188,10 +188,10 @@ export const GameConfig = deepFreeze({
   },
   turret: {
     meshSize: 5.0,
-    meshColor: 0x888888,
+    meshColor: 0xff0000,
     fireRate: 3.0,
     range: 1500,
-    spacing: 500,
+    spacing: 400,
     points: 200,
   },
 } as const);

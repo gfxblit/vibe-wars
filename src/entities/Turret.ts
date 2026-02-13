@@ -31,9 +31,8 @@ export class Turret extends Entity implements Targetable {
     });
 
     // Base - stays on the wall
-    const baseGeo = new THREE.CylinderGeometry(size * 0.6, size * 0.7, size * 0.2, 8);
+    const baseGeo = new THREE.BoxGeometry(size * 0.8, size * 0.8, size * 0.2);
     const base = new THREE.Mesh(baseGeo, material.clone());
-    base.rotation.x = Math.PI / 2;
     this.mesh.add(base);
 
     // Swivel Body - this is what looks at the player
