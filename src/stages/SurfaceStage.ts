@@ -35,6 +35,11 @@ export class SurfaceStage extends Stage {
 
   public update(deltaTime: number, player: Player): void {
     this.elapsedTime += deltaTime;
+
+    // Apply surface constraints
+    const halfWidth = GameConfig.stage.surfaceWidth / 2;
+    player.position.x = THREE.MathUtils.clamp(player.position.x, -halfWidth, halfWidth);
+    player.position.y = THREE.MathUtils.clamp(player.position.y, GameConfig.stage.surfaceFloorY - 10, GameConfig.stage.surfaceMaxHeight);
     
     this.surface.update(deltaTime, player.position, (pos, vel) => {
         if (state.entityManager) {

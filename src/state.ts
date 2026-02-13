@@ -3,7 +3,7 @@
  * major refactoring as the architecture is finalized.
  */
 import * as THREE from 'three';
-import { Player } from './entities/Player';
+import { Player, PlayerUpdateOptions } from './entities/Player';
 import { UserInput } from './input';
 import { Laser } from './entities/Laser';
 import { Fireball } from './entities/Fireball';
@@ -112,11 +112,20 @@ export function updateState(deltaTime: number, camera: THREE.Camera, input: User
 
   const currentSpeed = state.stageManager.getStage()?.speed ?? GameConfig.player.baseForwardSpeed;
 
-  const playerOptions = state.stage === 'TRENCH' ? {
-    lockUpright: true,
-    maxPitch: GameConfig.stage.trenchMaxPitch,
-    maxYaw: GameConfig.stage.trenchMaxYaw,
-  } : undefined;
+  let playerOptions: PlayerUpdateOptions | undefined = undefined;
+  if (state.stage === 'TRENCH') {
+    playerOptions = {
+      lockUpright: true,
+      maxPitch: GameConfig.stage.trenchMaxPitch,
+      maxYaw: GameConfig.stage.trenchMaxYaw,
+    };
+  } else if (state.stage === 'SURFACE') {
+    playerOptions = {
+      lockUpright: true,
+      maxPitch: GameConfig.stage.surfaceMaxPitch,
+      maxYaw: GameConfig.stage.surfaceMaxYaw,
+    };
+  }
 
   state.player.update(input, deltaTime, currentSpeed, state.showChassis, playerOptions);
 
