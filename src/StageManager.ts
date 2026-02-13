@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { GameConfig } from './config';
-import { state } from './state';
+import { state, GameStage } from './state';
 import { Player } from './entities/Player';
 import { checkAim } from './collision';
 import { UserInput } from './input';
@@ -19,24 +19,34 @@ export class StageManager {
   private initStage(): void {
     state.hasFiredTorpedo = false;
     state.canFireTorpedo = false;
+
+    const onComplete = () => this.goToNextStage();
+    const onReset = () => this.reset();
+
     switch (state.stage) {
       case 'DOGFIGHT':
-        this.currentStage = new DogfightStage(this.worldScene);
+        this.currentStage = new DogfightStage(this.worldScene, onComplete);
         break;
       case 'SURFACE':
-        this.currentStage = new SurfaceStage(this.worldScene);
+        this.currentStage = new SurfaceStage(this.worldScene, onComplete);
         break;
       case 'TRENCH':
-        this.currentStage = new TrenchStage(this.worldScene, () => this.reset());
+        this.currentStage = new TrenchStage(this.worldScene, onComplete, onReset);
         break;
     }
   }
 
-  public setStage(stage: Stage): void {
+  public setStageInstance(stage: Stage): void {
     if (this.currentStage) {
       this.currentStage.cleanup();
     }
     this.currentStage = stage;
+  }
+
+  public setStage(stage: GameStage): void {
+    state.stage = stage;
+    state.kills = 0;
+    this.reset();
   }
 
   public getStage(): Stage | null {
@@ -47,6 +57,26 @@ export class StageManager {
     if (this.currentStage) {
       this.currentStage.update(deltaTime, player);
     }
+  }
+
+  public goToNextStage(): void {
+    const sequence: readonly GameStage[] = state.wave === 1 
+      ? GameConfig.progression.wave1 
+      : GameConfig.progression.default;
+    
+    const currentIndex = sequence.indexOf(state.stage);
+    
+    if (currentIndex !== -1 && currentIndex < sequence.length - 1) {
+      state.stage = sequence[currentIndex + 1];
+    } else {
+      state.wave++;
+      // Award shield bonus (up to max) for completing a full run
+      state.shields = Math.min(GameConfig.player.maxShields, state.shields + 1);
+      state.stage = sequence[0];
+    }
+
+    state.kills = 0;
+    this.reset();
   }
 
   public checkExhaustPortHit(input: UserInput, camera: THREE.Camera): boolean {

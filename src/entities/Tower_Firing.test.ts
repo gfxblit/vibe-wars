@@ -19,16 +19,16 @@ describe('Tower Firing', () => {
     const dt = 1.0;
 
     // We expect update to return a direction vector if firing
-    const fireDir = (tower as any).update(dt, playerPos);
+    const fireDir = tower.update(dt, playerPos);
 
     expect(fireDir).toBeDefined();
     expect(fireDir).toBeInstanceOf(THREE.Vector3);
   });
 
   it('should not fire if destroyed', () => {
-    tower.isDestroyed = true;
+    tower.isExploded = true;
     const playerPos = new THREE.Vector3(0, 0, 0);
-    const fireDir = (tower as any).update(1.0, playerPos);
+    const fireDir = tower.update(1.0, playerPos);
     expect(fireDir).toBeNull();
   });
 });

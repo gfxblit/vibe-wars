@@ -104,6 +104,10 @@ export const GameConfig = deepFreeze({
     surfaceDuration: 30.0,
     deathStarSpawnAngle: Math.PI / 4,
   },
+  progression: {
+    wave1: ['DOGFIGHT', 'TRENCH'],
+    default: ['DOGFIGHT', 'SURFACE', 'TRENCH'],
+  },
   tieFighter: {
     speed: 50,
     oscillationFrequency: 1.0,

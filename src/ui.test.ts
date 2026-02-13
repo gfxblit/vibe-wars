@@ -12,6 +12,7 @@ describe('UIManager', () => {
     // Reset singleton state
     state.debug = false;
     state.isSmartAI = true;
+    state.stageManager = null;
 
     // Setup mock state
     mockState = {
@@ -339,13 +340,17 @@ describe('UIManager', () => {
 
       // Mock StageManager
       const mockReset = vi.fn();
-      state.stageManager = { reset: mockReset } as any;
+      const mockSetStage = vi.fn((s) => { state.stage = s; });
+      state.stageManager = { 
+        reset: mockReset,
+        setStage: mockSetStage
+      } as any;
 
       // Click SURFACE button
       surfaceBtn?.click();
 
       expect(state.stage).toBe('SURFACE');
-      expect(mockReset).toHaveBeenCalled();
+      expect(mockSetStage).toHaveBeenCalledWith('SURFACE');
     });
 
     it('should have KILLS TO ADVANCE input', () => {

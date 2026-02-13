@@ -137,10 +137,11 @@ export function updateState(deltaTime: number, camera: THREE.Camera, input: User
 }
 
 export function setStage(stage: GameStage) {
-  state.stage = stage;
-  state.kills = 0;
   if (state.stageManager) {
-    state.stageManager.reset();
+    state.stageManager.setStage(stage);
+  } else {
+    state.stage = stage;
+    state.kills = 0;
   }
 }
 
@@ -203,15 +204,8 @@ export function takeDamage(amount: number = 1) {
 }
 
 export function goToNextStage() {
-  const stages: GameStage[] = ['DOGFIGHT', 'SURFACE', 'TRENCH'];
-  const currentIndex = stages.indexOf(state.stage);
-  if (currentIndex < stages.length - 1) {
-    setStage(stages[currentIndex + 1]);
-  } else {
-    state.wave++;
-    // Award shield bonus (up to max) for completing a full run
-    state.shields = Math.min(GameConfig.player.maxShields, state.shields + 1);
-    setStage('DOGFIGHT');
+  if (state.stageManager) {
+    state.stageManager.goToNextStage();
   }
 }
 

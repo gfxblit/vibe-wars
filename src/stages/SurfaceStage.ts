@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { GameConfig } from '../config';
-import { state, goToNextStage, takeDamage } from '../state';
+import { state, takeDamage } from '../state';
 import { Player } from '../entities/Player';
 import { Stage } from './Stage';
 import { Tower } from '../entities/Tower';
@@ -12,7 +12,7 @@ export class SurfaceStage extends Stage {
   private surface: Surface;
   private playerBox: THREE.Box3 = new THREE.Box3();
 
-  constructor(private scene: THREE.Scene) {
+  constructor(private scene: THREE.Scene, private onComplete: () => void) {
     super();
     // Clear existing enemies for a clean transition
     if (state.entityManager) {
@@ -54,12 +54,12 @@ export class SurfaceStage extends Stage {
 
     if (towerHit) {
         takeDamage(GameConfig.stage.surfaceCollisionDamage);
-        towerHit.isDestroyed = true; // Mark as hit so we don't hit it again immediately
+        towerHit.isExploded = true; // Mark as hit so we don't hit it again immediately
     }
     
     // Check End Condition
     if (this.elapsedTime >= GameConfig.stage.surfaceDuration) {
-      goToNextStage();
+      this.onComplete();
     }
   }
 

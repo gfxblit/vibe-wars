@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, Mock } from 'vitest';
 import * as THREE from 'three';
 import { TrenchStage } from './TrenchStage';
 import { GameConfig } from '../config';
@@ -62,8 +62,8 @@ describe('TrenchStage', () => {
     state.shields = 3;
 
     // Capture the mock instance
-    stage = new TrenchStage(scene, () => {});
-    mockTrenchInstance = (Trench as any).mock.results[0].value;
+    stage = new TrenchStage(scene, goToNextStage, () => {});
+    mockTrenchInstance = vi.mocked(Trench).mock.results[0].value;
   });
 
   it('should initialize with correct speed', () => {
@@ -119,7 +119,7 @@ describe('TrenchStage', () => {
 
   it('should take damage and reset when reaching end of trench', () => {
     const onReset = vi.fn();
-    stage = new TrenchStage(scene, onReset);
+    stage = new TrenchStage(scene, goToNextStage, onReset);
     state.player!.position.z = -GameConfig.stage.trenchLength - 10;
     stage.update(0.1, state.player as Player);
     expect(takeDamage).toHaveBeenCalledWith(1);
@@ -129,7 +129,7 @@ describe('TrenchStage', () => {
 
   it('should take damage and reset when hitting port structure with player', () => {
     const onReset = vi.fn();
-    stage = new TrenchStage(scene, onReset);
+    stage = new TrenchStage(scene, goToNextStage, onReset);
     mockTrenchInstance.checkPortCollision.mockReturnValue(true);
     stage.update(0.1, state.player as Player);
     expect(takeDamage).toHaveBeenCalledWith(1);
@@ -139,7 +139,7 @@ describe('TrenchStage', () => {
 
   it('should transition to next stage when torpedo hits port', () => {
     const torpedo = { position: new THREE.Vector3(0, 0, -100), isExploded: false, explode: vi.fn() };
-    (state.entityManager?.getTorpedoes as any).mockReturnValue([torpedo]);
+    (state.entityManager?.getTorpedoes as Mock).mockReturnValue([torpedo]);
     mockTrenchInstance.checkPortCollision.mockImplementation((pos: THREE.Vector3) => pos.z === -100);
 
     stage.update(0.1, state.player as Player);

@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import * as THREE from 'three';
 import { StageManager } from './StageManager';
+import { TrenchStage } from './stages/TrenchStage';
 import { Player } from './entities/Player';
 import { GameConfig } from './config';
 import { state, initGame } from './state';
@@ -37,7 +38,25 @@ describe('StageManager', () => {
     expect(state.entityManager!.getTieFighters().length).toBe(0);
   });
 
-  it('should transition to SurfaceStage when player is close to DeathStar in Dogfight approach', () => {
+  it('should transition to TRENCH when player is close to DeathStar in Wave 1', () => {
+    state.wave = 1;
+    state.kills = GameConfig.stage.dogfightKillsThreshold;
+    stageManager.update(0.1, player); // Trigger approach
+    expect(state.stage).toBe('DOGFIGHT');
+
+    const deathStar = scene.getObjectByName('DeathStar');
+    expect(deathStar).toBeTruthy();
+
+    const dsPos = deathStar!.position.clone();
+    player.position.copy(dsPos).add(new THREE.Vector3(0, 0, GameConfig.stage.deathStarSize + GameConfig.stage.trenchTransitionDistance - 10));
+
+    stageManager.update(0.1, player);
+
+    expect(state.stage).toBe('TRENCH');
+  });
+
+  it('should transition to SURFACE when player is close to DeathStar in Wave 2+', () => {
+    state.wave = 2;
     state.kills = GameConfig.stage.dogfightKillsThreshold;
     stageManager.update(0.1, player); // Trigger approach
     expect(state.stage).toBe('DOGFIGHT');
@@ -55,6 +74,7 @@ describe('StageManager', () => {
 
   it('should transition to TrenchStage when SurfaceStage timer expires', () => {
     // Manually set stage to SURFACE for this test
+    state.wave = 2;
     state.stage = 'SURFACE';
     stageManager.reset(); // Re-init stage manager to pick up SURFACE stage
     
@@ -195,10 +215,10 @@ describe('StageManager', () => {
     state.entityManager!.clear();
     
     // Re-register turrets after clear()
-    const trench = (stageManager.getStage() as any).trench;
-    trench.getTurrets().forEach((t: any) => {
+    const stage = stageManager.getStage() as TrenchStage;
+    stage.getTurrets().forEach((t) => {
       state.entityManager!.addTarget(t);
-      t.fireCooldown = 0; // Set fire cooldown of all turrets to 0
+      (t as any).fireCooldown = 0; // Set fire cooldown of all turrets to 0
     });
 
     // Player position near some turrets (turrets are at -500, -1500, etc. based on 1000 spacing)

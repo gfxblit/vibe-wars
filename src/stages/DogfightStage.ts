@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { Stage } from './Stage';
 import { GameConfig } from '../config';
-import { state, goToNextStage } from '../state';
+import { state } from '../state';
 import { Player } from '../entities/Player';
 import { DeathStar } from '../entities/DeathStar';
 
@@ -17,7 +17,7 @@ export class DogfightStage extends Stage {
   private targetRotation = new THREE.Quaternion();
   private forward = new THREE.Vector3(0, 0, -1);
 
-  constructor(private scene: THREE.Scene) {
+  constructor(private scene: THREE.Scene, private onComplete: () => void) {
     super();
     if (state.entityManager) {
       state.entityManager.setSpawningEnabled(true);
@@ -74,7 +74,7 @@ export class DogfightStage extends Stage {
     const dist = this.toDeathStar.length();
 
     if (dist < GameConfig.stage.trenchTransitionDistance + GameConfig.stage.deathStarSize) {
-      goToNextStage();
+      this.onComplete();
       return;
     }
 

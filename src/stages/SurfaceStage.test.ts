@@ -12,6 +12,8 @@ vi.mock('../state', () => ({
       clear: vi.fn(),
       setSpawningEnabled: vi.fn(),
       spawnFireball: vi.fn(),
+      addTarget: vi.fn(),
+      removeTarget: vi.fn(),
     },
     player: {
       position: new THREE.Vector3(0, 0, 0),
@@ -47,12 +49,12 @@ describe('SurfaceStage', () => {
   });
 
   it('should initialize with correct speed', () => {
-    stage = new SurfaceStage(scene);
+    stage = new SurfaceStage(scene, goToNextStage);
     expect(stage.speed).toBe(GameConfig.player.forwardSpeeds.SURFACE);
   });
 
   it('should clear enemies and disable spawning on initialization', () => {
-    stage = new SurfaceStage(scene);
+    stage = new SurfaceStage(scene, goToNextStage);
     expect(state.entityManager?.clear).toHaveBeenCalled();
     expect(state.entityManager?.setSpawningEnabled).toHaveBeenCalledWith(false);
   });
@@ -61,7 +63,7 @@ describe('SurfaceStage', () => {
     state.player!.position.set(100, 200, 300);
     state.player!.mesh.quaternion.set(0.5, 0.5, 0.5, 0.5);
     
-    stage = new SurfaceStage(scene);
+    stage = new SurfaceStage(scene, goToNextStage);
     
     expect(state.player!.position.x).toBe(0);
     expect(state.player!.position.y).toBe(0);
@@ -73,7 +75,7 @@ describe('SurfaceStage', () => {
   });
 
   it('should create a floor grid', () => {
-    stage = new SurfaceStage(scene);
+    stage = new SurfaceStage(scene, goToNextStage);
     // Scene should contain the floor group
     expect(scene.children.length).toBeGreaterThan(0);
     const floor = scene.children.find(c => c instanceof THREE.Group);
@@ -81,7 +83,7 @@ describe('SurfaceStage', () => {
   });
 
   it('should transition to next stage after timer expires', () => {
-    stage = new SurfaceStage(scene);
+    stage = new SurfaceStage(scene, goToNextStage);
     
     // Update with delta less than duration
     stage.update(GameConfig.stage.surfaceDuration - 0.1, state.player as Player);
@@ -93,7 +95,7 @@ describe('SurfaceStage', () => {
   });
 
   it('should damage player if they hit the floor', () => {
-    stage = new SurfaceStage(scene);
+    stage = new SurfaceStage(scene, goToNextStage);
     const player = state.player as Player;
     
     // Position player below floor threshold
@@ -107,7 +109,7 @@ describe('SurfaceStage', () => {
   });
 
   it('should spawn towers over time', () => {
-    stage = new SurfaceStage(scene);
+    stage = new SurfaceStage(scene, goToNextStage);
     
     // Initially no towers
     expect(stage.getTowers().length).toBe(0);

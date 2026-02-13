@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { Stage } from './Stage';
 import { GameConfig } from '../config';
-import { state, goToNextStage, takeDamage, addScore } from '../state';
+import { state, takeDamage, addScore } from '../state';
 import { Player } from '../entities/Player';
 import { Trench } from '../entities/Trench';
 import { Turret } from '../entities/Turret';
@@ -11,7 +11,7 @@ export class TrenchStage extends Stage {
   private trench: Trench;
   private lastCatwalkHitZ: number | null = null;
 
-  constructor(private scene: THREE.Scene, private onReset: () => void) {
+  constructor(private scene: THREE.Scene, private onComplete: () => void, private onReset: () => void) {
     super();
     if (state.entityManager) {
       state.entityManager.clear();
@@ -84,7 +84,7 @@ export class TrenchStage extends Stage {
 
     if (torpedoHitPort) {
       addScore(GameConfig.torpedo.bonusPoints);
-      goToNextStage();
+      this.onComplete();
     } else if (torpedoMissed || hitPort || player.position.z <= -GameConfig.stage.trenchLength) {
       takeDamage(1);
       this.onReset();
