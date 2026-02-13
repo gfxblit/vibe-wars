@@ -3,6 +3,7 @@ import { Entity } from './Entity';
 import { GameConfig } from '../config';
 import { Tower } from './Tower';
 import { state } from '../state';
+import { EntityManager } from './EntityManager';
 
 export interface CollisionResult {
   floorHit: boolean;
@@ -69,7 +70,7 @@ export class Surface extends Entity {
     this.floor.add(gridMesh);
   }
 
-  public update(deltaTime: number, playerPosition: THREE.Vector3, spawnFireball?: (pos: THREE.Vector3, vel: THREE.Vector3) => void): void {
+  public update(deltaTime: number, playerPosition: THREE.Vector3, entityManager?: EntityManager, spawnFireball?: (pos: THREE.Vector3, vel: THREE.Vector3) => void): void {
     this.elapsedTime += deltaTime;
     const playerZ = playerPosition.z;
     const spacing = GameConfig.stage.surfaceGridSpacing;
@@ -80,7 +81,7 @@ export class Surface extends Entity {
     
     // Spawn Towers
     if (this.elapsedTime >= this.nextTowerSpawnTime) {
-      this.spawnTower(playerPosition.x, playerZ);
+      this.spawnTower(playerPosition.x, playerZ, entityManager);
       
       const { towerSpawnInterval } = GameConfig.stage;
       const interval = towerSpawnInterval * (0.8 + Math.random() * 0.4);
@@ -93,7 +94,7 @@ export class Surface extends Entity {
         
         // Cleanup passed towers
         if (tower.mesh.position.z > playerZ + GameConfig.stage.towerCleanupDistance) {
-            this.removeTower(i);
+            this.removeTower(i, entityManager);
             continue;
         }
 
@@ -113,7 +114,7 @@ export class Surface extends Entity {
     }
   }
 
-  private spawnTower(playerX: number, playerZ: number): void {
+  private spawnTower(playerX: number, playerZ: number, entityManager?: EntityManager): void {
      const { surfaceWidth, surfaceFloorY, towerSpawnDistance, towerMarginX } = GameConfig.stage;
      
      const spawnZ = playerZ - towerSpawnDistance; 
@@ -125,16 +126,20 @@ export class Surface extends Entity {
      this.towers.push(tower);
      this.mesh.add(tower.mesh);
 
-     if (state.entityManager) {
-       state.entityManager.addTarget(tower);
+     const manager = entityManager || state.entityManager;
+     if (manager) {
+       manager.addTarget(tower);
+     }
      }
   }
 
-  private removeTower(index: number): void {
+  private removeTower(index: number, entityManager?: EntityManager): void {
       const tower = this.towers[index];
       if (tower) {
-        if (state.entityManager) {
-          state.entityManager.removeTarget(tower);
+        const manager = entityManager || state.entityManager;
+        if (manager) {
+          manager.removeTarget(tower);
+        }
         }
         this.mesh.remove(tower.mesh);
         tower.dispose();

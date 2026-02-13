@@ -11,6 +11,8 @@ vi.mock('../state', () => ({
     entityManager: {
       setSpawningEnabled: vi.fn(),
       clear: vi.fn(),
+      addTarget: vi.fn(),
+      removeTarget: vi.fn(),
     },
     kills: 0,
     player: {

@@ -13,6 +13,8 @@ vi.mock('../state', () => ({
       setSpawningEnabled: vi.fn(),
       clear: vi.fn(),
       getTorpedoes: vi.fn().mockReturnValue([]),
+      addTarget: vi.fn(),
+      removeTarget: vi.fn(),
     },
     player: {
       position: new THREE.Vector3(0, 0, 0),
