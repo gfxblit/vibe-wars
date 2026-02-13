@@ -4,7 +4,6 @@ import { UserInput } from './input';
 import { state, spawnLasers, addScore, addKill, spawnTorpedo } from './state';
 import { checkAim } from './collision';
 import { GameConfig } from './config';
-import { SurfaceStage } from './stages/SurfaceStage';
 
 abstract class BaseCombatStrategy implements CombatStrategy {
   protected fireCooldown: number = 0;

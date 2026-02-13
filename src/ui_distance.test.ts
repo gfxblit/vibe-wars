@@ -33,6 +33,7 @@ describe('UIManager - Distance Countdown', () => {
       showChassis: false,
       canFireTorpedo: false,
       hasFiredTorpedo: false,
+      isApproachingDeathStar: false,
     };
 
     document.body.innerHTML = '';
