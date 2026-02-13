@@ -62,7 +62,7 @@ describe('TrenchStage', () => {
     state.shields = 3;
 
     // Capture the mock instance
-    stage = new TrenchStage(scene, () => {});
+    stage = new TrenchStage(scene, goToNextStage, () => {});
     mockTrenchInstance = (Trench as any).mock.results[0].value;
   });
 
@@ -119,7 +119,7 @@ describe('TrenchStage', () => {
 
   it('should take damage and reset when reaching end of trench', () => {
     const onReset = vi.fn();
-    stage = new TrenchStage(scene, onReset);
+    stage = new TrenchStage(scene, goToNextStage, onReset);
     state.player!.position.z = -GameConfig.stage.trenchLength - 10;
     stage.update(0.1, state.player as Player);
     expect(takeDamage).toHaveBeenCalledWith(1);
@@ -129,7 +129,7 @@ describe('TrenchStage', () => {
 
   it('should take damage and reset when hitting port structure with player', () => {
     const onReset = vi.fn();
-    stage = new TrenchStage(scene, onReset);
+    stage = new TrenchStage(scene, goToNextStage, onReset);
     mockTrenchInstance.checkPortCollision.mockReturnValue(true);
     stage.update(0.1, state.player as Player);
     expect(takeDamage).toHaveBeenCalledWith(1);

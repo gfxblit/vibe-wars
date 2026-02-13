@@ -73,6 +73,7 @@ describe('StageManager', () => {
 
   it('should transition to TrenchStage when SurfaceStage timer expires', () => {
     // Manually set stage to SURFACE for this test
+    state.wave = 2;
     state.stage = 'SURFACE';
     stageManager.reset(); // Re-init stage manager to pick up SURFACE stage
     

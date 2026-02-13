@@ -61,17 +61,17 @@ describe('DogfightStage', () => {
   });
 
   it('should enable spawning on initialization', () => {
-    stage = new DogfightStage(scene);
+    stage = new DogfightStage(scene, goToNextStage);
     expect(state.entityManager?.setSpawningEnabled).toHaveBeenCalledWith(true);
   });
 
   it('should start with DOGFIGHT speed', () => {
-    stage = new DogfightStage(scene);
+    stage = new DogfightStage(scene, goToNextStage);
     expect(stage.speed).toBe(GameConfig.player.forwardSpeeds.DOGFIGHT);
   });
 
   it('should transition to approach phase when kill threshold is met', () => {
-    stage = new DogfightStage(scene);
+    stage = new DogfightStage(scene, goToNextStage);
     state.kills = GameConfig.stage.dogfightKillsThreshold;
     
     stage.update(0.1, player);
@@ -89,7 +89,7 @@ describe('DogfightStage', () => {
   });
 
   it('should NOT trigger next stage immediately when kill threshold is met', () => {
-    stage = new DogfightStage(scene);
+    stage = new DogfightStage(scene, goToNextStage);
     state.kills = GameConfig.stage.dogfightKillsThreshold;
     
     stage.update(0.1, player);
@@ -97,7 +97,7 @@ describe('DogfightStage', () => {
   });
 
   it('should trigger next stage when close enough to DeathStar in approach phase', () => {
-    stage = new DogfightStage(scene);
+    stage = new DogfightStage(scene, goToNextStage);
     state.kills = GameConfig.stage.dogfightKillsThreshold;
     
     // Trigger transition to approach phase
@@ -115,7 +115,7 @@ describe('DogfightStage', () => {
   });
 
   it('should cleanup DeathStar on cleanup', () => {
-    stage = new DogfightStage(scene);
+    stage = new DogfightStage(scene, goToNextStage);
     state.kills = GameConfig.stage.dogfightKillsThreshold;
     stage.update(0.1, player); // Spawn DeathStar
 
@@ -127,7 +127,7 @@ describe('DogfightStage', () => {
   });
 
   it('should not trigger next stage when kill threshold is not met', () => {
-    stage = new DogfightStage(scene);
+    stage = new DogfightStage(scene, goToNextStage);
     state.kills = GameConfig.stage.dogfightKillsThreshold - 1;
     
     stage.update(0.1, player);
@@ -135,7 +135,7 @@ describe('DogfightStage', () => {
   });
 
   it('should use debug kill threshold if set', () => {
-    stage = new DogfightStage(scene);
+    stage = new DogfightStage(scene, goToNextStage);
     const debugThreshold = 2;
     state.debugKillsThreshold = debugThreshold;
     state.kills = debugThreshold;
