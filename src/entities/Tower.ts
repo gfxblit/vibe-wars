@@ -9,6 +9,7 @@ export class Tower extends Entity implements Targetable {
     private topMesh!: THREE.Mesh;
     private fireCooldown: number = 0;
   
+    // Targetable interface implementation
     public get isExploded(): boolean {
       return this._isExploded;
     }
