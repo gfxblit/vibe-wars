@@ -39,6 +39,7 @@ export interface GameState {
   canFireTorpedo: boolean;
   hasFiredTorpedo: boolean;
   isApproachingDeathStar: boolean;
+  debugKillsThreshold?: number;
 }
 
 const initialWidth = typeof window !== 'undefined' ? window.innerWidth : 1024;
@@ -68,6 +69,7 @@ export const state: GameState = {
   canFireTorpedo: false,
   hasFiredTorpedo: false,
   isApproachingDeathStar: false,
+  debugKillsThreshold: undefined,
 };
 
 export function initGame(worldScene: THREE.Scene, hudScene: THREE.Scene) {
@@ -85,6 +87,7 @@ export function initGame(worldScene: THREE.Scene, hudScene: THREE.Scene) {
   state.canFireTorpedo = false;
   state.hasFiredTorpedo = false;
   state.isApproachingDeathStar = false;
+  state.debugKillsThreshold = undefined;
 
   state.player = new Player();
 

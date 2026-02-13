@@ -24,7 +24,7 @@ describe('StageManager', () => {
   });
 
   it('should NOT transition to SurfaceStage immediately when kill threshold is met, but start approach', () => {
-    state.kills = GameConfig.stage.trenchKillsThreshold;
+    state.kills = GameConfig.stage.dogfightKillsThreshold;
     stageManager.update(0.1, player);
 
     // Should still be in DOGFIGHT stage, but in approach phase
@@ -38,7 +38,7 @@ describe('StageManager', () => {
   });
 
   it('should transition to SurfaceStage when player is close to DeathStar in Dogfight approach', () => {
-    state.kills = GameConfig.stage.trenchKillsThreshold;
+    state.kills = GameConfig.stage.dogfightKillsThreshold;
     stageManager.update(0.1, player); // Trigger approach
     expect(state.stage).toBe('DOGFIGHT');
 

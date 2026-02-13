@@ -32,7 +32,9 @@ export class DogfightStage extends Stage {
 
   public update(deltaTime: number, player: Player): void {
     if (this.phase === DogfightPhase.COMBAT) {
-      if (state.kills >= GameConfig.stage.trenchKillsThreshold) {
+      const threshold = state.debugKillsThreshold ?? GameConfig.stage.dogfightKillsThreshold;
+
+      if (state.kills >= threshold) {
         this.startApproach(player);
       }
     } else {
