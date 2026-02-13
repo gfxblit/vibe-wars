@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import * as THREE from 'three';
 import { StageManager } from './StageManager';
+import { TrenchStage } from './stages/TrenchStage';
 import { Player } from './entities/Player';
 import { GameConfig } from './config';
 import { state, initGame } from './state';
@@ -214,10 +215,10 @@ describe('StageManager', () => {
     state.entityManager!.clear();
     
     // Re-register turrets after clear()
-    const trench = (stageManager.getStage() as any).trench;
-    trench.getTurrets().forEach((t: any) => {
+    const stage = stageManager.getStage() as TrenchStage;
+    stage.getTurrets().forEach((t) => {
       state.entityManager!.addTarget(t);
-      t.fireCooldown = 0; // Set fire cooldown of all turrets to 0
+      (t as any).fireCooldown = 0; // Set fire cooldown of all turrets to 0
     });
 
     // Player position near some turrets (turrets are at -500, -1500, etc. based on 1000 spacing)

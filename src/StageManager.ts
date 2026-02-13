@@ -60,19 +60,19 @@ export class StageManager {
   }
 
   public goToNextStage(): void {
-    const sequence = state.wave === 1 
+    const sequence: readonly GameStage[] = state.wave === 1 
       ? GameConfig.progression.wave1 
       : GameConfig.progression.default;
     
-    const currentIndex = sequence.indexOf(state.stage as any);
+    const currentIndex = sequence.indexOf(state.stage);
     
     if (currentIndex !== -1 && currentIndex < sequence.length - 1) {
-      state.stage = sequence[currentIndex + 1] as any;
+      state.stage = sequence[currentIndex + 1];
     } else {
       state.wave++;
       // Award shield bonus (up to max) for completing a full run
       state.shields = Math.min(GameConfig.player.maxShields, state.shields + 1);
-      state.stage = sequence[0] as any;
+      state.stage = sequence[0];
     }
 
     state.kills = 0;

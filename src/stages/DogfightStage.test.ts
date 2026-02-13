@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, Mock } from 'vitest';
 import * as THREE from 'three';
 import { DogfightStage } from './DogfightStage';
 import { GameConfig } from '../config';
@@ -51,9 +51,9 @@ describe('DogfightStage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     scene = new THREE.Scene();
-    player = state.player as any;
-    (state.entityManager?.setSpawningEnabled as any).mockClear();
-    (state.entityManager?.clear as any).mockClear();
+    player = state.player as Player;
+    (state.entityManager?.setSpawningEnabled as Mock).mockClear();
+    (state.entityManager?.clear as Mock).mockClear();
     state.kills = 0;
     state.debugKillsThreshold = undefined;
     player.position.set(0, 0, 0);
