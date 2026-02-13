@@ -26,7 +26,14 @@ export class Surface extends Entity {
   }
 
   private createFloor(): void {
-    const { surfaceLength, surfaceWidth, surfaceGridSpacing, surfaceColor, surfaceFloorY } = GameConfig.stage;
+    const { surfaceGridSpacing, surfaceColor, surfaceFloorY } = GameConfig.stage;
+    const { far } = GameConfig.camera;
+
+    // Grid size should be enough to cover the camera's far plane in all directions.
+    // We add a buffer of two grid spacings to ensure that even when the floor is 
+    // snapped and the player is at the edge of a grid square, the grid still 
+    // extends beyond the camera far plane.
+    const halfSize = far + surfaceGridSpacing * 2;
     
     const material = new THREE.LineBasicMaterial({ 
         color: surfaceColor, 
@@ -37,10 +44,10 @@ export class Surface extends Entity {
     const points: THREE.Vector3[] = [];
     
     // Longitudinal lines (along Z)
-    const zStart = 0;
-    const zEnd = -surfaceLength;
-    const xStart = -surfaceWidth / 2;
-    const xEnd = surfaceWidth / 2;
+    const zStart = halfSize;
+    const zEnd = -halfSize;
+    const xStart = -halfSize;
+    const xEnd = halfSize;
     
     for (let x = xStart; x <= xEnd; x += surfaceGridSpacing) {
         points.push(new THREE.Vector3(x, 0, zStart));
@@ -64,10 +71,15 @@ export class Surface extends Entity {
   public update(deltaTime: number, playerPosition: THREE.Vector3, spawnFireball?: (pos: THREE.Vector3, vel: THREE.Vector3) => void): void {
     this.elapsedTime += deltaTime;
     const playerZ = playerPosition.z;
+    const spacing = GameConfig.stage.surfaceGridSpacing;
+
+    // Update floor position to follow player with snapping
+    this.floor.position.x = Math.round(playerPosition.x / spacing) * spacing;
+    this.floor.position.z = Math.round(playerPosition.z / spacing) * spacing;
     
     // Spawn Towers
     if (this.elapsedTime >= this.nextTowerSpawnTime) {
-      this.spawnTower(playerZ);
+      this.spawnTower(playerPosition.x, playerZ);
       
       const { towerSpawnInterval } = GameConfig.stage;
       const interval = towerSpawnInterval * (0.8 + Math.random() * 0.4);
@@ -100,13 +112,13 @@ export class Surface extends Entity {
     }
   }
 
-  private spawnTower(playerZ: number): void {
+  private spawnTower(playerX: number, playerZ: number): void {
      const { surfaceWidth, surfaceFloorY, towerSpawnDistance, towerMarginX } = GameConfig.stage;
      
      const spawnZ = playerZ - towerSpawnDistance; 
      
      const rangeX = surfaceWidth / 2 - towerMarginX; 
-     const x = (Math.random() * 2 - 1) * rangeX;
+     const x = playerX + (Math.random() * 2 - 1) * rangeX;
      
      const tower = new Tower(new THREE.Vector3(x, surfaceFloorY, spawnZ));
      this.towers.push(tower);
