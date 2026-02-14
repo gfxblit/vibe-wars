@@ -188,8 +188,9 @@ export class EntityManager {
     this.worldScene.add(tf.mesh);
   }
 
-  public spawnFireball(position: THREE.Vector3, velocity: THREE.Vector3, size: number = GameConfig.fireball.sparkleSize): Fireball {
-    const fireball = new Fireball(position, velocity, size);
+  public spawnFireball(position: THREE.Vector3, velocity: THREE.Vector3, size?: number): Fireball {
+    const finalSize = size ?? state.debugFireballSize ?? GameConfig.fireball.sparkleSize;
+    const fireball = new Fireball(position, velocity, finalSize);
     this.fireballs.push(fireball);
     this.worldScene.add(fireball.mesh);
     return fireball;
