@@ -76,7 +76,7 @@ describe('DogfightStage', () => {
 
   it('should transition to approach phase when kill threshold is met', () => {
     stage = new DogfightStage(scene, goToNextStage);
-    state.kills = GameConfig.stage.dogfightKillsThreshold;
+    state.kills = GameConfig.stages.dogfight.killsThreshold;
     
     stage.update(0.1, player, mockCamera);
 
@@ -94,7 +94,7 @@ describe('DogfightStage', () => {
 
   it('should NOT trigger next stage immediately when kill threshold is met', () => {
     stage = new DogfightStage(scene, goToNextStage);
-    state.kills = GameConfig.stage.dogfightKillsThreshold;
+    state.kills = GameConfig.stages.dogfight.killsThreshold;
     
     stage.update(0.1, player, mockCamera);
     expect(goToNextStage).not.toHaveBeenCalled();
@@ -102,7 +102,7 @@ describe('DogfightStage', () => {
 
   it('should trigger next stage when close enough to DeathStar in approach phase', () => {
     stage = new DogfightStage(scene, goToNextStage);
-    state.kills = GameConfig.stage.dogfightKillsThreshold;
+    state.kills = GameConfig.stages.dogfight.killsThreshold;
     
     // Trigger transition to approach phase
     stage.update(0.1, player, mockCamera);
@@ -111,7 +111,7 @@ describe('DogfightStage', () => {
     const deathStar = scene.children.find(c => c.type === 'Mesh' && (c as THREE.Mesh).geometry.type === 'SphereGeometry') as THREE.Mesh;
     
     // Move player close to DeathStar
-    const targetDist = GameConfig.stage.trenchTransitionDistance + GameConfig.stage.deathStarSize - 10;
+    const targetDist = GameConfig.stages.trench.transitionDistance + GameConfig.stages.deathStar.size - 10;
     player.position.copy(deathStar.position).add(new THREE.Vector3(0, 0, targetDist));
 
     stage.update(0.1, player, mockCamera);
@@ -120,7 +120,7 @@ describe('DogfightStage', () => {
 
   it('should cleanup DeathStar on cleanup', () => {
     stage = new DogfightStage(scene, goToNextStage);
-    state.kills = GameConfig.stage.dogfightKillsThreshold;
+    state.kills = GameConfig.stages.dogfight.killsThreshold;
     stage.update(0.1, player, mockCamera); // Spawn DeathStar
 
     const initialChildren = scene.children.length;
@@ -132,7 +132,7 @@ describe('DogfightStage', () => {
 
   it('should not trigger next stage when kill threshold is not met', () => {
     stage = new DogfightStage(scene, goToNextStage);
-    state.kills = GameConfig.stage.dogfightKillsThreshold - 1;
+    state.kills = GameConfig.stages.dogfight.killsThreshold - 1;
     
     stage.update(0.1, player, mockCamera);
     expect(state.entityManager?.clear).not.toHaveBeenCalled();

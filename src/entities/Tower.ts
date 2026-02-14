@@ -31,7 +31,7 @@ export class Tower extends Entity implements Targetable {
     }
 
     public getScore(): number {
-      return GameConfig.stage.towerPoints;
+      return GameConfig.stages.surface.towerPoints;
     }
 
     public explode(): void {
@@ -46,7 +46,7 @@ export class Tower extends Entity implements Targetable {
       // Initialize random cooldown so they don't all fire at once
       this.fireCooldown = Math.random() * GameConfig.fireball.fireRate;
   
-      const { towerWidth, towerHeight, towerColor } = GameConfig.stage;
+      const { towerWidth, towerHeight, towerColor } = GameConfig.stages.surface;
   
       // Split into Base and Top
       const baseHeight = towerHeight * 0.7;

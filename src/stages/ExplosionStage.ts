@@ -56,9 +56,9 @@ export class ExplosionStage extends Stage {
       if (state.entityManager) {
         for (let i = 0; i < GameConfig.deathStarExplosion.particleCount; i++) {
           const pos = new THREE.Vector3(
-            (Math.random() - 0.5) * GameConfig.stage.deathStarSize * 2,
-            (Math.random() - 0.5) * GameConfig.stage.deathStarSize * 2,
-            (Math.random() - 0.5) * GameConfig.stage.deathStarSize * 2
+            (Math.random() - 0.5) * GameConfig.stages.deathStar.size * 2,
+            (Math.random() - 0.5) * GameConfig.stages.deathStar.size * 2,
+            (Math.random() - 0.5) * GameConfig.stages.deathStar.size * 2
           );
           const vel = pos.clone().normalize().multiplyScalar(GameConfig.deathStarExplosion.fragmentVelocity * (0.5 + Math.random()));
           state.entityManager.spawnFireball(pos, vel);

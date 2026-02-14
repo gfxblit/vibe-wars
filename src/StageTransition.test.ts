@@ -25,7 +25,7 @@ describe('Stage Transitions', () => {
   it('should reset kills when goToNextStage is called (Wave 1 skips SURFACE)', () => {
     state.wave = 1;
     state.stage = 'DOGFIGHT';
-    state.kills = GameConfig.stage.dogfightKillsThreshold;
+    state.kills = GameConfig.stages.dogfight.killsThreshold;
     goToNextStage();
     expect(state.stage).toBe('TRENCH');
     expect(state.kills).toBe(0);
@@ -34,7 +34,7 @@ describe('Stage Transitions', () => {
   it('should reset kills when goToNextStage is called (Wave 2+ includes SURFACE)', () => {
     state.wave = 2;
     state.stage = 'DOGFIGHT';
-    state.kills = GameConfig.stage.dogfightKillsThreshold;
+    state.kills = GameConfig.stages.dogfight.killsThreshold;
     goToNextStage();
     expect(state.stage).toBe('SURFACE');
     expect(state.kills).toBe(0);
@@ -42,7 +42,7 @@ describe('Stage Transitions', () => {
 
   it('should auto-switch from DOGFIGHT to APPROACH phase if kills threshold already met on update', () => {
     state.stage = 'DOGFIGHT';
-    state.kills = GameConfig.stage.dogfightKillsThreshold + 1;
+    state.kills = GameConfig.stages.dogfight.killsThreshold + 1;
     state.stageManager?.reset();
     
     expect(state.stage).toBe('DOGFIGHT');

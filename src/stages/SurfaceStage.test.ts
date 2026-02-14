@@ -89,7 +89,7 @@ describe('SurfaceStage', () => {
     stage = new SurfaceStage(scene, goToNextStage);
     
     // Update with delta less than duration
-    stage.update(GameConfig.stage.surfaceDuration - 0.1, state.player as Player, mockCamera);
+    stage.update(GameConfig.stages.surface.duration - 0.1, state.player as Player, mockCamera);
     expect(goToNextStage).not.toHaveBeenCalled();
 
     // Update to pass the duration
@@ -103,12 +103,12 @@ describe('SurfaceStage', () => {
     
     // Position player below floor threshold
     // Floor Y is -50 (default in config). Collision is < -50 + buffer
-    player.position.y = GameConfig.stage.surfaceFloorY - GameConfig.stage.surfaceFloorClampBuffer;
+    player.position.y = GameConfig.stages.surface.floorY - GameConfig.stages.surface.floorClampBuffer;
     
     stage.update(0.1, player, mockCamera);
-    expect(takeDamage).toHaveBeenCalledWith(GameConfig.stage.surfaceCollisionDamage);
+    expect(takeDamage).toHaveBeenCalledWith(GameConfig.stages.surface.collisionDamage);
     // Should bump player up by the bounce amount
-    expect(player.position.y).toBe(GameConfig.stage.surfaceFloorY + GameConfig.stage.surfaceFloorBounce);
+    expect(player.position.y).toBe(GameConfig.stages.surface.floorY + GameConfig.stages.surface.floorBounce);
   });
 
   it('should spawn towers over time', () => {
@@ -151,7 +151,7 @@ describe('SurfaceStage', () => {
     
     stage.update(0.1, player, mockCamera);
     
-    expect(takeDamage).toHaveBeenCalledWith(GameConfig.stage.surfaceCollisionDamage);
+    expect(takeDamage).toHaveBeenCalledWith(GameConfig.stages.surface.collisionDamage);
     expect(mockTower.isExploded).toBe(true);
   });
 });

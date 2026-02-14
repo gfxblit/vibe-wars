@@ -20,16 +20,16 @@ export class DeathStar extends Entity {
     this.mesh = new THREE.Group();
     this.mesh.name = 'DeathStar';
 
-    const radius = GameConfig.stage.deathStarSize;
+    const radius = GameConfig.stages.deathStar.size;
     const hullMaterial = new THREE.LineBasicMaterial({
-      color: GameConfig.stage.deathStarColor,
+      color: GameConfig.stages.deathStar.color,
       transparent: true,
       opacity: 0.6,
     });
     this.materials.push(hullMaterial);
 
     const dishMaterial = new THREE.LineBasicMaterial({
-      color: GameConfig.stage.deathStarDishColor,
+      color: GameConfig.stages.deathStar.dishColor,
       transparent: true,
       opacity: 0.9,
     });
@@ -48,8 +48,8 @@ export class DeathStar extends Entity {
   }
 
   private createHull(radius: number, material: THREE.Material): void {
-    const segmentsX = GameConfig.stage.deathStarHullSegmentsX;
-    const segmentsY = GameConfig.stage.deathStarHullSegmentsY;
+    const segmentsX = GameConfig.stages.deathStar.hullSegmentsX;
+    const segmentsY = GameConfig.stages.deathStar.hullSegmentsY;
     const trenchHalfWidthPhi = 0.04; // Roughly the angle of the trench gap
 
     // Upper Hull
@@ -88,8 +88,8 @@ export class DeathStar extends Entity {
   }
 
   private createTrench(radius: number, material: THREE.Material): void {
-    const trenchWidth = GameConfig.stage.deathStarTrenchWidth;
-    const segments = GameConfig.stage.deathStarTrenchSegments;
+    const trenchWidth = GameConfig.stages.deathStar.trenchWidth;
+    const segments = GameConfig.stages.deathStar.trenchSegments;
 
     // Interior horizontal rings for the trench
     const createRing = (y: number, r: number, name?: string) => {
@@ -138,8 +138,8 @@ export class DeathStar extends Entity {
   }
 
   private createDish(radius: number, material: THREE.Material): void {
-    const dishRadius = GameConfig.stage.deathStarDishSize;
-    const segments = GameConfig.stage.deathStarDishSegments;
+    const dishRadius = GameConfig.stages.deathStar.dishSize;
+    const segments = GameConfig.stages.deathStar.dishSegments;
     
     // Dish is a shallow cone, recessed
     const dishDepth = dishRadius * 0.4;

@@ -16,7 +16,7 @@ describe('Trench Entity', () => {
   });
 
   it('should detect collision with obstacles', () => {
-    const { catwalkStartZ, catwalkCollisionThreshold, catwalkYOffset, catwalkHeightThreshold } = GameConfig.stage;
+    const { catwalkStartZ, catwalkCollisionThreshold, catwalkYOffset, catwalkHeightThreshold } = GameConfig.stages.trench;
     
     // First obstacle at catwalkStartZ (-500)
     // Height depends on logic: abs(-500) % 1000 = 500. So it's not 0. Y = -catwalkYOffset (-20).
@@ -33,7 +33,7 @@ describe('Trench Entity', () => {
   });
 
   it('should not report collision when missing obstacles', () => {
-    const { catwalkStartZ, catwalkYOffset } = GameConfig.stage;
+    const { catwalkStartZ, catwalkYOffset } = GameConfig.stages.trench;
     
     // First obstacle at catwalkStartZ (-500), Y = -20.
     const obstacleZ = catwalkStartZ;
@@ -48,7 +48,7 @@ describe('Trench Entity', () => {
   });
 
   it('should detect collision with exhaust port', () => {
-    const { catwalkEndZ, exhaustPortZOffset, trenchHeight } = GameConfig.stage;
+    const { catwalkEndZ, exhaustPortZOffset, height: trenchHeight } = GameConfig.stages.trench;
     const portZ = catwalkEndZ - exhaustPortZOffset;
     const portY = -trenchHeight / 2 + 10;
     

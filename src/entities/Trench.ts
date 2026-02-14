@@ -11,17 +11,17 @@ export class Trench extends Entity {
     super();
     this.mesh = new THREE.Group();
 
-    const { trenchWidth, trenchHeight, trenchLength } = GameConfig.stage;
+    const { width: trenchWidth, height: trenchHeight, length: trenchLength } = GameConfig.stages.trench;
     const halfWidth = trenchWidth / 2;
     const halfHeight = trenchHeight / 2;
 
     // Add periodic detail lines (grid) and boundaries
     const { 
-      trenchVerticalDetailSpacing, 
-      trenchHorizontalDetailSpacing,
-      trenchVerticalDetailColor,
-      trenchHorizontalDetailColor
-    } = GameConfig.stage;
+      verticalDetailSpacing: trenchVerticalDetailSpacing, 
+      horizontalDetailSpacing: trenchHorizontalDetailSpacing,
+      verticalDetailColor: trenchVerticalDetailColor,
+      horizontalDetailColor: trenchHorizontalDetailColor
+    } = GameConfig.stages.trench;
 
     // Vertical detail lines and longitudinal boundaries
     const verticalVertices: number[] = [];
@@ -80,21 +80,21 @@ export class Trench extends Entity {
   }
 
   private isValidCatwalkZ(z: number): boolean {
-    const { catwalkStartZ, catwalkEndZ } = GameConfig.stage;
+    const { catwalkStartZ, catwalkEndZ } = GameConfig.stages.trench;
     // Corresponds to loop: for (let z = start; z > end; z -= spacing)
     // So z must be <= start and > end
     return z <= catwalkStartZ && z > catwalkEndZ;
   }
 
   private getCatwalkY(z: number): number {
-    const { catwalkSpacing, catwalkYOffset } = GameConfig.stage;
+    const { catwalkSpacing, catwalkYOffset } = GameConfig.stages.trench;
     // Alternating height: some high, some low
     return (Math.abs(z) % (catwalkSpacing * 2) === 0) ? catwalkYOffset : -catwalkYOffset;
   }
 
   private addObstacles() {
     // Add catwalks using configuration
-    const { catwalkStartZ, catwalkEndZ, catwalkSpacing, catwalkDepth, trenchWidth, exhaustPortZOffset, trenchHeight, catwalkColor } = GameConfig.stage;
+    const { catwalkStartZ, catwalkEndZ, catwalkSpacing, catwalkDepth, width: trenchWidth, exhaustPortZOffset, height: trenchHeight, catwalkColor } = GameConfig.stages.trench;
 
     const boxGeometry = new THREE.BoxGeometry(trenchWidth, 10, catwalkDepth);
     const edgesGeometry = new THREE.EdgesGeometry(boxGeometry);
@@ -138,7 +138,7 @@ export class Trench extends Entity {
     boxGeometry.dispose();
 
     // Add Exhaust Port at the end
-    const { exhaustPortColor } = GameConfig.stage;
+    const { exhaustPortColor } = GameConfig.stages.trench;
     const portGeometry = new THREE.BoxGeometry(20, 20, 20);
     const portEdges = new THREE.EdgesGeometry(portGeometry);
     const portMaterial = new THREE.LineBasicMaterial({
@@ -160,7 +160,7 @@ export class Trench extends Entity {
       catwalkSpacing,
       catwalkCollisionThreshold,
       catwalkHeightThreshold
-    } = GameConfig.stage;
+    } = GameConfig.stages.trench;
 
     const pZ = position.z;
     const pY = position.y;
@@ -193,7 +193,7 @@ export class Trench extends Entity {
   }
 
   public checkPortCollision(position: THREE.Vector3): boolean {
-    const { catwalkEndZ, exhaustPortZOffset, trenchHeight } = GameConfig.stage;
+    const { catwalkEndZ, exhaustPortZOffset, height: trenchHeight } = GameConfig.stages.trench;
     const portZ = catwalkEndZ - exhaustPortZOffset;
     const portY = -trenchHeight / 2 + 10;
     const portX = 0;

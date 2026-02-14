@@ -133,7 +133,7 @@ export class UIManager {
     killsInput.id = 'debug-kills-input';
     killsInput.type = 'number';
     killsInput.min = '0';
-    killsInput.placeholder = `Default (${GameConfig.stage.dogfightKillsThreshold})`;
+    killsInput.placeholder = `Default (${GameConfig.stages.dogfight.killsThreshold})`;
     if (state.debugKillsThreshold !== undefined) {
       killsInput.value = state.debugKillsThreshold.toString();
     }
@@ -330,7 +330,7 @@ export class UIManager {
 
     // Distance countdown in TRENCH stage
     if (state.stage === 'TRENCH' && state.player) {
-      const { catwalkEndZ, exhaustPortZOffset } = GameConfig.stage;
+      const { catwalkEndZ, exhaustPortZOffset } = GameConfig.stages.trench;
       const portZ = catwalkEndZ - exhaustPortZOffset;
       const dist = Math.max(0, Math.floor(Math.abs(state.player.position.z - portZ)));
       

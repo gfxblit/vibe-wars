@@ -48,7 +48,7 @@ describe('UIManager - Distance Countdown', () => {
 
   it('should show distance countdown when in TRENCH stage and within range', () => {
     // Determine the port Z position
-    const { catwalkEndZ, exhaustPortZOffset } = GameConfig.stage;
+    const { catwalkEndZ, exhaustPortZOffset } = GameConfig.stages.trench;
     const portZ = catwalkEndZ - exhaustPortZOffset;
     
     // Place player 3000 units away from port (within 4000 range)
@@ -62,7 +62,7 @@ describe('UIManager - Distance Countdown', () => {
   });
 
   it('should hide distance countdown when in TRENCH stage but out of range', () => {
-    const { catwalkEndZ, exhaustPortZOffset } = GameConfig.stage;
+    const { catwalkEndZ, exhaustPortZOffset } = GameConfig.stages.trench;
     const portZ = catwalkEndZ - exhaustPortZOffset;
     
     // Place player 5000 units away from port (outside 4000 range)

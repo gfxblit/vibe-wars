@@ -29,7 +29,7 @@ describe('Torpedo Miss', () => {
     const initialShields = state.shields;
     
     // Move player to the end of the trench
-    player.position.z = -GameConfig.stage.trenchLength - 10;
+    player.position.z = -GameConfig.stages.trench.length - 10;
     
     // Update stage manager
     stageManager.update(0.1, player, mockCamera);
@@ -48,7 +48,7 @@ describe('Torpedo Miss', () => {
     // Fire a torpedo that will miss the port but hit the back of the trench
     // The port is at (0, portY, -4900)
     // We fire it at (50, 0, -5000) which is definitely a miss
-    const backWallZ = -GameConfig.stage.trenchLength - 10; // Definitely beyond the trench end
+    const backWallZ = -GameConfig.stages.trench.length - 10; // Definitely beyond the trench end
     
     state.entityManager!.spawnTorpedo(
       new THREE.Vector3(50, 0, backWallZ),
@@ -83,7 +83,7 @@ describe('Torpedo Miss', () => {
   it('should restart trench stage and take damage if the ship hits the port directly', () => {
     const initialShields = state.shields;
 
-    const { catwalkEndZ, exhaustPortZOffset, trenchHeight } = GameConfig.stage;
+    const { catwalkEndZ, exhaustPortZOffset, height: trenchHeight } = GameConfig.stages.trench;
     const portZ = catwalkEndZ - exhaustPortZOffset;
     const portY = -trenchHeight / 2 + 10;
 

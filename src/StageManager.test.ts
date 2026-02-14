@@ -28,7 +28,7 @@ describe('StageManager', () => {
   });
 
   it('should NOT transition to SurfaceStage immediately when kill threshold is met, but start approach', () => {
-    state.kills = GameConfig.stage.dogfightKillsThreshold;
+    state.kills = GameConfig.stages.dogfight.killsThreshold;
     stageManager.update(0.1, player, mockCamera);
 
     // Should still be in DOGFIGHT stage, but in approach phase
@@ -43,7 +43,7 @@ describe('StageManager', () => {
 
   it('should transition to TRENCH when player is close to DeathStar in Wave 1', () => {
     state.wave = 1;
-    state.kills = GameConfig.stage.dogfightKillsThreshold;
+    state.kills = GameConfig.stages.dogfight.killsThreshold;
     stageManager.update(0.1, player, mockCamera); // Trigger approach
     expect(state.stage).toBe('DOGFIGHT');
 
@@ -51,7 +51,7 @@ describe('StageManager', () => {
     expect(deathStar).toBeTruthy();
 
     const dsPos = deathStar!.position.clone();
-    player.position.copy(dsPos).add(new THREE.Vector3(0, 0, GameConfig.stage.deathStarSize + GameConfig.stage.trenchTransitionDistance - 10));
+    player.position.copy(dsPos).add(new THREE.Vector3(0, 0, GameConfig.stages.deathStar.size + GameConfig.stages.trench.transitionDistance - 10));
 
     stageManager.update(0.1, player, mockCamera);
 
@@ -60,7 +60,7 @@ describe('StageManager', () => {
 
   it('should transition to SURFACE when player is close to DeathStar in Wave 2+', () => {
     state.wave = 2;
-    state.kills = GameConfig.stage.dogfightKillsThreshold;
+    state.kills = GameConfig.stages.dogfight.killsThreshold;
     stageManager.update(0.1, player, mockCamera); // Trigger approach
     expect(state.stage).toBe('DOGFIGHT');
 
@@ -68,7 +68,7 @@ describe('StageManager', () => {
     expect(deathStar).toBeTruthy();
 
     const dsPos = deathStar!.position.clone();
-    player.position.copy(dsPos).add(new THREE.Vector3(0, 0, GameConfig.stage.deathStarSize + GameConfig.stage.trenchTransitionDistance - 10));
+    player.position.copy(dsPos).add(new THREE.Vector3(0, 0, GameConfig.stages.deathStar.size + GameConfig.stages.trench.transitionDistance - 10));
 
     stageManager.update(0.1, player, mockCamera);
 
@@ -85,7 +85,7 @@ describe('StageManager', () => {
     expect(state.stage).toBe('SURFACE');
 
     // Advance time past surface duration
-    stageManager.update(GameConfig.stage.surfaceDuration + 1.0, player, mockCamera);
+    stageManager.update(GameConfig.stages.surface.duration + 1.0, player, mockCamera);
 
     expect(state.stage).toBe('TRENCH');
     
@@ -100,8 +100,8 @@ describe('StageManager', () => {
     state.stage = 'TRENCH';
     stageManager.reset();
 
-    const halfWidth = GameConfig.stage.trenchWidth / 2;
-    const halfHeight = GameConfig.stage.trenchHeight / 2;
+    const halfWidth = GameConfig.stages.trench.width / 2;
+    const halfHeight = GameConfig.stages.trench.height / 2;
 
     player.position.set(halfWidth + 10, halfHeight + 10, 0);
     stageManager.update(0.1, player, mockCamera);
@@ -153,7 +153,7 @@ describe('StageManager', () => {
     stageManager.reset();
     const initialShields = state.shields;
 
-    player.position.set(0, 0, -GameConfig.stage.trenchLength - 100);
+    player.position.set(0, 0, -GameConfig.stages.trench.length - 100);
     stageManager.update(0.1, player, mockCamera);
 
     expect(state.stage).toBe('TRENCH');
@@ -166,7 +166,7 @@ describe('StageManager', () => {
     stageManager.reset();
     const initialShields = state.shields;
 
-    const { catwalkEndZ, exhaustPortZOffset, trenchHeight } = GameConfig.stage;
+    const { catwalkEndZ, exhaustPortZOffset, height: trenchHeight } = GameConfig.stages.trench;
     const portZ = catwalkEndZ - exhaustPortZOffset;
     const portY = -trenchHeight / 2 + 10;
 
@@ -182,7 +182,7 @@ describe('StageManager', () => {
     state.stage = 'TRENCH';
     stageManager.reset();
     
-    const { catwalkEndZ, exhaustPortZOffset, trenchHeight } = GameConfig.stage;
+    const { catwalkEndZ, exhaustPortZOffset, height: trenchHeight } = GameConfig.stages.trench;
     const portZ = catwalkEndZ - exhaustPortZOffset;
     const portY = -trenchHeight / 2 + 10;
     
@@ -238,7 +238,7 @@ describe('StageManager', () => {
     state.stage = 'TRENCH';
     stageManager.reset();
     
-    const { catwalkEndZ, exhaustPortZOffset, trenchHeight } = GameConfig.stage;
+    const { catwalkEndZ, exhaustPortZOffset, height: trenchHeight } = GameConfig.stages.trench;
     const portZ = catwalkEndZ - exhaustPortZOffset;
     const portY = -trenchHeight / 2 + 10;
     

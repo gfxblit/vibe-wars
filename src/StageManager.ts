@@ -86,7 +86,7 @@ export class StageManager {
   public checkExhaustPortHit(input: UserInput, camera: THREE.Camera): boolean {
     if (!state.player) return false;
 
-    const { catwalkEndZ, exhaustPortZOffset, trenchHeight } = GameConfig.stage;
+    const { catwalkEndZ, exhaustPortZOffset, height: trenchHeight } = GameConfig.stages.trench;
     const portZ = catwalkEndZ - exhaustPortZOffset;
     const portY = -trenchHeight / 2 + 10;
     const portPos = new THREE.Vector3(0, portY, portZ);

@@ -104,22 +104,22 @@ describe('GameConfig', () => {
   });
 
   test('should have stage settings', () => {
-    expect(GameConfig.stage.deathStarSize).toBe(100);
-    expect(GameConfig.stage.deathStarDishSize).toBe(20);
-    expect(GameConfig.stage.deathStarTrenchWidth).toBe(4);
-    expect(GameConfig.stage.deathStarColor).toBe(0x00ff00);
-    expect(GameConfig.stage.deathStarDishColor).toBe(0xccffcc);
-    expect(GameConfig.stage.deathStarDistance).toBe(1000);
-    expect(GameConfig.stage.trenchWidth).toBe(100);
-    expect(GameConfig.stage.catwalkColor).toBe(0xaaaaaa);
-    expect(GameConfig.stage.trenchWallColor).toBe(0x00ff00);
-    expect(GameConfig.stage.trenchVerticalDetailSpacing).toBe(200);
-    expect(GameConfig.stage.trenchHorizontalDetailSpacing).toBe(50);
-    expect(GameConfig.stage.exhaustPortColor).toBe(0xffff00);
-    expect(GameConfig.stage.trenchTransitionDistance).toBe(100);
-    expect(GameConfig.stage.surfaceFloorBounce).toBe(2);
-    expect(GameConfig.stage.towerPoints).toBe(200);
-    expect(GameConfig.stage.deathStarSpawnAngle).toBeCloseTo(Math.PI / 4);
+    expect(GameConfig.stages.deathStar.size).toBe(100);
+    expect(GameConfig.stages.deathStar.dishSize).toBe(20);
+    expect(GameConfig.stages.deathStar.trenchWidth).toBe(4);
+    expect(GameConfig.stages.deathStar.color).toBe(0x00ff00);
+    expect(GameConfig.stages.deathStar.dishColor).toBe(0xccffcc);
+    expect(GameConfig.stages.deathStar.distance).toBe(1000);
+    expect(GameConfig.stages.trench.width).toBe(100);
+    expect(GameConfig.stages.trench.catwalkColor).toBe(0xaaaaaa);
+    expect(GameConfig.stages.trench.wallColor).toBe(0x00ff00);
+    expect(GameConfig.stages.trench.verticalDetailSpacing).toBe(200);
+    expect(GameConfig.stages.trench.horizontalDetailSpacing).toBe(50);
+    expect(GameConfig.stages.trench.exhaustPortColor).toBe(0xffff00);
+    expect(GameConfig.stages.trench.transitionDistance).toBe(100);
+    expect(GameConfig.stages.surface.floorBounce).toBe(2);
+    expect(GameConfig.stages.surface.towerPoints).toBe(200);
+    expect(GameConfig.stages.deathStar.spawnAngle).toBeCloseTo(Math.PI / 4);
   });
 
   test('should be immutable at the type level', () => {
