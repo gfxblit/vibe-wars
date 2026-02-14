@@ -24,7 +24,7 @@ describe('TrenchStage Size Debug Integration', () => {
     state.debugFireballSize = undefined;
   });
 
-  it('should pass default sizes to Trench when no debug override is set', () => {
+  it('should use default sizes when no debug override is set', () => {
     const stage = new TrenchStage(scene, onComplete, onReset);
     const turrets = stage.getTurrets();
     expect(turrets.length).toBeGreaterThan(0);
@@ -36,10 +36,13 @@ describe('TrenchStage Size Debug Integration', () => {
     const size = GameConfig.turret.meshSize;
     expect(box.max.x - box.min.x).toBeCloseTo(size * 0.8);
     
-    expect(turret.fireballSize).toBe(GameConfig.fireball.sparkleSize);
+    // Check fireball size via EntityManager
+    const fireball = state.entityManager!.spawnFireball(new THREE.Vector3(), new THREE.Vector3());
+    const sparkle = fireball.mesh.children[0] as THREE.Sprite;
+    expect(sparkle.scale.x).toBeCloseTo(GameConfig.fireball.sparkleSize);
   });
 
-  it('should pass debug turret size override to Trench', () => {
+  it('should use debug turret size override', () => {
     state.debugTurretSize = 42.0;
     const stage = new TrenchStage(scene, onComplete, onReset);
     const turrets = stage.getTurrets();
@@ -51,12 +54,12 @@ describe('TrenchStage Size Debug Integration', () => {
     expect(box.max.x - box.min.x).toBeCloseTo(42.0 * 0.8);
   });
 
-  it('should pass debug fireball size override to Trench', () => {
+  it('should use debug fireball size override', () => {
     state.debugFireballSize = 13.0;
-    const stage = new TrenchStage(scene, onComplete, onReset);
-    const turrets = stage.getTurrets();
+    new TrenchStage(scene, onComplete, onReset);
     
-    const turret = turrets[0];
-    expect(turret.fireballSize).toBe(13.0);
+    const fireball = state.entityManager!.spawnFireball(new THREE.Vector3(), new THREE.Vector3());
+    const sparkle = fireball.mesh.children[0] as THREE.Sprite;
+    expect(sparkle.scale.x).toBeCloseTo(13.0);
   });
 });

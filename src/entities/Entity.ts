@@ -18,5 +18,4 @@ export interface Targetable {
   getScore(): number;
   update?(deltaTime: number, playerPosition: THREE.Vector3, playerQuaternion: THREE.Quaternion, playerSpeed: number): THREE.Vector3 | null;
   getVelocity?(playerForward: THREE.Vector3, playerSpeed: number): THREE.Vector3;
-  readonly fireballSize?: number;
 }

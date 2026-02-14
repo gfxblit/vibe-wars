@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { Entity, Targetable } from './Entity';
 import { GameConfig } from '../config';
+import { state } from '../state';
 
 export class Turret extends Entity implements Targetable {
   public readonly mesh: THREE.Group;
@@ -8,7 +9,6 @@ export class Turret extends Entity implements Targetable {
   private fireCooldown: number = Math.random() * 1.0; // Fire soon after encounter
   public isExploded: boolean = false;
   private pieceVelocities: THREE.Vector3[] = [];
-  public readonly fireballSize?: number;
 
   private readonly scratchVector3: THREE.Vector3 = new THREE.Vector3();
 
@@ -21,11 +21,14 @@ export class Turret extends Entity implements Targetable {
     return this.mesh.position;
   }
 
-  constructor(position: THREE.Vector3, size: number = GameConfig.turret.meshSize, fireballSize?: number) {
+  constructor(position: THREE.Vector3) {
     super();
     this.mesh = new THREE.Group();
     this.mesh.position.copy(position);
-    this.fireballSize = fireballSize;
+
+    const size = (state.stage === 'TRENCH' && state.debugTurretSize !== undefined)
+      ? state.debugTurretSize
+      : GameConfig.turret.meshSize;
 
     const material = new THREE.MeshBasicMaterial({
       color: GameConfig.turret.meshColor,
