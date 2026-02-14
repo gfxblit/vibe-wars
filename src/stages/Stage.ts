@@ -6,6 +6,9 @@ export abstract class Stage {
   public abstract get speed(): number;
   public abstract update(deltaTime: number, player: Player, camera: THREE.Camera): void;
   public abstract cleanup(): void;
+  public get showStarField(): boolean {
+    return false;
+  }
   public getTurrets(): Turret[] {
     return [];
   }

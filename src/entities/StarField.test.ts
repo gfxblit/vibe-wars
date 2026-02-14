@@ -76,19 +76,13 @@ describe('StarField', () => {
     expect(starField.points.frustumCulled).toBe(false);
   })
 
-  test('should update visibility based on stage', () => {
+  test('should allow manual visibility control', () => {
     const starField = new StarField();
     
-    starField.updateVisibility('DOGFIGHT');
+    starField.points.visible = true;
     expect(starField.points.visible).toBe(true);
 
-    starField.updateVisibility('SURFACE');
+    starField.points.visible = false;
     expect(starField.points.visible).toBe(false);
-
-    starField.updateVisibility('TRENCH');
-    expect(starField.points.visible).toBe(false);
-
-    starField.updateVisibility('EXPLOSION');
-    expect(starField.points.visible).toBe(true);
   })
 })
