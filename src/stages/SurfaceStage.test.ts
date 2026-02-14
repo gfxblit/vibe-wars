@@ -101,10 +101,10 @@ describe('SurfaceStage', () => {
     
     // Position player below floor threshold
     // Floor Y is -50 (default in config). Collision is < -50 + buffer
-    player.position.y = GameConfig.stage.surfaceFloorY - 10;
+    player.position.y = GameConfig.stage.surfaceFloorY - GameConfig.stage.surfaceFloorClampBuffer;
     
     stage.update(0.1, player);
-    expect(takeDamage).toHaveBeenCalledWith(1);
+    expect(takeDamage).toHaveBeenCalledWith(GameConfig.stage.surfaceCollisionDamage);
     // Should bump player up by the bounce amount
     expect(player.position.y).toBe(GameConfig.stage.surfaceFloorY + GameConfig.stage.surfaceFloorBounce);
   });

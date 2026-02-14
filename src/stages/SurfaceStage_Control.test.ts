@@ -39,9 +39,8 @@ describe('SurfaceStage Control Stability', () => {
     }
     
     const euler = new THREE.Euler().setFromQuaternion(player.mesh.quaternion, 'YXZ');
-    
-    // Use a small epsilon for floating point comparison
-    const EPSILON = 1e-6;
+    // Use a tiny epsilon to account for floating point inaccuracies in quaternion/euler conversions
+    const EPSILON = 1e-10;
     expect(Math.abs(euler.x)).toBeLessThanOrEqual(GameConfig.stage.surfaceMaxPitch + EPSILON);
     expect(Math.abs(euler.y)).toBeLessThanOrEqual(GameConfig.stage.surfaceMaxYaw + EPSILON);
   });
