@@ -30,6 +30,10 @@ export class DogfightStage extends Stage {
       : GameConfig.player.forwardSpeeds.DOGFIGHT;
   }
 
+  public override get showStarField(): boolean {
+    return true;
+  }
+
   public update(deltaTime: number, player: Player, _camera: THREE.Camera): void {
     if (this.phase === DogfightPhase.COMBAT) {
       const threshold = state.debugKillsThreshold ?? GameConfig.stage.dogfightKillsThreshold;

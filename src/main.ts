@@ -45,7 +45,7 @@ function animate(time: number) {
 
   // Render
   if (state.player) {
-    starField.updateVisibility(state.stage)
+    starField.points.visible = state.stageManager?.getStage()?.showStarField ?? false;
     if (starField.points.visible) {
       starField.update(state.player.position)
     }
