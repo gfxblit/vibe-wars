@@ -124,8 +124,8 @@ export class Turret extends Entity implements Targetable {
     return GameConfig.turret.points;
   }
 
-  public getVelocity(_playerForward: THREE.Vector3, _playerSpeed: number): THREE.Vector3 {
-    return new THREE.Vector3(0, 0, 0);
+  public getVelocity(playerForward: THREE.Vector3, playerSpeed: number): THREE.Vector3 {
+    return playerForward.clone().multiplyScalar(playerSpeed);
   }
 
   public getFireballSize(): number {

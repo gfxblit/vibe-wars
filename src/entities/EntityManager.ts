@@ -173,7 +173,7 @@ export class EntityManager {
 
     target.getWorldPosition(this.scratchFireballPos);
     
-    const size = target.getFireballSize ? target.getFireballSize() : GameConfig.fireball.sparkleSize;
+    const size = target.getFireballSize ? target.getFireballSize() : undefined;
     this.spawnFireball(this.scratchFireballPos, this.scratchTotalVelocity, size);
   }
 
@@ -189,7 +189,7 @@ export class EntityManager {
   }
 
   public spawnFireball(position: THREE.Vector3, velocity: THREE.Vector3, size?: number): Fireball {
-    const finalSize = size ?? state.debugFireballSize ?? GameConfig.fireball.sparkleSize;
+    const finalSize = state.debugFireballSize ?? size ?? GameConfig.fireball.sparkleSize;
     const fireball = new Fireball(position, velocity, finalSize);
     this.fireballs.push(fireball);
     this.worldScene.add(fireball.mesh);
