@@ -44,7 +44,7 @@ describe('StageManager', () => {
   it('should transition to TRENCH when player is close to DeathStar in Wave 1', () => {
     state.wave = 1;
     state.kills = GameConfig.stage.dogfightKillsThreshold;
-    stageManager.update(0.1, player); // Trigger approach
+    stageManager.update(0.1, player, mockCamera); // Trigger approach
     expect(state.stage).toBe('DOGFIGHT');
 
     const deathStar = scene.getObjectByName('DeathStar');
@@ -53,7 +53,7 @@ describe('StageManager', () => {
     const dsPos = deathStar!.position.clone();
     player.position.copy(dsPos).add(new THREE.Vector3(0, 0, GameConfig.stage.deathStarSize + GameConfig.stage.trenchTransitionDistance - 10));
 
-    stageManager.update(0.1, player);
+    stageManager.update(0.1, player, mockCamera);
 
     expect(state.stage).toBe('TRENCH');
   });

@@ -37,7 +37,6 @@ export class Tower extends Entity implements Targetable {
     public explode(): void {
       this.isExploded = true;
     }
-    }
   
     constructor(position: THREE.Vector3) {
       super();

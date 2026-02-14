@@ -130,7 +130,6 @@ export class Surface extends Entity {
      if (manager) {
        manager.addTarget(tower);
      }
-     }
   }
 
   private removeTower(index: number, entityManager?: EntityManager): void {
@@ -139,7 +138,6 @@ export class Surface extends Entity {
         const manager = entityManager || state.entityManager;
         if (manager) {
           manager.removeTarget(tower);
-        }
         }
         this.mesh.remove(tower.mesh);
         tower.dispose();

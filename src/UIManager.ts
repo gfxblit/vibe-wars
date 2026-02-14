@@ -272,6 +272,7 @@ export class UIManager {
       if (this.destructionTimeout) clearTimeout(this.destructionTimeout);
       this.destructionTimeout = setTimeout(() => {
         this.destructionValue.classList.add('hidden');
+        this.destructionTimeout = null;
       }, 4000);
     }
     this.lastIsDeathStarDestroyed = state.isDeathStarDestroyed;
@@ -291,6 +292,12 @@ export class UIManager {
 
       // Context-sensitive instructions
       if (this.instructionTimeout) clearTimeout(this.instructionTimeout);
+      if (this.greatShotTimeout) {
+        clearTimeout(this.greatShotTimeout);
+        this.greatShotTimeout = null;
+        this.greatShotValue.classList.add('hidden');
+      }
+
       switch (state.stage) {
         case 'DOGFIGHT':
           this.instructionValue.textContent = 'CLEAR THE SECTOR OF TIE FIGHTERS';
@@ -372,39 +379,22 @@ export class UIManager {
   }
 
   private retriggerAnimation(element: HTMLElement, className: string, existingTimeout?: any, onComplete?: (timeout: any) => void) {
-
     if (existingTimeout) {
-
       clearTimeout(existingTimeout);
-
     }
-
-
 
     element.classList.remove(className);
-
     // Force a reflow
-
     void element.offsetWidth;
-
     element.classList.add(className);
 
-
-
     const newTimeout = setTimeout(() => {
-
       element.classList.remove(className);
-
     }, GameConfig.ui.damageFlashDuration + 100);
 
-
-
     if (onComplete) {
-
       onComplete(newTimeout);
-
     }
-
   }
 
 

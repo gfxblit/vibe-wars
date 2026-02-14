@@ -51,12 +51,8 @@ describe('ExplosionStage', () => {
     scene = new THREE.Scene();
     mockCamera = new THREE.PerspectiveCamera();
     
-    try {
-        stage = new ExplosionStage(scene);
-        mockDeathStar = (DeathStar as any).mock.results[0].value;
-    } catch (e) {
-        // Allow failure during setup if class not implemented
-    }
+    stage = new ExplosionStage(scene);
+    mockDeathStar = (DeathStar as any).mock.results[0].value;
   });
 
   it('should initialize correctly', () => {
@@ -68,13 +64,10 @@ describe('ExplosionStage', () => {
   });
 
   it('should have correct speed', () => {
-    if (!stage) stage = new ExplosionStage(scene);
     expect(stage.speed).toBe(GameConfig.explosionStage.escapeSpeed);
   });
 
   it('should override camera position based on player position', () => {
-    if (!stage) stage = new ExplosionStage(scene);
-    
     // Set player position manually to simulate movement
     state.player!.position.set(0, 0, 300);
     
@@ -87,7 +80,6 @@ describe('ExplosionStage', () => {
   });
 
   it('should explode DeathStar after delay', () => {
-    if (!stage) stage = new ExplosionStage(scene);
     mockDeathStar = (DeathStar as any).mock.results[0].value;
 
     // delay is 2.0s
@@ -101,8 +93,6 @@ describe('ExplosionStage', () => {
   });
 
   it('should transition to next stage after duration', () => {
-    if (!stage) stage = new ExplosionStage(scene);
-
     // duration is 5.0s
     stage.update(4.9, state.player as any, mockCamera);
     expect(goToNextStage).not.toHaveBeenCalled();
@@ -112,7 +102,6 @@ describe('ExplosionStage', () => {
   });
   
   it('should cleanup', () => {
-    if (!stage) stage = new ExplosionStage(scene);
     mockDeathStar = (DeathStar as any).mock.results[0].value;
     
     stage.cleanup();
