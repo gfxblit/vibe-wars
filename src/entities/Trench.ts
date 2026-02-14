@@ -7,14 +7,14 @@ export class Trench extends Entity {
   public mesh: THREE.Group;
   private turrets: Turret[] = [];
 
-  constructor() {
+  constructor(turretSize?: number, fireballSize?: number) {
     super();
     this.mesh = new THREE.Group();
 
     const { width: trenchWidth, height: trenchHeight, length: trenchLength } = GameConfig.stages.trench;
     const halfWidth = trenchWidth / 2;
     const halfHeight = trenchHeight / 2;
-
+    
     // Add periodic detail lines (grid) and boundaries
     const { 
       verticalDetailSpacing: trenchVerticalDetailSpacing, 
@@ -76,7 +76,7 @@ export class Trench extends Entity {
     horizontalLines.name = 'trench-grid-horizontal';
     this.mesh.add(horizontalLines);
 
-    this.addObstacles();
+    this.addObstacles(turretSize, fireballSize);
   }
 
   private isValidCatwalkZ(z: number): boolean {
@@ -92,7 +92,7 @@ export class Trench extends Entity {
     return (Math.abs(z) % (catwalkSpacing * 2) === 0) ? catwalkYOffset : -catwalkYOffset;
   }
 
-  private addObstacles() {
+  private addObstacles(turretSize?: number, fireballSize?: number) {
     // Add catwalks using configuration
     const { catwalkStartZ, catwalkEndZ, catwalkSpacing, catwalkDepth, width: trenchWidth, exhaustPortZOffset, height: trenchHeight, catwalkColor } = GameConfig.stages.trench;
 
@@ -122,7 +122,7 @@ export class Trench extends Entity {
       // This creates a pattern player can learn (e.g. high, low, middle)
       const y = (((Math.abs(z) / turretSpacing) % 3) - 1) * trenchHeight * 0.25;
       
-      const turret = new Turret(new THREE.Vector3(x, y, z));
+      const turret = new Turret(new THREE.Vector3(x, y, z), turretSize, fireballSize);
       // Rotate turret so its base is against the wall
       // The turret's default "up" is Y, and it looks towards +Z.
       // On the left wall (x = -50), it should look towards +X by default.

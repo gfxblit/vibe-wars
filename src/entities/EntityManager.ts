@@ -171,7 +171,7 @@ export class EntityManager {
     this.scratchTotalVelocity.copy(this.scratchPlayerVelocity).add(this.scratchRelativeVelocity);
 
     target.getWorldPosition(this.scratchFireballPos);
-    this.spawnFireball(this.scratchFireballPos, this.scratchTotalVelocity);
+    this.spawnFireball(this.scratchFireballPos, this.scratchTotalVelocity, target.fireballSize);
   }
 
   public setSpawningEnabled(enabled: boolean): void {
@@ -185,8 +185,8 @@ export class EntityManager {
     this.worldScene.add(tf.mesh);
   }
 
-  public spawnFireball(position: THREE.Vector3, velocity: THREE.Vector3): Fireball {
-    const fireball = new Fireball(position, velocity);
+  public spawnFireball(position: THREE.Vector3, velocity: THREE.Vector3, size?: number): Fireball {
+    const fireball = new Fireball(position, velocity, size);
     this.fireballs.push(fireball);
     this.worldScene.add(fireball.mesh);
     return fireball;
