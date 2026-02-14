@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { Entity } from './Entity';
 import { GameConfig } from '../config';
+import { state } from '../state';
 
 export class Fireball extends Entity {
   mesh: THREE.Group;
@@ -18,7 +19,9 @@ export class Fireball extends Entity {
     this.previousPosition = position.clone();
     this.velocity = velocity.clone();
 
-    const size = GameConfig.fireball.sparkleSize;
+    const size = (state.stage === 'TRENCH' && state.debugFireballSize !== undefined) 
+      ? state.debugFireballSize 
+      : GameConfig.fireball.sparkleSize;
     const baseColor = new THREE.Color(GameConfig.fireball.meshColor);
 
     for (let i = 0; i < GameConfig.fireball.sparkleCount; i++) {

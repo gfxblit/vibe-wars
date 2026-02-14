@@ -145,6 +145,46 @@ export class UIManager {
         state.debugKillsThreshold = undefined;
       }
     };
+
+    // Turret Size
+    this.createEl('div', 'mt-4 mb-2 border-b border-vector-green pb-1', this.debugPanel).textContent = 'TURRET SIZE';
+    const turretSizeInput = this.createEl('input', 'w-full bg-black text-vector-green border border-vector-green px-2 py-1', this.debugPanel) as HTMLInputElement;
+    turretSizeInput.id = 'debug-turret-size-input';
+    turretSizeInput.type = 'number';
+    turretSizeInput.min = '1';
+    turretSizeInput.step = '1';
+    turretSizeInput.placeholder = `Default (${GameConfig.turret.meshSize})`;
+    if (state.debugTurretSize !== undefined) {
+      turretSizeInput.value = state.debugTurretSize.toString();
+    }
+    turretSizeInput.onchange = (e) => {
+      const val = parseFloat((e.target as HTMLInputElement).value);
+      if (!isNaN(val)) {
+        state.debugTurretSize = Math.max(1, val);
+      } else {
+        state.debugTurretSize = undefined;
+      }
+    };
+
+    // Fireball Size
+    this.createEl('div', 'mt-4 mb-2 border-b border-vector-green pb-1', this.debugPanel).textContent = 'FIREBALL SIZE';
+    const fireballSizeInput = this.createEl('input', 'w-full bg-black text-vector-green border border-vector-green px-2 py-1', this.debugPanel) as HTMLInputElement;
+    fireballSizeInput.id = 'debug-fireball-size-input';
+    fireballSizeInput.type = 'number';
+    fireballSizeInput.min = '1';
+    fireballSizeInput.step = '1';
+    fireballSizeInput.placeholder = `Default (${GameConfig.fireball.sparkleSize})`;
+    if (state.debugFireballSize !== undefined) {
+      fireballSizeInput.value = state.debugFireballSize.toString();
+    }
+    fireballSizeInput.onchange = (e) => {
+      const val = parseFloat((e.target as HTMLInputElement).value);
+      if (!isNaN(val)) {
+        state.debugFireballSize = Math.max(1, val);
+      } else {
+        state.debugFireballSize = undefined;
+      }
+    };
   }
 
   private createToggleButton(id: string, getText: () => string, onClick: () => void, parent: HTMLElement) {

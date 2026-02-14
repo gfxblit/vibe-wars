@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { Entity, Targetable } from './Entity';
 import { GameConfig } from '../config';
+import { state } from '../state';
 
 export class Turret extends Entity implements Targetable {
   public readonly mesh: THREE.Group;
@@ -25,7 +26,9 @@ export class Turret extends Entity implements Targetable {
     this.mesh = new THREE.Group();
     this.mesh.position.copy(position);
 
-    const size = GameConfig.turret.meshSize;
+    const size = (state.stage === 'TRENCH' && state.debugTurretSize !== undefined) 
+      ? state.debugTurretSize 
+      : GameConfig.turret.meshSize;
     const material = new THREE.MeshBasicMaterial({
       color: GameConfig.turret.meshColor,
       wireframe: true
