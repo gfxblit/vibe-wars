@@ -175,7 +175,7 @@ export const GameConfig = deepFreeze({
     collisionRadiusNDC: 0.05,
     points: 100,
     damage: 1,
-    expirationDistance: 500,
+    expirationDistance: 2000,
     sparkleCount: 8,
     sparkleSize: 4.0,
     explosionVelocity: 30,
