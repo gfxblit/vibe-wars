@@ -4,6 +4,7 @@ import { SurfaceStage } from './SurfaceStage';
 import { GameConfig } from '../config';
 import { state } from '../state';
 import { Player } from '../entities/Player';
+import { Surface } from '../entities/Surface';
 
 // Mock dependencies
 vi.mock('../state', () => ({
@@ -118,5 +119,37 @@ describe('SurfaceStage', () => {
     
     // Should have spawned a tower
     expect(stage.getTowers().length).toBeGreaterThan(0);
+  });
+
+  it('should return towers from getTowers', () => {
+    stage = new SurfaceStage(scene, vi.fn());
+    const towers = stage.getTowers();
+    expect(Array.isArray(towers)).toBe(true);
+  });
+
+  it('should cleanup resources', () => {
+    stage = new SurfaceStage(scene, vi.fn());
+    const removeSpy = vi.spyOn(scene, 'remove');
+    stage.cleanup();
+    expect(removeSpy).toHaveBeenCalled();
+  });
+
+  it('should damage player if they hit a tower', () => {
+    const mockTower = { isExploded: false };
+    const mockSurface = {
+      mesh: new THREE.Group(),
+      update: vi.fn(),
+      checkCollisions: vi.fn().mockReturnValue({ floorHit: false, towerHit: mockTower }),
+      getTowers: vi.fn().mockReturnValue([mockTower]),
+      dispose: vi.fn()
+    } as unknown as Surface;
+
+    stage = new SurfaceStage(scene, vi.fn(), mockSurface);
+    const player = state.player as Player;
+    
+    stage.update(0.1, player);
+    
+    expect(takeDamage).toHaveBeenCalledWith(GameConfig.stage.surfaceCollisionDamage);
+    expect(mockTower.isExploded).toBe(true);
   });
 });

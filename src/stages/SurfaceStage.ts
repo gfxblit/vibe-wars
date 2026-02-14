@@ -12,7 +12,7 @@ export class SurfaceStage extends Stage {
   private surface: Surface;
   private playerBox: THREE.Box3 = new THREE.Box3();
 
-  constructor(private scene: THREE.Scene, private onComplete: () => void) {
+  constructor(private scene: THREE.Scene, private onComplete: () => void, surface?: Surface) {
     super();
     // Clear existing enemies for a clean transition
     if (state.entityManager) {
@@ -25,7 +25,7 @@ export class SurfaceStage extends Stage {
     player.position.set(0, 0, 0);
     player.mesh.quaternion.set(0, 0, 0, 1);
     
-    this.surface = new Surface();
+    this.surface = surface || new Surface();
     this.scene.add(this.surface.mesh);
   }
 
