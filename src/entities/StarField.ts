@@ -63,6 +63,6 @@ export class StarField extends Entity {
   }
 
   public updateVisibility(stage: GameStage) {
-    this.points.visible = stage === 'DOGFIGHT' || stage === 'TRENCH';
+    this.points.visible = stage === 'DOGFIGHT' || stage === 'EXPLOSION';
   }
 }

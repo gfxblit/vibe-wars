@@ -86,6 +86,9 @@ describe('StarField', () => {
     expect(starField.points.visible).toBe(false);
 
     starField.updateVisibility('TRENCH');
+    expect(starField.points.visible).toBe(false);
+
+    starField.updateVisibility('EXPLOSION');
     expect(starField.points.visible).toBe(true);
   })
 })
