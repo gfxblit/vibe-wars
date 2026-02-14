@@ -23,6 +23,9 @@ export class UIManager {
   private damageTimeout: any = null;
   private shieldTimeout: any = null;
   private destructionTimeout: any = null;
+  private stageTimeout: any = null;
+  private instructionTimeout: any = null;
+  private greatShotTimeout: any = null;
 
   private firstUpdate = true;
   private tieFighterCountValue?: HTMLElement;
@@ -235,6 +238,12 @@ export class UIManager {
   destroy() {
     this.hud.remove();
     this.debugPanel?.remove();
+    if (this.damageTimeout) clearTimeout(this.damageTimeout);
+    if (this.shieldTimeout) clearTimeout(this.shieldTimeout);
+    if (this.destructionTimeout) clearTimeout(this.destructionTimeout);
+    if (this.stageTimeout) clearTimeout(this.stageTimeout);
+    if (this.instructionTimeout) clearTimeout(this.instructionTimeout);
+    if (this.greatShotTimeout) clearTimeout(this.greatShotTimeout);
   }
 
   update(state: GameState) {
@@ -274,11 +283,14 @@ export class UIManager {
       this.stageValue.classList.remove('hidden');
 
       // Auto-hide stage title after 3 seconds
-      setTimeout(() => {
+      if (this.stageTimeout) clearTimeout(this.stageTimeout);
+      this.stageTimeout = setTimeout(() => {
         this.stageValue.classList.add('hidden');
+        this.stageTimeout = null;
       }, 3000);
 
       // Context-sensitive instructions
+      if (this.instructionTimeout) clearTimeout(this.instructionTimeout);
       switch (state.stage) {
         case 'DOGFIGHT':
           this.instructionValue.textContent = 'CLEAR THE SECTOR OF TIE FIGHTERS';
@@ -294,15 +306,18 @@ export class UIManager {
           break;
         case 'EXPLOSION':
           this.greatShotValue.classList.remove('hidden');
-          setTimeout(() => {
+          if (this.greatShotTimeout) clearTimeout(this.greatShotTimeout);
+          this.greatShotTimeout = setTimeout(() => {
             this.greatShotValue.classList.add('hidden');
+            this.greatShotTimeout = null;
           }, 3000);
           break;
       }
 
       // Auto-hide instructions after 5 seconds
-      setTimeout(() => {
+      this.instructionTimeout = setTimeout(() => {
         this.instructionValue.classList.add('hidden');
+        this.instructionTimeout = null;
       }, 5000);
     }
 

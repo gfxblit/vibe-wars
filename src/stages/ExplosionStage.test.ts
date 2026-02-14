@@ -51,14 +51,6 @@ describe('ExplosionStage', () => {
     scene = new THREE.Scene();
     mockCamera = new THREE.PerspectiveCamera();
     
-    // We expect constructor to fail if we try to instantiate before defining the class
-    // But since we are writing tests first, the import will fail or the constructor will be empty if we create a stub.
-    // I'll assume we'll create the file shortly.
-    // For TDD, I need to create the file first but empty or stubbed?
-    // The instructions say "Write tests FIRST (they should fail initially)". 
-    // If the file doesn't exist, the test runner will error out on import, which is technically a fail.
-    // But better to have a stub class.
-    
     try {
         stage = new ExplosionStage(scene);
         mockDeathStar = (DeathStar as any).mock.results[0].value;
@@ -88,57 +80,6 @@ describe('ExplosionStage', () => {
     
     // Mock update call
     stage.update(0.1, state.player as any, mockCamera);
-    
-    // Camera Local (0, 5, -50) relative to Player facing +Z (Rot Y=180)
-    // Player Local +Z is World -Z.
-    // Player Local -Z is World +Z.
-    // Camera Local -Z (-50) is World +Z (+50).
-    // So Camera World Z = Player World Z + 50 = 300 + 50 = 350?
-    // Wait. My logic earlier:
-    // Player Rot Y=180.
-    // Local (0,0,-1) -> World (0,0,1).
-    // Local (0,0,1) -> World (0,0,-1).
-    // Camera Local (0, 5, -50).
-    // World Position = PlayerPos + (0, 5, 50).
-    // So (0, 5, 350).
-    
-    // Let's check logic again.
-    // Player Local -Z is FORWARD.
-    // Player Rot 180 means FORWARD is World +Z.
-    // So Local -Z is World +Z.
-    // Camera Local Z = -50.
-    // So World Z contribution is +50.
-    // So Player Z (300) + 50 = 350.
-    
-    // Wait, earlier I said:
-    // "Camera Local -Z (-50) is World +Z (+50). So Camera World Z = Player World Z + 50 = 350?"
-    // Yes.
-    // But earlier I said: "Local (0, 5, -50) -> World (0, 5, 200 + 50) = (0, 5, 250)."
-    // Wait.
-    // If Player Local -Z (-50) maps to World +Z (+50).
-    // Then 300 + 50 = 350.
-    
-    // If Camera Local +Z (50) maps to World -Z (-50).
-    // Then 300 - 50 = 250.
-    
-    // I set `camera.position.set(0, 5, -50)`.
-    // So result should be 350.
-    
-    // Wait, `camera.position.set` sets LOCAL position relative to parent (Player).
-    // Player IS parent.
-    // So if I read `mockCamera.position`, it returns LOCAL position (0, 5, -50).
-    // UNLESS I call `getWorldPosition`.
-    // But `mockCamera` is not attached to `state.player.mesh` in the test environment!
-    // `mockCamera` is standalone.
-    // `stage.update` sets `camera.position.set(0, 5, -50)`.
-    // Since `camera` has no parent in test, `position` IS World Position.
-    // So expected is (0, 5, -50).
-    
-    // BUT in real game, camera IS attached to player.
-    // So `stage.update` sets LOCAL position.
-    
-    // So my test should verify that `stage.update` sets `camera.position` to (0, 5, -50).
-    // Regardless of player position (because it's local).
     
     expect(mockCamera.position.x).toBe(0);
     expect(mockCamera.position.y).toBe(5);
