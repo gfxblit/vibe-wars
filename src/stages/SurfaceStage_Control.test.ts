@@ -63,21 +63,21 @@ describe('SurfaceStage Control Stability', () => {
     
     // Test X clamping
     player.position.set(2000, 0, 0);
-    stage.update(0.1, player);
+    stage.update(0.1, player, camera);
     expect(player.position.x).toBeLessThanOrEqual(GameConfig.stage.surfaceWidth / 2);
     
     player.position.set(-2000, 0, 0);
-    stage.update(0.1, player);
+    stage.update(0.1, player, camera);
     expect(player.position.x).toBeGreaterThanOrEqual(-GameConfig.stage.surfaceWidth / 2);
     
     // Test Y clamping (ceiling)
     player.position.set(0, 500, 0);
-    stage.update(0.1, player);
+    stage.update(0.1, player, camera);
     expect(player.position.y).toBeLessThanOrEqual(GameConfig.stage.surfaceMaxHeight);
     
     // Test Y clamping (floor)
     player.position.set(0, -100, 0);
-    stage.update(0.1, player);
+    stage.update(0.1, player, camera);
     expect(player.position.y).toBeGreaterThanOrEqual(GameConfig.stage.surfaceFloorY - GameConfig.stage.surfaceFloorClampBuffer);
   });
 });

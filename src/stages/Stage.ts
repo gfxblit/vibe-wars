@@ -1,9 +1,10 @@
+import * as THREE from 'three';
 import { Player, PlayerUpdateOptions } from '../entities/Player';
 import { Turret } from '../entities/Turret';
 
 export abstract class Stage {
   public abstract get speed(): number;
-  public abstract update(deltaTime: number, player: Player): void;
+  public abstract update(deltaTime: number, player: Player, camera: THREE.Camera): void;
   public abstract cleanup(): void;
   public getTurrets(): Turret[] {
     return [];

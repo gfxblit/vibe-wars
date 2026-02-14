@@ -11,6 +11,7 @@ export class UIManager {
   private distanceValue!: HTMLElement;
   private instructionValue!: HTMLElement;
   private destructionValue!: HTMLElement;
+  private greatShotValue!: HTMLElement;
   private torpedoReadyValue!: HTMLElement;
   private gameOver!: HTMLElement;
   private debugPanel?: HTMLElement;
@@ -18,17 +19,19 @@ export class UIManager {
   private stageButtons?: Map<string, HTMLElement>;
   private lastShields: number;
   private lastStage: string = '';
-  private lastWave: number = 1;
+  private lastIsDeathStarDestroyed: boolean = false;
   private damageTimeout: any = null;
   private shieldTimeout: any = null;
   private destructionTimeout: any = null;
+  private stageTimeout: any = null;
+  private instructionTimeout: any = null;
+  private greatShotTimeout: any = null;
 
   private firstUpdate = true;
   private tieFighterCountValue?: HTMLElement;
 
   constructor() {
     this.lastShields = GameConfig.player.maxShields;
-    this.lastWave = state.wave;
 
     // Set CSS variables from config (convert ms to s)
     document.documentElement.style.setProperty('--ui-damage-flash-duration', `${GameConfig.ui.damageFlashDuration / 1000}s`);
@@ -51,6 +54,9 @@ export class UIManager {
     this.destructionValue = this.createEl('div', 'text-vector-red text-3xl font-bold text-center hidden animate-pulse', centerArea);
     this.destructionValue.id = 'destruction-value';
     this.destructionValue.textContent = 'DEATH STAR DESTROYED';
+    this.greatShotValue = this.createEl('div', 'text-vector-yellow text-2xl font-bold text-center hidden', centerArea);
+    this.greatShotValue.id = 'great-shot-value';
+    this.greatShotValue.textContent = 'GREAT SHOT KID!';
     this.instructionValue = this.createEl('div', 'text-vector-green text-xl text-center hidden', centerArea);
     this.torpedoReadyValue = this.createEl('div', 'text-vector-red text-2xl font-bold hidden animate-pulse', centerArea);
     this.torpedoReadyValue.textContent = 'TORPEDO READY';
@@ -232,6 +238,12 @@ export class UIManager {
   destroy() {
     this.hud.remove();
     this.debugPanel?.remove();
+    if (this.damageTimeout) clearTimeout(this.damageTimeout);
+    if (this.shieldTimeout) clearTimeout(this.shieldTimeout);
+    if (this.destructionTimeout) clearTimeout(this.destructionTimeout);
+    if (this.stageTimeout) clearTimeout(this.stageTimeout);
+    if (this.instructionTimeout) clearTimeout(this.instructionTimeout);
+    if (this.greatShotTimeout) clearTimeout(this.greatShotTimeout);
   }
 
   update(state: GameState) {
@@ -253,17 +265,17 @@ export class UIManager {
 
     if (this.waveValue.textContent !== state.wave.toString()) {
       this.waveValue.textContent = state.wave.toString();
-
-      // If wave increased, show destruction message
-      if (!this.firstUpdate && state.wave > this.lastWave) {
-        this.destructionValue.classList.remove('hidden');
-        if (this.destructionTimeout) clearTimeout(this.destructionTimeout);
-        this.destructionTimeout = setTimeout(() => {
-          this.destructionValue.classList.add('hidden');
-        }, 4000); // Stay for 4 seconds
-      }
-      this.lastWave = state.wave;
     }
+
+    if (state.isDeathStarDestroyed && !this.lastIsDeathStarDestroyed) {
+      this.destructionValue.classList.remove('hidden');
+      if (this.destructionTimeout) clearTimeout(this.destructionTimeout);
+      this.destructionTimeout = setTimeout(() => {
+        this.destructionValue.classList.add('hidden');
+        this.destructionTimeout = null;
+      }, 4000);
+    }
+    this.lastIsDeathStarDestroyed = state.isDeathStarDestroyed;
 
     // Handle Stage display and instructions
     if (this.lastStage !== state.stage) {
@@ -272,11 +284,20 @@ export class UIManager {
       this.stageValue.classList.remove('hidden');
 
       // Auto-hide stage title after 3 seconds
-      setTimeout(() => {
+      if (this.stageTimeout) clearTimeout(this.stageTimeout);
+      this.stageTimeout = setTimeout(() => {
         this.stageValue.classList.add('hidden');
+        this.stageTimeout = null;
       }, 3000);
 
       // Context-sensitive instructions
+      if (this.instructionTimeout) clearTimeout(this.instructionTimeout);
+      if (this.greatShotTimeout) {
+        clearTimeout(this.greatShotTimeout);
+        this.greatShotTimeout = null;
+        this.greatShotValue.classList.add('hidden');
+      }
+
       switch (state.stage) {
         case 'DOGFIGHT':
           this.instructionValue.textContent = 'CLEAR THE SECTOR OF TIE FIGHTERS';
@@ -290,11 +311,20 @@ export class UIManager {
           this.instructionValue.textContent = 'STAY LOW AND AIM AT THE PORT TO AUTO-FIRE TORPEDOES';
           this.instructionValue.classList.remove('hidden');
           break;
+        case 'EXPLOSION':
+          this.greatShotValue.classList.remove('hidden');
+          if (this.greatShotTimeout) clearTimeout(this.greatShotTimeout);
+          this.greatShotTimeout = setTimeout(() => {
+            this.greatShotValue.classList.add('hidden');
+            this.greatShotTimeout = null;
+          }, 3000);
+          break;
       }
 
       // Auto-hide instructions after 5 seconds
-      setTimeout(() => {
+      this.instructionTimeout = setTimeout(() => {
         this.instructionValue.classList.add('hidden');
+        this.instructionTimeout = null;
       }, 5000);
     }
 
@@ -349,39 +379,22 @@ export class UIManager {
   }
 
   private retriggerAnimation(element: HTMLElement, className: string, existingTimeout?: any, onComplete?: (timeout: any) => void) {
-
     if (existingTimeout) {
-
       clearTimeout(existingTimeout);
-
     }
-
-
 
     element.classList.remove(className);
-
     // Force a reflow
-
     void element.offsetWidth;
-
     element.classList.add(className);
 
-
-
     const newTimeout = setTimeout(() => {
-
       element.classList.remove(className);
-
     }, GameConfig.ui.damageFlashDuration + 100);
 
-
-
     if (onComplete) {
-
       onComplete(newTimeout);
-
     }
-
   }
 
 

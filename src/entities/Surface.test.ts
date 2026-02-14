@@ -96,7 +96,7 @@ describe('Surface Entity', () => {
     // Update with time delta to trigger fire
     // Note: First update consumed the initial 0 cooldown. It reset to 2.0.
     // So we need to advance > 2.0s.
-    surface.update(2.1, playerPos, spawnFireball);
+    surface.update(2.1, playerPos, undefined, spawnFireball);
     
     expect(spawnFireball).toHaveBeenCalled();
   });

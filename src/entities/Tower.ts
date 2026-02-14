@@ -26,11 +26,12 @@ export class Tower extends Entity implements Targetable {
     }
 
     public getWorldPosition(target: THREE.Vector3): THREE.Vector3 {
+      this.mesh.updateWorldMatrix(true, false);
       return this.mesh.getWorldPosition(target);
     }
 
     public getScore(): number {
-      return GameConfig.stage.towerPoints || 50; // Use config or default
+      return GameConfig.stage.towerPoints;
     }
 
     public explode(): void {
@@ -72,19 +73,14 @@ export class Tower extends Entity implements Targetable {
       this.updateCollisionBox();
     }
 
-  update(deltaTime: number, playerPosition?: THREE.Vector3): THREE.Vector3 | null {
+  update(deltaTime: number, playerPosition: THREE.Vector3, _playerQuaternion?: THREE.Quaternion, _playerSpeed?: number): THREE.Vector3 | null {
     if (this.isExploded) return null;
 
-    if (playerPosition) {
-      this.fireCooldown -= deltaTime;
-      if (this.fireCooldown <= 0) {
-        this.fireCooldown = GameConfig.fireball.fireRate;
-        // Aim at player
-        // Simple prediction: just aim at current position
-        // Since player moves fast forward (-Z), maybe lead?
-        // But for now, direct aim is fine.
-        return new THREE.Vector3().subVectors(playerPosition, this.mesh.position).normalize();
-      }
+    this.fireCooldown -= deltaTime;
+    if (this.fireCooldown <= 0) {
+      this.fireCooldown = GameConfig.fireball.fireRate;
+      // Aim at player
+      return new THREE.Vector3().subVectors(playerPosition, this.mesh.position).normalize();
     }
     return null;
   }

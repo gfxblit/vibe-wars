@@ -17,6 +17,7 @@ export class CombatSystem {
 
   public update(deltaTime: number, input: UserInput) {
     this.updateStrategy();
+    this.camera.updateMatrixWorld();
     if (this.currentStrategy) {
       this.currentStrategy.update(deltaTime, input, this.camera);
     }

@@ -11,7 +11,7 @@ import { GameConfig } from './config';
 import { EntityManager } from './entities/EntityManager';
 import { StageManager } from './StageManager';
 
-export type GameStage = 'DOGFIGHT' | 'SURFACE' | 'TRENCH';
+export type GameStage = 'DOGFIGHT' | 'SURFACE' | 'TRENCH' | 'EXPLOSION';
 
 export interface Viewport {
   width: number;
@@ -39,6 +39,7 @@ export interface GameState {
   canFireTorpedo: boolean;
   hasFiredTorpedo: boolean;
   isApproachingDeathStar: boolean;
+  isDeathStarDestroyed: boolean;
   debugKillsThreshold?: number;
 }
 
@@ -69,6 +70,7 @@ export const state: GameState = {
   canFireTorpedo: false,
   hasFiredTorpedo: false,
   isApproachingDeathStar: false,
+  isDeathStarDestroyed: false,
   debugKillsThreshold: undefined,
 };
 
@@ -87,6 +89,7 @@ export function initGame(worldScene: THREE.Scene, hudScene: THREE.Scene) {
   state.canFireTorpedo = false;
   state.hasFiredTorpedo = false;
   state.isApproachingDeathStar = false;
+  state.isDeathStarDestroyed = false;
   state.debugKillsThreshold = undefined;
 
   state.player = new Player();
@@ -111,9 +114,10 @@ export function updateState(deltaTime: number, camera: THREE.Camera, input: User
   }
 
   const currentSpeed = state.stageManager.getStage()?.speed ?? GameConfig.player.baseForwardSpeed;
+  const effectiveInput = state.stage === 'EXPLOSION' ? { x: 0, y: 0, isFiring: false } : input;
   const playerOptions = state.stageManager.getStage()?.getPlayerOptions();
 
-  state.player.update(input, deltaTime, currentSpeed, state.showChassis, playerOptions);
+  state.player.update(effectiveInput, deltaTime, currentSpeed, state.showChassis, playerOptions);
 
   // Ensure camera world matrix is updated after player moves but before collision check
   camera.updateMatrixWorld();
@@ -125,10 +129,10 @@ export function updateState(deltaTime: number, camera: THREE.Camera, input: User
     state.isSmartAI,
     camera,
     currentSpeed,
-    (damage) => takeDamage(damage)
+    state.stage === 'EXPLOSION' ? undefined : (damage) => takeDamage(damage)
   );
 
-  state.stageManager.update(deltaTime, state.player);
+  state.stageManager.update(deltaTime, state.player, camera);
 }
 
 export function setStage(stage: GameStage) {

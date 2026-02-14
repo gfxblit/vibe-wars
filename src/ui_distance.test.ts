@@ -34,6 +34,7 @@ describe('UIManager - Distance Countdown', () => {
       canFireTorpedo: false,
       hasFiredTorpedo: false,
       isApproachingDeathStar: false,
+      isDeathStarDestroyed: false,
     };
 
     document.body.innerHTML = '';

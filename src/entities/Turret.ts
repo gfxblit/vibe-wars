@@ -12,6 +12,7 @@ export class Turret extends Entity implements Targetable {
   private readonly scratchVector3: THREE.Vector3 = new THREE.Vector3();
 
   public getWorldPosition(target: THREE.Vector3): THREE.Vector3 {
+    this.mesh.updateWorldMatrix(true, false);
     return this.mesh.getWorldPosition(target);
   }
 

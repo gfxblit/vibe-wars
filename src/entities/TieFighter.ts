@@ -18,6 +18,7 @@ export class TieFighter extends Entity implements Targetable {
   private fireCooldown: number = Math.random() * GameConfig.fireball.fireRate;
 
   public getWorldPosition(target: THREE.Vector3): THREE.Vector3 {
+    this.mesh.updateWorldMatrix(true, false);
     return this.mesh.getWorldPosition(target);
   }
 
@@ -117,7 +118,7 @@ export class TieFighter extends Entity implements Targetable {
   }
 
   public getScore(): number {
-    return 100;
+    return GameConfig.tieFighter.points;
   }
 
   public getVelocity(playerForward: THREE.Vector3, playerSpeed: number): THREE.Vector3 {

@@ -4,6 +4,7 @@ import { UserInput } from './input';
 import { state, spawnLasers, addScore, addKill, spawnTorpedo } from './state';
 import { checkAim } from './collision';
 import { GameConfig } from './config';
+import { Targetable } from './entities/Entity';
 
 abstract class BaseCombatStrategy implements CombatStrategy {
   protected fireCooldown: number = 0;
@@ -33,11 +34,12 @@ abstract class BaseCombatStrategy implements CombatStrategy {
   protected checkTargets(input: UserInput, camera: THREE.Camera) {
     if (!state.entityManager) return;
 
-    let closestTarget: any = null;
+    let closestTarget: Targetable | null = null;
     let closestDist = Infinity;
-    const cameraPos = camera.getWorldPosition(new THREE.Vector3());
+    const cameraPos = new THREE.Vector3();
+    camera.getWorldPosition(cameraPos);
 
-    state.entityManager.getTargets().forEach(target => {
+    for (const target of state.entityManager.getTargets()) {
       const worldPos = target.getWorldPosition(this.tempVector3);
       if (!target.isExploded && checkAim(worldPos, input, camera)) {
         const dist = worldPos.distanceTo(cameraPos);
@@ -46,7 +48,7 @@ abstract class BaseCombatStrategy implements CombatStrategy {
           closestTarget = target;
         }
       }
-    });
+    }
 
     if (closestTarget) {
       closestTarget.explode();

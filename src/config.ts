@@ -109,8 +109,8 @@ export const GameConfig = deepFreeze({
     deathStarSpawnAngle: Math.PI / 4,
   },
   progression: {
-    wave1: ['DOGFIGHT', 'TRENCH'],
-    default: ['DOGFIGHT', 'SURFACE', 'TRENCH'],
+    wave1: ['DOGFIGHT', 'TRENCH', 'EXPLOSION'],
+    default: ['DOGFIGHT', 'SURFACE', 'TRENCH', 'EXPLOSION'],
   },
   tieFighter: {
     speed: 50,
@@ -201,5 +201,15 @@ export const GameConfig = deepFreeze({
     range: 1500,
     spacing: 400,
     points: 200,
+  },
+  explosionStage: {
+    duration: 5.0,
+    escapeSpeed: 1000,
+    shatterDelay: 2.0,
+  },
+  deathStarExplosion: {
+    fragmentVelocity: 100,
+    fragmentRotationSpeed: 2.0,
+    particleCount: 50,
   },
 } as const);

@@ -39,6 +39,7 @@ describe('UIManager', () => {
       canFireTorpedo: false,
       hasFiredTorpedo: false,
       isApproachingDeathStar: false,
+      isDeathStarDestroyed: false,
       debugKillsThreshold: undefined,
     };
 
@@ -230,15 +231,14 @@ describe('UIManager', () => {
     expect(hud?.textContent).toContain('STAGE: TRENCH');
   });
 
-  it('should show DEATH STAR DESTROYED message when wave increases', () => {
-    // Start at TRENCH wave 1
-    mockState.stage = 'TRENCH';
-    mockState.wave = 1;
+  it('should show DEATH STAR DESTROYED message when isDeathStarDestroyed is true', () => {
+    // Start at EXPLOSION stage
+    mockState.stage = 'EXPLOSION';
+    mockState.isDeathStarDestroyed = false;
     uiManager.update(mockState);
 
-    // Transition to DOGFIGHT wave 2
-    mockState.stage = 'DOGFIGHT';
-    mockState.wave = 2;
+    // Transition to isDeathStarDestroyed = true
+    mockState.isDeathStarDestroyed = true;
     uiManager.update(mockState);
 
     const destructionValue = document.getElementById('destruction-value');

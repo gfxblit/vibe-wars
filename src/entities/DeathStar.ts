@@ -11,6 +11,10 @@ export class DeathStar extends Entity {
     return this.mesh.position;
   }
 
+  public isExploded = false;
+  private fragmentVelocities: THREE.Vector3[] = [];
+  private fragmentRotations: THREE.Vector3[] = [];
+
   constructor(position: THREE.Vector3) {
     super();
     this.mesh = new THREE.Group();
@@ -184,8 +188,44 @@ export class DeathStar extends Entity {
   }
 
   update(deltaTime: number) {
-    // Rotation for some visual interest
-    this.mesh.rotation.y += deltaTime * 0.05;
+    if (this.isExploded) {
+      this.mesh.children.forEach((child, i) => {
+        const velocity = this.fragmentVelocities[i];
+        const rotation = this.fragmentRotations[i];
+        if (velocity && rotation) {
+            child.position.addScaledVector(velocity, deltaTime);
+            child.rotation.x += rotation.x * deltaTime;
+            child.rotation.y += rotation.y * deltaTime;
+            child.rotation.z += rotation.z * deltaTime;
+        }
+      });
+    } else {
+      // Rotation for some visual interest
+      this.mesh.rotation.y += deltaTime * 0.05;
+    }
+  }
+
+  explode(): void {
+    if (this.isExploded) return;
+    this.isExploded = true;
+
+    this.mesh.children.forEach(() => {
+      // Random velocity
+      const velocity = new THREE.Vector3(
+        (Math.random() - 0.5) * 2,
+        (Math.random() - 0.5) * 2,
+        (Math.random() - 0.5) * 2
+      ).normalize().multiplyScalar(GameConfig.deathStarExplosion.fragmentVelocity);
+      this.fragmentVelocities.push(velocity);
+
+      // Random rotation speed
+      const rotation = new THREE.Vector3(
+        (Math.random() - 0.5) * 2,
+        (Math.random() - 0.5) * 2,
+        (Math.random() - 0.5) * 2
+      ).multiplyScalar(GameConfig.deathStarExplosion.fragmentRotationSpeed);
+      this.fragmentRotations.push(rotation);
+    });
   }
 
   dispose() {
