@@ -111,12 +111,7 @@ export function updateState(deltaTime: number, camera: THREE.Camera, input: User
   }
 
   const currentSpeed = state.stageManager.getStage()?.speed ?? GameConfig.player.baseForwardSpeed;
-
-  const playerOptions = state.stage === 'TRENCH' ? {
-    lockUpright: true,
-    maxPitch: GameConfig.stage.trenchMaxPitch,
-    maxYaw: GameConfig.stage.trenchMaxYaw,
-  } : undefined;
+  const playerOptions = state.stageManager.getStage()?.getPlayerOptions();
 
   state.player.update(input, deltaTime, currentSpeed, state.showChassis, playerOptions);
 

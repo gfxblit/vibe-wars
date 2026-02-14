@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { GameConfig } from '../config';
 import { state, takeDamage } from '../state';
-import { Player } from '../entities/Player';
+import { Player, PlayerUpdateOptions } from '../entities/Player';
 import { Stage } from './Stage';
 import { Tower } from '../entities/Tower';
 import { Surface } from '../entities/Surface';
@@ -12,7 +12,7 @@ export class SurfaceStage extends Stage {
   private surface: Surface;
   private playerBox: THREE.Box3 = new THREE.Box3();
 
-  constructor(private scene: THREE.Scene, private onComplete: () => void) {
+  constructor(private scene: THREE.Scene, private onComplete: () => void, surface?: Surface) {
     super();
     // Clear existing enemies for a clean transition
     if (state.entityManager) {
@@ -25,7 +25,7 @@ export class SurfaceStage extends Stage {
     player.position.set(0, 0, 0);
     player.mesh.quaternion.set(0, 0, 0, 1);
     
-    this.surface = new Surface();
+    this.surface = surface || new Surface();
     this.scene.add(this.surface.mesh);
   }
 
@@ -33,8 +33,21 @@ export class SurfaceStage extends Stage {
     return this.surface.getTowers();
   }
 
+  public override getPlayerOptions(): PlayerUpdateOptions | undefined {
+    return {
+      lockUpright: true,
+      maxPitch: GameConfig.stage.surfaceMaxPitch,
+      maxYaw: GameConfig.stage.surfaceMaxYaw,
+    };
+  }
+
   public update(deltaTime: number, player: Player): void {
     this.elapsedTime += deltaTime;
+
+    // Apply surface constraints
+    const halfWidth = GameConfig.stage.surfaceWidth / 2;
+    player.position.x = THREE.MathUtils.clamp(player.position.x, -halfWidth, halfWidth);
+    player.position.y = THREE.MathUtils.clamp(player.position.y, GameConfig.stage.surfaceFloorY - GameConfig.stage.surfaceFloorClampBuffer, GameConfig.stage.surfaceMaxHeight);
     
     this.surface.update(deltaTime, player.position, (pos, vel) => {
         if (state.entityManager) {

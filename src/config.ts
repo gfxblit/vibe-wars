@@ -77,6 +77,9 @@ export const GameConfig = deepFreeze({
     exhaustPortZOffset: 400,
     trenchMaxPitch: Math.PI / 6, // 30 degrees
     trenchMaxYaw: Math.PI / 6,   // 30 degrees
+    surfaceMaxPitch: Math.PI / 4, // 45 degrees
+    surfaceMaxYaw: Math.PI / 4,   // 45 degrees
+    surfaceMaxHeight: 150,
     catwalkColor: 0xaaaaaa,
     trenchWallColor: 0x00ff00,
     trenchVerticalDetailSpacing: 200,
@@ -92,6 +95,7 @@ export const GameConfig = deepFreeze({
     surfaceColor: 0x0000ff,
     surfaceFloorY: -50,
     surfaceFloorBounce: 2,
+    surfaceFloorClampBuffer: 10,
     surfaceCollisionDamage: 1,
     towerHeight: 50,
     towerWidth: 30,
