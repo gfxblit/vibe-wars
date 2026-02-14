@@ -24,44 +24,43 @@ describe('Turret and Fireball Size Debug', () => {
     expect(box.max.x - box.min.x).toBeCloseTo(size * 0.8);
   });
 
-  it('should use debug turret size from state', () => {
-    state.debugTurretSize = 25.0;
-    const turret = new Turret(position);
+  it('should use debug turret size when passed to constructor', () => {
+    const turretSize = 25.0;
+    const turret = new Turret(position, turretSize);
     const baseMesh = turret.mesh.children[0] as THREE.Mesh;
     baseMesh.geometry.computeBoundingBox();
     const box = baseMesh.geometry.boundingBox!;
-    expect(box.max.x - box.min.x).toBeCloseTo(25.0 * 0.8);
+    expect(box.max.x - box.min.x).toBeCloseTo(turretSize * 0.8);
   });
 
-  it('should use default fireball size when no debug override is set', () => {
+  it('should use default fireball size in spawnFireball when no size is provided', () => {
     const worldScene = new THREE.Scene();
     const hudScene = new THREE.Scene();
     const entityManager = new EntityManager(worldScene, hudScene);
     const fireball = entityManager.spawnFireball(position, velocity);
-    // Fireball uses sparkleSize for sparkles (which are children)
     const sparkle = fireball.mesh.children[0] as THREE.Sprite;
     const size = GameConfig.fireball.sparkleSize;
     expect(sparkle.scale.x).toBeCloseTo(size);
   });
 
-  it('should use debug fireball size from state', () => {
-    state.debugFireballSize = 15.0;
+  it('should use provided fireball size in spawnFireball', () => {
+    const fireballSize = 15.0;
     const worldScene = new THREE.Scene();
     const hudScene = new THREE.Scene();
     const entityManager = new EntityManager(worldScene, hudScene);
-    const fireball = entityManager.spawnFireball(position, velocity);
+    const fireball = entityManager.spawnFireball(position, velocity, fireballSize);
     const sparkle = fireball.mesh.children[0] as THREE.Sprite;
-    expect(sparkle.scale.x).toBeCloseTo(15.0);
+    expect(sparkle.scale.x).toBeCloseTo(fireballSize);
   });
 
-  it('should use debug fireball size from state when spawned from target', () => {
-    state.debugFireballSize = 10.0;
+  it('should use fireball size from target when spawned from target', () => {
+    const fireballSize = 10.0;
     const worldScene = new THREE.Scene();
     const hudScene = new THREE.Scene();
     const entityManager = new EntityManager(worldScene, hudScene);
     
     const turretPos = new THREE.Vector3(10, 0, -100);
-    const turret = new Turret(turretPos);
+    const turret = new Turret(turretPos, GameConfig.turret.meshSize, fireballSize);
     
     entityManager.addTarget(turret);
     
@@ -76,6 +75,6 @@ describe('Turret and Fireball Size Debug', () => {
     const fireballs = entityManager.getFireballs();
     expect(fireballs.length).toBe(1);
     const sparkle = fireballs[0].mesh.children[0] as THREE.Sprite;
-    expect(sparkle.scale.x).toBeCloseTo(10.0);
+    expect(sparkle.scale.x).toBeCloseTo(fireballSize);
   });
 });

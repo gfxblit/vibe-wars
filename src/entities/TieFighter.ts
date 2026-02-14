@@ -125,6 +125,10 @@ export class TieFighter extends Entity implements Targetable {
     return playerForward.clone().multiplyScalar(playerSpeed);
   }
 
+  public getFireballSize(): number {
+    return GameConfig.fireball.sparkleSize;
+  }
+
   public setStrategy(strategy: AIStrategy): void {
     this.strategy = strategy;
   }
