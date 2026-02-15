@@ -80,7 +80,7 @@ export const state: GameState = {
 
 export function initGame(worldScene: THREE.Scene, hudScene: THREE.Scene) {
   const urlParams = new URLSearchParams(window.location.search);
-  state.debug = urlParams.get('debug') === 'true';
+  state.debug = import.meta.env.DEV && urlParams.get('debug') === 'true';
 
   // Reset core game values
   state.score = 0;
