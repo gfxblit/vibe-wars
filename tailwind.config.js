@@ -12,7 +12,7 @@ export default {
         'vector-yellow': '#FFFF00',
       },
       fontFamily: {
-        'retro': ['monospace'],
+        'retro': ['Vector Battle', 'monospace'],
       },
     },
   },

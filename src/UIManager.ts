@@ -207,7 +207,7 @@ export class UIManager {
   }
 
   private createToggleButton(id: string, getText: () => string, onClick: () => void, parent: HTMLElement) {
-    const btn = this.createEl('button', 'px-2 py-1 border border-vector-green hover:bg-vector-green hover:text-black transition-colors', parent);
+    const btn = this.createEl('button', 'px-2 py-1 border border-vector-green hover:bg-vector-green hover:text-black transition-colors font-retro', parent);
     btn.id = id;
     btn.textContent = getText();
     btn.onclick = () => {
@@ -218,7 +218,7 @@ export class UIManager {
   }
 
   private createActionButton(id: string, text: string, onClick: () => void, parent: HTMLElement) {
-    const btn = this.createEl('button', 'px-2 py-1 border border-vector-green hover:bg-vector-green hover:text-black transition-colors', parent);
+    const btn = this.createEl('button', 'px-2 py-1 border border-vector-green hover:bg-vector-green hover:text-black transition-colors font-retro', parent);
     btn.id = id;
     btn.textContent = text;
     btn.onclick = () => {
