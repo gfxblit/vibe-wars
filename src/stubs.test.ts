@@ -21,7 +21,7 @@ vi.mock('three', async () => {
 describe('Stubs', () => {
   it('Entity stub can be instantiated', () => {
     const entity = new Entity();
-    expect(entity).toBeDefined();
+    expect(entity).toBeInstanceOf(Entity);
   });
 
   it('InputManager can be instantiated and setup', () => {
