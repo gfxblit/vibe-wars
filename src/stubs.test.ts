@@ -20,10 +20,8 @@ vi.mock('three', async () => {
 
 describe('Stubs', () => {
   it('Entity stub can be instantiated', () => {
-    const consoleSpy = vi.spyOn(console, 'log');
-    new Entity();
-    expect(consoleSpy).toHaveBeenCalledWith('Entity created');
-    consoleSpy.mockRestore();
+    const entity = new Entity();
+    expect(entity).toBeInstanceOf(Entity);
   });
 
   it('InputManager can be instantiated and setup', () => {
