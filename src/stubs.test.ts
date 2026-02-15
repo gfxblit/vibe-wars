@@ -20,10 +20,7 @@ vi.mock('three', async () => {
 
 describe('Stubs', () => {
   it('Entity stub can be instantiated', () => {
-    const consoleSpy = vi.spyOn(console, 'log');
     new Entity();
-    expect(consoleSpy).toHaveBeenCalledWith('Entity created');
-    consoleSpy.mockRestore();
   });
 
   it('InputManager can be instantiated and setup', () => {
@@ -36,15 +33,12 @@ describe('Stubs', () => {
   it('initRenderer stub can be called', () => {
     // Mocking document.body.appendChild as it's used in initRenderer
     const appendChildSpy = vi.spyOn(document.body, 'appendChild').mockImplementation(() => { return {} as any });
-    const consoleSpy = vi.spyOn(console, 'log');
     
     const result = initRenderer();
     expect(result).toHaveProperty('scene');
     expect(result).toHaveProperty('camera');
     expect(result).toHaveProperty('renderer');
     expect(appendChildSpy).toHaveBeenCalled();
-    expect(consoleSpy).toHaveBeenCalledWith('Renderer initialized');
     result.cleanup();
-    consoleSpy.mockRestore();
   });
 });

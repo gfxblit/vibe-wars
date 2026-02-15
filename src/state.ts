@@ -104,8 +104,6 @@ export function initGame(worldScene: THREE.Scene, hudScene: THREE.Scene) {
   }
   state.entityManager = new EntityManager(worldScene, hudScene);
   state.entityManager.spawnTieFighter(state.isSmartAI);
-
-  console.log('Game initialized', { debug: state.debug, stage: state.stage });
 }
 
 export function updateState(deltaTime: number, camera: THREE.Camera, input: UserInput = { x: 0, y: 0, isFiring: false }) {

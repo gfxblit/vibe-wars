@@ -8,8 +8,6 @@ import { Cursor } from './Cursor'
 import { UIManager } from './UIManager'
 import { GameSystem } from './GameSystem'
 
-console.log('Vibe Wars starting...')
-
 const { scene, camera, hudScene, hudCamera, renderer: webglRenderer } = initRenderer()
 initGame(scene, hudScene)
 
