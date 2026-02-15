@@ -1,6 +1,8 @@
 import { GameState, state, setStage } from './state';
 import { GameConfig } from './config';
 
+type TimerHandle = number;
+
 export class UIManager {
   private hud: HTMLElement;
   private scoreValue!: HTMLElement;
@@ -20,12 +22,12 @@ export class UIManager {
   private lastShields: number;
   private lastStage: string = '';
   private lastIsDeathStarDestroyed: boolean = false;
-  private damageTimeout: any = null;
-  private shieldTimeout: any = null;
-  private destructionTimeout: any = null;
-  private stageTimeout: any = null;
-  private instructionTimeout: any = null;
-  private greatShotTimeout: any = null;
+  private damageTimeout: TimerHandle | null = null;
+  private shieldTimeout: TimerHandle | null = null;
+  private destructionTimeout: TimerHandle | null = null;
+  private stageTimeout: TimerHandle | null = null;
+  private instructionTimeout: TimerHandle | null = null;
+  private greatShotTimeout: TimerHandle | null = null;
 
   private firstUpdate = true;
   private tieFighterCountValue?: HTMLElement;
@@ -329,7 +331,7 @@ export class UIManager {
     if (state.isDeathStarDestroyed && !this.lastIsDeathStarDestroyed) {
       this.destructionValue.classList.remove('hidden');
       if (this.destructionTimeout) clearTimeout(this.destructionTimeout);
-      this.destructionTimeout = setTimeout(() => {
+      this.destructionTimeout = window.setTimeout(() => {
         this.destructionValue.classList.add('hidden');
         this.destructionTimeout = null;
       }, 4000);
@@ -344,7 +346,7 @@ export class UIManager {
 
       // Auto-hide stage title after 3 seconds
       if (this.stageTimeout) clearTimeout(this.stageTimeout);
-      this.stageTimeout = setTimeout(() => {
+      this.stageTimeout = window.setTimeout(() => {
         this.stageValue.classList.add('hidden');
         this.stageTimeout = null;
       }, 3000);
@@ -373,7 +375,7 @@ export class UIManager {
         case 'EXPLOSION':
           this.greatShotValue.classList.remove('hidden');
           if (this.greatShotTimeout) clearTimeout(this.greatShotTimeout);
-          this.greatShotTimeout = setTimeout(() => {
+          this.greatShotTimeout = window.setTimeout(() => {
             this.greatShotValue.classList.add('hidden');
             this.greatShotTimeout = null;
           }, 3000);
@@ -381,7 +383,7 @@ export class UIManager {
       }
 
       // Auto-hide instructions after 5 seconds
-      this.instructionTimeout = setTimeout(() => {
+      this.instructionTimeout = window.setTimeout(() => {
         this.instructionValue.classList.add('hidden');
         this.instructionTimeout = null;
       }, 5000);
@@ -437,7 +439,7 @@ export class UIManager {
     this.firstUpdate = false;
   }
 
-  private retriggerAnimation(element: HTMLElement, className: string, existingTimeout?: any, onComplete?: (timeout: any) => void) {
+  private retriggerAnimation(element: HTMLElement, className: string, existingTimeout: TimerHandle | null, onComplete: (timeout: TimerHandle) => void) {
     if (existingTimeout) {
       clearTimeout(existingTimeout);
     }
@@ -447,7 +449,7 @@ export class UIManager {
     void element.offsetWidth;
     element.classList.add(className);
 
-    const newTimeout = setTimeout(() => {
+    const newTimeout = window.setTimeout(() => {
       element.classList.remove(className);
     }, GameConfig.ui.damageFlashDuration + 100);
 
