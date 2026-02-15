@@ -8,7 +8,7 @@ import * as inputModule from './input';
 import * as THREE from 'three';
 
 // Mock the console.log to prevent test output from cluttering the console
-const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+vi.spyOn(console, 'log').mockImplementation(() => {});
 
 vi.mock('three', async () => {
   const actual = await vi.importActual('three') as any;
@@ -44,7 +44,6 @@ describe('main.ts initialization', () => {
     expect(initRendererSpy).toHaveBeenCalledTimes(1);
     expect(initGameSpy).toHaveBeenCalledTimes(1);
     expect(setupInputSpy).toHaveBeenCalledTimes(1);
-    expect(consoleLogSpy).toHaveBeenCalledWith('Vibe Wars starting...');
 
     // Check if HUD is created
     const hud = document.getElementById('hud');

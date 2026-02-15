@@ -55,7 +55,6 @@ export function initRenderer() {
     renderer.dispose();
   };
 
-  console.log('Renderer initialized');
   return { scene, camera, hudScene, hudCamera, renderer, cleanup };
 }
 
