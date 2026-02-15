@@ -5,9 +5,6 @@ import * as THREE from 'three';
  * major refactoring as the architecture is finalized.
  */
 export class Entity {
-  constructor() {
-    console.log('Entity created');
-  }
 }
 
 export interface Targetable {
