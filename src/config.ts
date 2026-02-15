@@ -99,8 +99,8 @@ export const GameConfig = deepFreeze({
       verticalDetailColor: 0x00ff00,
       horizontalDetailColor: 0x00ff00,
       exhaustPortColor: 0xffff00,
-      turretSize: 5.0,
-      fireballSize: 4.0,
+      turretSize: 20.0,
+      fireballSize: 20.0,
     },
     deathStar: {
       distance: 1000,
