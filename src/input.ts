@@ -18,6 +18,7 @@ export class InputManager {
   private dragTouchId: number | null = null;
   private dragStartedOnFireButton: boolean = false;
   private isFiring: boolean = false;
+  private fireTouchIds: Set<number> = new Set();
   private useRelativeInput: boolean = false;
   private pointerAnchor: THREE.Vector2 = new THREE.Vector2(0, 0);
   private fireButton: HTMLElement | null = null;
@@ -79,12 +80,13 @@ export class InputManager {
       const isFireButton = target === this.fireButton;
 
       if (isFireButton) {
-        this.isFiring = true;
+        this.fireTouchIds.add(touch.identifier);
         event.preventDefault();
+        continue; // Fire button touches should not be used for steering/dragging
       }
 
-      // Valid targets: fire button, canvas, body, documentElement
-      if (!isFireButton && target.tagName !== 'CANVAS' && target !== document.body && target !== document.documentElement) {
+      // Valid targets for steering: canvas, body, documentElement
+      if (target.tagName !== 'CANVAS' && target !== document.body && target !== document.documentElement) {
         continue;
       }
 
@@ -101,9 +103,7 @@ export class InputManager {
     for (let i = 0; i < event.changedTouches.length; i++) {
       const touch = event.changedTouches[i];
       
-      if (touch.target === this.fireButton) {
-        this.isFiring = false;
-      }
+      this.fireTouchIds.delete(touch.identifier);
 
       if (this.dragTouchId === touch.identifier) {
         this.isDragging = false;
@@ -234,7 +234,7 @@ export class InputManager {
     return {
       x: this.input.x,
       y: this.input.y,
-      isFiring: this.isFiring
+      isFiring: this.isFiring || this.fireTouchIds.size > 0
     };
   }
 }
