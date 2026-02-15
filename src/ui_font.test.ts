@@ -1,22 +1,27 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeAll } from 'vitest';
 import { UIManager } from './UIManager';
 import { state } from './state';
 import * as fs from 'fs';
 import * as path from 'path';
 
 describe('UI Font Requirements', () => {
-  it('tailwind.config.js should use Vector Battle for retro font family', () => {
+  let cssContent: string;
+  let tailwindConfigContent: string;
+
+  beforeAll(() => {
+    const cssPath = path.resolve(__dirname, './style.css');
+    cssContent = fs.readFileSync(cssPath, 'utf-8');
+
     const configPath = path.resolve(__dirname, '../tailwind.config.js');
-    const configContent = fs.readFileSync(configPath, 'utf-8');
-    
+    tailwindConfigContent = fs.readFileSync(configPath, 'utf-8');
+  });
+
+  it('tailwind.config.js should use Vector Battle for retro font family', () => {
     // Check if Vector Battle is present in the retro font family
-    expect(configContent).toContain("'retro': ['Vector Battle', 'monospace']");
+    expect(tailwindConfigContent).toContain("'retro': ['Vector Battle', 'monospace']");
   });
 
   it('src/style.css should have @font-face for Vector Battle', () => {
-    const cssPath = path.resolve(__dirname, './style.css');
-    const cssContent = fs.readFileSync(cssPath, 'utf-8');
-    
     expect(cssContent).toContain("@font-face");
     expect(cssContent).toContain("font-family: 'Vector Battle'");
     expect(cssContent).toContain("src: url('./assets/fonts/vector-battle.woff') format('woff')");
@@ -24,9 +29,6 @@ describe('UI Font Requirements', () => {
   });
 
   it('src/style.css should not contain Courier New', () => {
-    const cssPath = path.resolve(__dirname, './style.css');
-    const cssContent = fs.readFileSync(cssPath, 'utf-8');
-    
     expect(cssContent).not.toContain('Courier New');
   });
 
@@ -46,15 +48,17 @@ describe('UI Font Requirements', () => {
     const debugPanel = document.getElementById('debug-panel');
     expect(debugPanel?.classList.contains('font-retro')).toBe(true);
 
+    // Verify debug panel buttons use font-retro
+    const debugButtons = debugPanel?.querySelectorAll('button');
+    expect(debugButtons?.length).toBeGreaterThan(0);
+    debugButtons?.forEach(btn => {
+      expect(btn.classList.contains('font-retro')).toBe(true);
+    });
+
     ui.destroy();
   });
 
   it('fire-button in style.css should use Vector Battle', () => {
-     // This is implicitly tested by 'src/style.css should not contain Courier New'
-     // but we can be more specific if we want to check what replaced it.
-     const cssPath = path.resolve(__dirname, './style.css');
-     const cssContent = fs.readFileSync(cssPath, 'utf-8');
-     
      expect(cssContent).toContain("font-family: theme('fontFamily.retro');");
   });
 });

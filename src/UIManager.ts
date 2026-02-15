@@ -2,6 +2,8 @@ import { GameState, state, setStage } from './state';
 import { GameConfig } from './config';
 
 export class UIManager {
+  private static readonly BUTTON_CLASSES = 'px-2 py-1 border border-vector-green hover:bg-vector-green hover:text-black transition-colors font-retro';
+
   private hud: HTMLElement;
   private scoreValue!: HTMLElement;
   private shieldValue!: HTMLElement;
@@ -37,7 +39,7 @@ export class UIManager {
     document.documentElement.style.setProperty('--ui-damage-flash-duration', `${GameConfig.ui.damageFlashDuration / 1000}s`);
 
     // Root HUD container
-    this.hud = this.createEl('div', 'fixed inset-0 pointer-events-none z-10 font-retro flex flex-col justify-between p-4');
+    this.hud = this.createEl('div', 'fixed inset-0 pointer-events-none z-10 font-retro font-bold flex flex-col justify-between p-4');
     this.hud.id = 'hud';
 
     const topBar = this.createEl('div', 'flex justify-between items-start w-full relative z-10', this.hud);
@@ -75,14 +77,14 @@ export class UIManager {
   }
 
   private createDebugPanel() {
-    this.debugPanel = this.createEl('div', 'fixed bottom-4 left-4 pointer-events-auto bg-black bg-opacity-70 border border-vector-green p-4 flex flex-col space-y-2 text-vector-green font-retro text-xs z-20', document.body);
+    this.debugPanel = this.createEl('div', 'fixed bottom-4 left-4 pointer-events-auto bg-black bg-opacity-70 border border-vector-green p-4 flex flex-col space-y-2 text-vector-green font-retro font-bold text-xs z-20', document.body);
     this.debugPanel.id = 'debug-panel';
 
     const header = this.createEl('div', 'flex justify-between items-center mb-2 border-b border-vector-green pb-1', this.debugPanel);
     const title = this.createEl('div', '', header);
     title.textContent = 'DEBUG CONSOLE';
 
-    const toggleBtn = this.createEl('button', 'ml-4 hover:text-white transition-colors', header);
+    const toggleBtn = this.createEl('button', 'ml-4 hover:text-white transition-colors font-retro', header);
     toggleBtn.id = 'debug-minimize-toggle';
     toggleBtn.textContent = '[-]';
 
@@ -207,7 +209,7 @@ export class UIManager {
   }
 
   private createToggleButton(id: string, getText: () => string, onClick: () => void, parent: HTMLElement) {
-    const btn = this.createEl('button', 'px-2 py-1 border border-vector-green hover:bg-vector-green hover:text-black transition-colors font-retro', parent);
+    const btn = this.createEl('button', UIManager.BUTTON_CLASSES, parent);
     btn.id = id;
     btn.textContent = getText();
     btn.onclick = () => {
@@ -218,7 +220,7 @@ export class UIManager {
   }
 
   private createActionButton(id: string, text: string, onClick: () => void, parent: HTMLElement) {
-    const btn = this.createEl('button', 'px-2 py-1 border border-vector-green hover:bg-vector-green hover:text-black transition-colors font-retro', parent);
+    const btn = this.createEl('button', UIManager.BUTTON_CLASSES, parent);
     btn.id = id;
     btn.textContent = text;
     btn.onclick = () => {
