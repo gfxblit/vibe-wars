@@ -290,10 +290,16 @@ export class UIManager {
   }
 
   private createGameOverOverlay() {
-    this.gameOver = this.createEl('div', 'fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden z-50', this.hud);
+    this.gameOver = this.createEl('div', 'fixed inset-0 flex flex-col items-center justify-center bg-black bg-opacity-70 hidden z-50 pointer-events-auto', this.hud);
     this.gameOver.id = 'game-over';
-    const text = this.createEl('div', 'text-vector-red text-6xl font-retro animate-pulse', this.gameOver);
+
+    const text = this.createEl('div', 'text-vector-red text-6xl font-retro animate-pulse mb-8', this.gameOver);
     text.textContent = 'GAME OVER';
+
+    const restartBtn = this.createEl('button', 'px-8 py-3 border-2 border-vector-green text-vector-green hover:bg-vector-green hover:text-black font-retro text-2xl transition-colors focus:outline-none focus:ring-2 focus:ring-vector-green focus:ring-offset-2 focus:ring-offset-black', this.gameOver);
+    restartBtn.textContent = 'RESTART MISSION';
+    restartBtn.setAttribute('aria-label', 'Restart Game');
+    restartBtn.onclick = () => window.location.reload();
   }
 
   destroy() {
