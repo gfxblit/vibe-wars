@@ -55,6 +55,6 @@ describe('UI Font Requirements', () => {
      const cssPath = path.resolve(__dirname, './style.css');
      const cssContent = fs.readFileSync(cssPath, 'utf-8');
      
-     expect(cssContent).toContain("font-family: 'Vector Battle', monospace;");
+     expect(cssContent).toContain("font-family: theme('fontFamily.retro');");
   });
 });
