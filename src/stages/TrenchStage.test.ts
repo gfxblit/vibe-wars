@@ -91,8 +91,8 @@ describe('TrenchStage', () => {
   });
 
   it('should clamp player position within trench bounds', () => {
-    const halfWidth = GameConfig.stage.trenchWidth / 2;
-    const halfHeight = GameConfig.stage.trenchHeight / 2;
+    const halfWidth = GameConfig.stages.trench.width / 2;
+    const halfHeight = GameConfig.stages.trench.height / 2;
 
     state.player!.position.set(halfWidth + 100, halfHeight + 100, 0);
     
@@ -124,7 +124,7 @@ describe('TrenchStage', () => {
   it('should take damage and reset when reaching end of trench', () => {
     const onReset = vi.fn();
     stage = new TrenchStage(scene, goToNextStage, onReset);
-    state.player!.position.z = -GameConfig.stage.trenchLength - 10;
+    state.player!.position.z = -GameConfig.stages.trench.length - 10;
     stage.update(0.1, state.player as Player, mockCamera);
     expect(takeDamage).toHaveBeenCalledWith(1);
     expect(onReset).toHaveBeenCalled();

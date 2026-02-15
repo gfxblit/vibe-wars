@@ -6,6 +6,7 @@ import { Fireball } from './Fireball';
 import { Laser } from './Laser';
 import { Torpedo } from './Torpedo';
 import { Targetable } from './Entity';
+import { state } from '../state';
 
 export class EntityManager {
   private tieFighters: TieFighter[] = [];
@@ -171,7 +172,9 @@ export class EntityManager {
     this.scratchTotalVelocity.copy(this.scratchPlayerVelocity).add(this.scratchRelativeVelocity);
 
     target.getWorldPosition(this.scratchFireballPos);
-    this.spawnFireball(this.scratchFireballPos, this.scratchTotalVelocity);
+    
+    const size = target.getFireballSize ? target.getFireballSize() : undefined;
+    this.spawnFireball(this.scratchFireballPos, this.scratchTotalVelocity, size);
   }
 
   public setSpawningEnabled(enabled: boolean): void {
@@ -185,8 +188,9 @@ export class EntityManager {
     this.worldScene.add(tf.mesh);
   }
 
-  public spawnFireball(position: THREE.Vector3, velocity: THREE.Vector3): Fireball {
-    const fireball = new Fireball(position, velocity);
+  public spawnFireball(position: THREE.Vector3, velocity: THREE.Vector3, size?: number): Fireball {
+    const finalSize = state.debugFireballSize ?? size ?? GameConfig.fireball.sparkleSize;
+    const fireball = new Fireball(position, velocity, finalSize);
     this.fireballs.push(fireball);
     this.worldScene.add(fireball.mesh);
     return fireball;

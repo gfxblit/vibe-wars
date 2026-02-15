@@ -49,16 +49,30 @@ describe('Turret Fireball Movement', () => {
     const initialZ = fireball.position.z;
     expect(initialZ).toBe(-500);
     
+    // With velocity inheritance, fireball velocity should be:
+    // playerVelocity + (direction * relativeSpeed)
+    // playerVelocity is (0, 0, -500)
+    // direction is (0, 0, 1) (towards player at Z=0 from turret at Z=-500)
+    // relativeSpeed is 40
+    // Total velocity: (0, 0, -460)
+    expect(fireball.velocity.z).toBeCloseTo(-playerSpeed + GameConfig.fireball.relativeSpeed);
+
     // Update fireball for 0.1s
     fireball.update(0.1);
     
-    // The fireball should have moved TOWARDS the player (player is at ~ -50 after 0.1s update if we updated player)
-    // Wait, let's see where the fireball SHOULD move.
-    // If player is at 0 and moving to -500.
-    // Turret is at -500.
-    // Fireball should move in +Z direction to hit the player.
+    // In world space, it moved further away from Z=0 because |-460| > 0
+    // But relative to the player's frame (moving at -500), it moved TOWARDS the player.
+    expect(fireball.position.z).toBeLessThan(initialZ); // -546 < -500
     
-    expect(fireball.position.z).toBeGreaterThan(initialZ);
+    // Closing speed check:
+    // Initial distance: 500
+    // After 0.1s:
+    // Player would be at -50 (if updated)
+    // Fireball is at -546
+    // Relative distance: |-50 - (-546)| = 496. 496 < 500.
+    const playerZAfterUpdate = -playerSpeed * 0.1;
+    const relativeDistance = Math.abs(playerZAfterUpdate - fireball.position.z);
+    expect(relativeDistance).toBeLessThan(500);
   });
 
   it('should be possible to destroy turrets in the trench', () => {

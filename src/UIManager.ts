@@ -78,13 +78,32 @@ export class UIManager {
     this.debugPanel = this.createEl('div', 'fixed bottom-4 left-4 pointer-events-auto bg-black bg-opacity-70 border border-vector-green p-4 flex flex-col space-y-2 text-vector-green font-retro text-xs z-20', document.body);
     this.debugPanel.id = 'debug-panel';
 
-    const title = this.createEl('div', 'mb-2 border-b border-vector-green pb-1', this.debugPanel);
+    const header = this.createEl('div', 'flex justify-between items-center mb-2 border-b border-vector-green pb-1', this.debugPanel);
+    const title = this.createEl('div', '', header);
     title.textContent = 'DEBUG CONSOLE';
 
+    const toggleBtn = this.createEl('button', 'ml-4 hover:text-white transition-colors', header);
+    toggleBtn.id = 'debug-minimize-toggle';
+    toggleBtn.textContent = '[-]';
+
+    const content = this.createEl('div', 'flex flex-col space-y-2', this.debugPanel);
+    content.id = 'debug-panel-content';
+
+    toggleBtn.onclick = () => {
+      const isMinimized = content.classList.toggle('hidden');
+      toggleBtn.textContent = isMinimized ? '[+]' : '[-]';
+      this.debugPanel?.classList.toggle('debug-minimized', isMinimized);
+      
+      // Clean up header when minimized
+      header.classList.toggle('mb-2', !isMinimized);
+      header.classList.toggle('border-b', !isMinimized);
+      header.classList.toggle('pb-1', !isMinimized);
+    };
+
     // Stats
-    const statsTitle = this.createEl('div', 'mb-2 border-b border-vector-green pb-1', this.debugPanel);
+    const statsTitle = this.createEl('div', 'mb-2 border-b border-vector-green pb-1', content);
     statsTitle.textContent = 'STATS';
-    const tfRow = this.createEl('div', 'flex justify-between', this.debugPanel);
+    const tfRow = this.createEl('div', 'flex justify-between', content);
     this.createEl('span', '', tfRow).textContent = 'TIE FIGHTERS:';
     this.tieFighterCountValue = this.createEl('span', '', tfRow);
     this.tieFighterCountValue.id = 'debug-tie-fighter-count';
@@ -94,26 +113,26 @@ export class UIManager {
       'ai-mode-toggle',
       () => `AI: ${state.isSmartAI ? 'SMART' : 'DUMB'}`,
       () => { state.isSmartAI = !state.isSmartAI; },
-      this.debugPanel
+      content
     );
 
     this.createToggleButton(
       'mode-coloring-toggle',
       () => `COLORS: ${state.isModeColoring ? 'ON' : 'OFF'}`,
       () => { state.isModeColoring = !state.isModeColoring; },
-      this.debugPanel
+      content
     );
 
     this.createToggleButton(
       'chassis-toggle',
       () => `CHASSIS: ${state.showChassis ? 'ON' : 'OFF'}`,
       () => { state.showChassis = !state.showChassis; },
-      this.debugPanel
+      content
     );
 
     // Stage Switcher
-    this.createEl('div', 'mt-4 mb-2 border-b border-vector-green pb-1', this.debugPanel).textContent = 'STAGE SWITCHER';
-    const stageRow = this.createEl('div', 'flex space-x-2', this.debugPanel);
+    this.createEl('div', 'mt-4 mb-2 border-b border-vector-green pb-1', content).textContent = 'STAGE SWITCHER';
+    const stageRow = this.createEl('div', 'flex space-x-2', content);
     this.stageButtons = new Map();
 
     const dogfightBtn = this.createActionButton('stage-dogfight', 'DOGFIGHT', () => { setStage('DOGFIGHT'); }, stageRow);
@@ -128,12 +147,12 @@ export class UIManager {
     this.updateStageButtons(state.stage);
 
     // Kills Threshold
-    this.createEl('div', 'mt-4 mb-2 border-b border-vector-green pb-1', this.debugPanel).textContent = 'KILLS TO ADVANCE';
-    const killsInput = this.createEl('input', 'w-full bg-black text-vector-green border border-vector-green px-2 py-1', this.debugPanel) as HTMLInputElement;
+    this.createEl('div', 'mt-4 mb-2 border-b border-vector-green pb-1', content).textContent = 'KILLS TO ADVANCE';
+    const killsInput = this.createEl('input', 'w-full bg-black text-vector-green border border-vector-green px-2 py-1', content) as HTMLInputElement;
     killsInput.id = 'debug-kills-input';
     killsInput.type = 'number';
     killsInput.min = '0';
-    killsInput.placeholder = `Default (${GameConfig.stage.dogfightKillsThreshold})`;
+    killsInput.placeholder = `Default (${GameConfig.stages.dogfight.killsThreshold})`;
     if (state.debugKillsThreshold !== undefined) {
       killsInput.value = state.debugKillsThreshold.toString();
     }
@@ -143,6 +162,46 @@ export class UIManager {
         state.debugKillsThreshold = Math.max(0, val);
       } else {
         state.debugKillsThreshold = undefined;
+      }
+    };
+
+    // Turret Size
+    this.createEl('div', 'mt-4 mb-2 border-b border-vector-green pb-1', content).textContent = 'TURRET SIZE';
+    const turretSizeInput = this.createEl('input', 'w-full bg-black text-vector-green border border-vector-green px-2 py-1', content) as HTMLInputElement;
+    turretSizeInput.id = 'debug-turret-size-input';
+    turretSizeInput.type = 'number';
+    turretSizeInput.min = '1';
+    turretSizeInput.step = '1';
+    turretSizeInput.placeholder = `Default (${GameConfig.turret.meshSize})`;
+    if (state.debugTurretSize !== undefined) {
+      turretSizeInput.value = state.debugTurretSize.toString();
+    }
+    turretSizeInput.onchange = (e) => {
+      const val = parseFloat((e.target as HTMLInputElement).value);
+      if (!isNaN(val)) {
+        state.debugTurretSize = Math.max(1, val);
+      } else {
+        state.debugTurretSize = undefined;
+      }
+    };
+
+    // Fireball Size
+    this.createEl('div', 'mt-4 mb-2 border-b border-vector-green pb-1', content).textContent = 'FIREBALL SIZE';
+    const fireballSizeInput = this.createEl('input', 'w-full bg-black text-vector-green border border-vector-green px-2 py-1', content) as HTMLInputElement;
+    fireballSizeInput.id = 'debug-fireball-size-input';
+    fireballSizeInput.type = 'number';
+    fireballSizeInput.min = '1';
+    fireballSizeInput.step = '1';
+    fireballSizeInput.placeholder = `Default (${GameConfig.fireball.sparkleSize})`;
+    if (state.debugFireballSize !== undefined) {
+      fireballSizeInput.value = state.debugFireballSize.toString();
+    }
+    fireballSizeInput.onchange = (e) => {
+      const val = parseFloat((e.target as HTMLInputElement).value);
+      if (!isNaN(val)) {
+        state.debugFireballSize = Math.max(1, val);
+      } else {
+        state.debugFireballSize = undefined;
       }
     };
   }
@@ -330,7 +389,7 @@ export class UIManager {
 
     // Distance countdown in TRENCH stage
     if (state.stage === 'TRENCH' && state.player) {
-      const { catwalkEndZ, exhaustPortZOffset } = GameConfig.stage;
+      const { catwalkEndZ, exhaustPortZOffset } = GameConfig.stages.trench;
       const portZ = catwalkEndZ - exhaustPortZOffset;
       const dist = Math.max(0, Math.floor(Math.abs(state.player.position.z - portZ)));
       

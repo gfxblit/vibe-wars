@@ -28,7 +28,7 @@ export class Surface extends Entity {
   }
 
   private createFloor(): void {
-    const { surfaceGridSpacing, surfaceColor, surfaceFloorY } = GameConfig.stage;
+    const { gridSpacing: surfaceGridSpacing, color: surfaceColor, floorY: surfaceFloorY } = GameConfig.stages.surface;
     const { far } = GameConfig.camera;
 
     // Grid size should be enough to cover the camera's far plane in all directions.
@@ -73,7 +73,7 @@ export class Surface extends Entity {
   public update(deltaTime: number, playerPosition: THREE.Vector3, entityManager?: EntityManager, spawnFireball?: (pos: THREE.Vector3, vel: THREE.Vector3) => void): void {
     this.elapsedTime += deltaTime;
     const playerZ = playerPosition.z;
-    const spacing = GameConfig.stage.surfaceGridSpacing;
+    const spacing = GameConfig.stages.surface.gridSpacing;
 
     // Update floor position to follow player with snapping
     this.floor.position.x = Math.round(playerPosition.x / spacing) * spacing;
@@ -83,7 +83,7 @@ export class Surface extends Entity {
     if (this.elapsedTime >= this.nextTowerSpawnTime) {
       this.spawnTower(playerPosition.x, playerZ, entityManager);
       
-      const { towerSpawnInterval } = GameConfig.stage;
+      const { towerSpawnInterval } = GameConfig.stages.surface;
       const interval = towerSpawnInterval * (0.8 + Math.random() * 0.4);
       this.nextTowerSpawnTime = this.elapsedTime + interval;
     }
@@ -93,7 +93,7 @@ export class Surface extends Entity {
         const tower = this.towers[i];
         
         // Cleanup passed towers
-        if (tower.mesh.position.z > playerZ + GameConfig.stage.towerCleanupDistance) {
+        if (tower.mesh.position.z > playerZ + GameConfig.stages.surface.towerCleanupDistance) {
             this.removeTower(i, entityManager);
             continue;
         }
@@ -115,7 +115,7 @@ export class Surface extends Entity {
   }
 
   private spawnTower(playerX: number, playerZ: number, entityManager?: EntityManager): void {
-     const { surfaceWidth, surfaceFloorY, towerSpawnDistance, towerMarginX } = GameConfig.stage;
+     const { width: surfaceWidth, floorY: surfaceFloorY, towerSpawnDistance, towerMarginX } = GameConfig.stages.surface;
      
      const spawnZ = playerZ - towerSpawnDistance; 
      
@@ -146,7 +146,7 @@ export class Surface extends Entity {
   }
 
   public checkCollisions(playerBox: THREE.Box3, playerPosition: THREE.Vector3): CollisionResult {
-      const { surfaceFloorY } = GameConfig.stage;
+      const { floorY: surfaceFloorY } = GameConfig.stages.surface;
       // Player Y is center of ship. Ship size is roughly 1.
       this.collisionResult.floorHit = playerPosition.y - 1 < surfaceFloorY;
       this.collisionResult.towerHit = null;

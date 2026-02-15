@@ -66,3 +66,7 @@ body { margin: 0; overflow: hidden; background-color: black; }
 .animate-shield-impact {
   animation: shield-impact var(--ui-damage-flash-duration, 0.15s) ease-out forwards;
 }
+
+.debug-minimized {
+  padding-bottom: 0.5rem !important;
+}

@@ -36,7 +36,7 @@ export class DogfightStage extends Stage {
 
   public update(deltaTime: number, player: Player, _camera: THREE.Camera): void {
     if (this.phase === DogfightPhase.COMBAT) {
-      const threshold = state.debugKillsThreshold ?? GameConfig.stage.dogfightKillsThreshold;
+      const threshold = state.debugKillsThreshold ?? GameConfig.stages.dogfight.killsThreshold;
 
       if (state.kills >= threshold) {
         this.startApproach(player);
@@ -62,10 +62,10 @@ export class DogfightStage extends Stage {
     
     // Use player's up vector for horizontal rotation relative to player
     const axis = new THREE.Vector3(0, 1, 0).applyQuaternion(player.mesh.quaternion);
-    const angle = GameConfig.stage.deathStarSpawnAngle; // 45 degrees
+    const angle = GameConfig.stages.deathStar.spawnAngle; // 45 degrees
     spawnDir.applyAxisAngle(axis, angle);
 
-    const spawnPos = player.position.clone().add(spawnDir.multiplyScalar(GameConfig.stage.deathStarDistance));
+    const spawnPos = player.position.clone().add(spawnDir.multiplyScalar(GameConfig.stages.deathStar.distance));
 
     this.deathStar = new DeathStar(spawnPos);
     this.scene.add(this.deathStar.mesh);
@@ -77,7 +77,7 @@ export class DogfightStage extends Stage {
     this.toDeathStar.subVectors(this.deathStar.position, player.position);
     const dist = this.toDeathStar.length();
 
-    if (dist < GameConfig.stage.trenchTransitionDistance + GameConfig.stage.deathStarSize) {
+    if (dist < GameConfig.stages.trench.transitionDistance + GameConfig.stages.deathStar.size) {
       this.onComplete();
       return;
     }
@@ -89,7 +89,7 @@ export class DogfightStage extends Stage {
         this.forward,
         this.toDeathStar
       );
-      player.mesh.quaternion.slerp(this.targetRotation, GameConfig.stage.steeringStrength * deltaTime);
+      player.mesh.quaternion.slerp(this.targetRotation, GameConfig.stages.trench.steeringStrength * deltaTime);
     }
 
     this.deathStar.update(deltaTime);

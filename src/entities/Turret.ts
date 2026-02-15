@@ -8,6 +8,7 @@ export class Turret extends Entity implements Targetable {
   private fireCooldown: number = Math.random() * 1.0; // Fire soon after encounter
   public isExploded: boolean = false;
   private pieceVelocities: THREE.Vector3[] = [];
+  private fireballSize: number;
 
   private readonly scratchVector3: THREE.Vector3 = new THREE.Vector3();
 
@@ -20,12 +21,12 @@ export class Turret extends Entity implements Targetable {
     return this.mesh.position;
   }
 
-  constructor(position: THREE.Vector3) {
+  constructor(position: THREE.Vector3, size: number = GameConfig.turret.meshSize, fireballSize: number = GameConfig.fireball.sparkleSize) {
     super();
     this.mesh = new THREE.Group();
     this.mesh.position.copy(position);
+    this.fireballSize = fireballSize;
 
-    const size = GameConfig.turret.meshSize;
     const material = new THREE.MeshBasicMaterial({
       color: GameConfig.turret.meshColor,
       wireframe: true
@@ -123,8 +124,12 @@ export class Turret extends Entity implements Targetable {
     return GameConfig.turret.points;
   }
 
-  public getVelocity(_playerForward: THREE.Vector3, _playerSpeed: number): THREE.Vector3 {
-    return new THREE.Vector3(0, 0, 0);
+  public getVelocity(playerForward: THREE.Vector3, playerSpeed: number): THREE.Vector3 {
+    return playerForward.clone().multiplyScalar(playerSpeed);
+  }
+
+  public getFireballSize(): number {
+    return this.fireballSize;
   }
 
   public dispose(): void {

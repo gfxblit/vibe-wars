@@ -36,8 +36,8 @@ export class SurfaceStage extends Stage {
   public override getPlayerOptions(): PlayerUpdateOptions | undefined {
     return {
       lockUpright: true,
-      maxPitch: GameConfig.stage.surfaceMaxPitch,
-      maxYaw: GameConfig.stage.surfaceMaxYaw,
+      maxPitch: GameConfig.stages.surface.maxPitch,
+      maxYaw: GameConfig.stages.surface.maxYaw,
     };
   }
 
@@ -45,9 +45,9 @@ export class SurfaceStage extends Stage {
     this.elapsedTime += deltaTime;
 
     // Apply surface constraints
-    const halfWidth = GameConfig.stage.surfaceWidth / 2;
+    const halfWidth = GameConfig.stages.surface.width / 2;
     player.position.x = THREE.MathUtils.clamp(player.position.x, -halfWidth, halfWidth);
-    player.position.y = THREE.MathUtils.clamp(player.position.y, GameConfig.stage.surfaceFloorY - GameConfig.stage.surfaceFloorClampBuffer, GameConfig.stage.surfaceMaxHeight);
+    player.position.y = THREE.MathUtils.clamp(player.position.y, GameConfig.stages.surface.floorY - GameConfig.stages.surface.floorClampBuffer, GameConfig.stages.surface.maxHeight);
     
     this.surface.update(deltaTime, player.position, state.entityManager || undefined, (pos, vel) => {
         if (state.entityManager) {
@@ -60,18 +60,18 @@ export class SurfaceStage extends Stage {
     const { floorHit, towerHit } = this.surface.checkCollisions(playerBox, player.position);
 
     if (floorHit) { 
-        takeDamage(GameConfig.stage.surfaceCollisionDamage);
+        takeDamage(GameConfig.stages.surface.collisionDamage);
         // Bounce player up to avoid instant death loop or getting stuck
-        player.position.y = GameConfig.stage.surfaceFloorY + GameConfig.stage.surfaceFloorBounce;
+        player.position.y = GameConfig.stages.surface.floorY + GameConfig.stages.surface.floorBounce;
     }
 
     if (towerHit) {
-        takeDamage(GameConfig.stage.surfaceCollisionDamage);
+        takeDamage(GameConfig.stages.surface.collisionDamage);
         towerHit.isExploded = true; // Mark as hit so we don't hit it again immediately
     }
     
     // Check End Condition
-    if (this.elapsedTime >= GameConfig.stage.surfaceDuration) {
+    if (this.elapsedTime >= GameConfig.stages.surface.duration) {
       this.onComplete();
     }
   }

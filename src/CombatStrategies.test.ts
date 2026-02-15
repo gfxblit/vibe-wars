@@ -77,7 +77,7 @@ describe('TrenchCombatStrategy', () => {
     state.stageManager!.reset();
     
     // Position player and input to hit the port
-    const { catwalkEndZ, exhaustPortZOffset } = GameConfig.stage;
+    const { catwalkEndZ, exhaustPortZOffset } = GameConfig.stages.trench;
     const portZ = catwalkEndZ - exhaustPortZOffset;
     
     state.player!.position.set(0, 0, portZ + 10); // Close enough

@@ -23,7 +23,10 @@ export class TrenchStage extends Stage {
     player.position.set(0, 0, 0);
     player.mesh.quaternion.set(0, 0, 0, 1);
 
-    this.trench = new Trench();
+    const turretSize = state.debugTurretSize ?? GameConfig.stages.trench.turretSize;
+    const turretFireballSize = state.debugFireballSize ?? GameConfig.stages.trench.fireballSize;
+
+    this.trench = new Trench(turretSize, turretFireballSize);
     this.scene.add(this.trench.mesh);
 
     // Register turrets with EntityManager
@@ -41,15 +44,15 @@ export class TrenchStage extends Stage {
   public override getPlayerOptions(): PlayerUpdateOptions | undefined {
     return {
       lockUpright: true,
-      maxPitch: GameConfig.stage.trenchMaxPitch,
-      maxYaw: GameConfig.stage.trenchMaxYaw,
+      maxPitch: GameConfig.stages.trench.maxPitch,
+      maxYaw: GameConfig.stages.trench.maxYaw,
     };
   }
 
   public update(deltaTime: number, player: Player, _camera: THREE.Camera): void {
     // Apply trench constraints
-    const halfWidth = GameConfig.stage.trenchWidth / 2;
-    const halfHeight = GameConfig.stage.trenchHeight / 2;
+    const halfWidth = GameConfig.stages.trench.width / 2;
+    const halfHeight = GameConfig.stages.trench.height / 2;
     player.position.x = THREE.MathUtils.clamp(player.position.x, -halfWidth, halfWidth);
     player.position.y = THREE.MathUtils.clamp(player.position.y, -halfHeight, halfHeight);
 
@@ -82,7 +85,7 @@ export class TrenchStage extends Stage {
           } else if (this.trench.checkObstacleCollision(torpedo.position) !== null) {
             torpedo.explode();
             torpedoMissed = true;
-          } else if (torpedo.position.z <= -GameConfig.stage.trenchLength) {
+          } else if (torpedo.position.z <= -GameConfig.stages.trench.length) {
             torpedo.explode();
             torpedoMissed = true;
           }
@@ -93,7 +96,7 @@ export class TrenchStage extends Stage {
     if (torpedoHitPort) {
       addScore(GameConfig.torpedo.bonusPoints);
       this.onComplete();
-    } else if (torpedoMissed || hitPort || player.position.z <= -GameConfig.stage.trenchLength) {
+    } else if (torpedoMissed || hitPort || player.position.z <= -GameConfig.stages.trench.length) {
       takeDamage(1);
       this.onReset();
     }

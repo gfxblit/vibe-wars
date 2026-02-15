@@ -41,6 +41,8 @@ export interface GameState {
   isApproachingDeathStar: boolean;
   isDeathStarDestroyed: boolean;
   debugKillsThreshold?: number;
+  debugTurretSize?: number;
+  debugFireballSize?: number;
 }
 
 const initialWidth = typeof window !== 'undefined' ? window.innerWidth : 1024;
@@ -72,6 +74,8 @@ export const state: GameState = {
   isApproachingDeathStar: false,
   isDeathStarDestroyed: false,
   debugKillsThreshold: undefined,
+  debugTurretSize: undefined,
+  debugFireballSize: undefined,
 };
 
 export function initGame(worldScene: THREE.Scene, hudScene: THREE.Scene) {
@@ -91,6 +95,8 @@ export function initGame(worldScene: THREE.Scene, hudScene: THREE.Scene) {
   state.isApproachingDeathStar = false;
   state.isDeathStarDestroyed = false;
   state.debugKillsThreshold = undefined;
+  state.debugTurretSize = undefined;
+  state.debugFireballSize = undefined;
 
   state.player = new Player();
 

@@ -33,7 +33,7 @@ describe('EntityManager', () => {
     const actualTf = entityManager.getTieFighters()[0];
     const disposeSpy = vi.spyOn(actualTf, 'dispose');
     actualTf.position.set(0, 0, GameConfig.tieFighter.cleanupDistance + 100);
-    vi.spyOn(actualTf, 'update').mockReturnValue(new THREE.Vector3());
+    vi.spyOn(actualTf, 'update').mockReturnValue(null);
     entityManager.update(0.1, playerPosition, playerQuaternion, true, new THREE.PerspectiveCamera(), GameConfig.player.baseForwardSpeed);
     expect(entityManager.getTieFighters().length).toBe(0);
     expect(scene.children.length).toBe(0);

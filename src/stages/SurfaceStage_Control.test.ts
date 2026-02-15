@@ -41,8 +41,8 @@ describe('SurfaceStage Control Stability', () => {
     const euler = new THREE.Euler().setFromQuaternion(player.mesh.quaternion, 'YXZ');
     // Use a tiny epsilon to account for floating point inaccuracies in quaternion/euler conversions
     const EPSILON = 1e-10;
-    expect(Math.abs(euler.x)).toBeLessThanOrEqual(GameConfig.stage.surfaceMaxPitch + EPSILON);
-    expect(Math.abs(euler.y)).toBeLessThanOrEqual(GameConfig.stage.surfaceMaxYaw + EPSILON);
+    expect(Math.abs(euler.x)).toBeLessThanOrEqual(GameConfig.stages.surface.maxPitch + EPSILON);
+    expect(Math.abs(euler.y)).toBeLessThanOrEqual(GameConfig.stages.surface.maxYaw + EPSILON);
   });
 
   it('should keep player upright (roll = 0) in Surface stage', () => {
@@ -64,20 +64,20 @@ describe('SurfaceStage Control Stability', () => {
     // Test X clamping
     player.position.set(2000, 0, 0);
     stage.update(0.1, player, camera);
-    expect(player.position.x).toBeLessThanOrEqual(GameConfig.stage.surfaceWidth / 2);
+    expect(player.position.x).toBeLessThanOrEqual(GameConfig.stages.surface.width / 2);
     
     player.position.set(-2000, 0, 0);
     stage.update(0.1, player, camera);
-    expect(player.position.x).toBeGreaterThanOrEqual(-GameConfig.stage.surfaceWidth / 2);
+    expect(player.position.x).toBeGreaterThanOrEqual(-GameConfig.stages.surface.width / 2);
     
     // Test Y clamping (ceiling)
     player.position.set(0, 500, 0);
     stage.update(0.1, player, camera);
-    expect(player.position.y).toBeLessThanOrEqual(GameConfig.stage.surfaceMaxHeight);
+    expect(player.position.y).toBeLessThanOrEqual(GameConfig.stages.surface.maxHeight);
     
     // Test Y clamping (floor)
     player.position.set(0, -100, 0);
     stage.update(0.1, player, camera);
-    expect(player.position.y).toBeGreaterThanOrEqual(GameConfig.stage.surfaceFloorY - GameConfig.stage.surfaceFloorClampBuffer);
+    expect(player.position.y).toBeGreaterThanOrEqual(GameConfig.stages.surface.floorY - GameConfig.stages.surface.floorClampBuffer);
   });
 });

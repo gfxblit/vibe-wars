@@ -61,7 +61,7 @@ describe('Surface Entity', () => {
 
   it('should detect floor collision', () => {
     const playerBox = new THREE.Box3();
-    const position = new THREE.Vector3(0, GameConfig.stage.surfaceFloorY - 5, 0);
+    const position = new THREE.Vector3(0, GameConfig.stages.surface.floorY - 5, 0);
     
     const { floorHit } = surface.checkCollisions(playerBox, position);
     expect(floorHit).toBe(true);
@@ -112,7 +112,7 @@ describe('Surface Entity', () => {
     expect(towers.length).toBeGreaterThan(0);
     
     const tower = towers[0];
-    const { surfaceWidth } = GameConfig.stage;
+    const { width: surfaceWidth } = GameConfig.stages.surface;
     
     // Tower X should be within range of playerX
     // Implementation uses relative positioning based on playerX
@@ -122,7 +122,7 @@ describe('Surface Entity', () => {
   });
 
   it('should have the floor follow the player with snapping', () => {
-    const spacing = GameConfig.stage.surfaceGridSpacing;
+    const spacing = GameConfig.stages.surface.gridSpacing;
     const playerPos = new THREE.Vector3(spacing * 1.2, 0, -spacing * 2.7);
     
     surface.update(0.1, playerPos);
@@ -134,7 +134,7 @@ describe('Surface Entity', () => {
 
   it('should have a grid large enough to cover the camera far plane plus snapping buffer', () => {
     const far = GameConfig.camera.far;
-    const spacing = GameConfig.stage.surfaceGridSpacing;
+    const spacing = GameConfig.stages.surface.gridSpacing;
     
     const floor = (surface as any).floor as THREE.Group;
     const gridMesh = floor.children[0] as THREE.LineSegments;

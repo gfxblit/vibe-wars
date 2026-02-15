@@ -374,5 +374,47 @@ describe('UIManager', () => {
       input.dispatchEvent(new Event('change'));
       expect(state.debugKillsThreshold).toBeUndefined();
     });
+
+    it('should have TURRET SIZE input', () => {
+      const input = document.getElementById('debug-turret-size-input') as HTMLInputElement;
+      expect(input).not.toBeNull();
+      expect(input.type).toBe('number');
+
+      // Simulate input change
+      input.value = '10';
+      input.dispatchEvent(new Event('change'));
+      expect(state.debugTurretSize).toBe(10);
+
+      // Test invalid input (min is 1)
+      input.value = '0';
+      input.dispatchEvent(new Event('change'));
+      expect(state.debugTurretSize).toBe(1);
+
+      // Test clearing input
+      input.value = '';
+      input.dispatchEvent(new Event('change'));
+      expect(state.debugTurretSize).toBeUndefined();
+    });
+
+    it('should have FIREBALL SIZE input', () => {
+      const input = document.getElementById('debug-fireball-size-input') as HTMLInputElement;
+      expect(input).not.toBeNull();
+      expect(input.type).toBe('number');
+
+      // Simulate input change
+      input.value = '8';
+      input.dispatchEvent(new Event('change'));
+      expect(state.debugFireballSize).toBe(8);
+
+      // Test invalid input (min is 1)
+      input.value = '0';
+      input.dispatchEvent(new Event('change'));
+      expect(state.debugFireballSize).toBe(1);
+
+      // Test clearing input
+      input.value = '';
+      input.dispatchEvent(new Event('change'));
+      expect(state.debugFireballSize).toBeUndefined();
+    });
   });
 });

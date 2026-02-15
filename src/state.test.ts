@@ -114,9 +114,9 @@ describe('Game State', () => {
     state.player!.position.set(0, 0, 0);
     state.player!.mesh.quaternion.set(0, 0, 0, 1);
 
-    // Spawn fireball 501 units behind (+Z)
-    // forward is (0,0,-1). subVectors(fb, player) is (0,0,501). dot is -501.
-    spawnFireball(new THREE.Vector3(0, 0, 501), new THREE.Vector3(0, 0, 0));
+    // Spawn fireball 2001 units behind (+Z)
+    // forward is (0,0,-1). subVectors(fb, player) is (0,0,2001). dot is -2001.
+    spawnFireball(new THREE.Vector3(0, 0, 2001), new THREE.Vector3(0, 0, 0));
 
     expect(state.entityManager!.getFireballs().length).toBe(1);
     updateState(0.01, mockCamera);

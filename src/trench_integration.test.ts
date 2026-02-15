@@ -20,7 +20,7 @@ describe('Trench Integration', () => {
     expect(state.kills).toBe(0);
 
     // 1. Reaching kill threshold
-    for (let i = 0; i < GameConfig.stage.dogfightKillsThreshold; i++) {
+    for (let i = 0; i < GameConfig.stages.dogfight.killsThreshold; i++) {
       addKill();
     }
     
@@ -37,21 +37,21 @@ describe('Trench Integration', () => {
 
     // Move player close to the DeathStar's surface
     const dsPos = deathStar!.position.clone();
-    state.player!.position.copy(dsPos).add(new THREE.Vector3(0, 0, GameConfig.stage.deathStarSize + GameConfig.stage.trenchTransitionDistance - 10));
+    state.player!.position.copy(dsPos).add(new THREE.Vector3(0, 0, GameConfig.stages.deathStar.size + GameConfig.stages.trench.transitionDistance - 10));
     
     updateState(0.1, camera);
     
     expect(state.stage).toBe('SURFACE'); // Now in Surface Stage
 
     // 3. Wait for Surface Stage Timer (Surface -> Trench)
-    updateState(GameConfig.stage.surfaceDuration + 1.0, camera);
+    updateState(GameConfig.stages.surface.duration + 1.0, camera);
 
     expect(state.stage).toBe('TRENCH');
     // Trench should be in scene
     expect(worldScene.children.some(child => child instanceof THREE.Group)).toBe(true);
 
     // 4. Movement clamping in TRENCH
-    const halfWidth = GameConfig.stage.trenchWidth / 2;
+    const halfWidth = GameConfig.stages.trench.width / 2;
     state.player!.position.x = halfWidth + 50;
     
     updateState(0.1, camera);
@@ -65,10 +65,10 @@ describe('Trench Integration', () => {
     }
     
     const euler = new THREE.Euler().setFromQuaternion(state.player!.mesh.quaternion, 'YXZ');
-    // Pitch (x) should be clamped to GameConfig.stage.trenchMaxPitch (30 degrees ~ 0.52 rad)
-    expect(euler.x).toBeCloseTo(GameConfig.stage.trenchMaxPitch);
-    // Yaw (y) should be clamped to -GameConfig.stage.trenchMaxYaw (30 degrees ~ 0.52 rad)
-    expect(euler.y).toBeCloseTo(-GameConfig.stage.trenchMaxYaw);
+    // Pitch (x) should be clamped to GameConfig.stages.trench.maxPitch (30 degrees ~ 0.52 rad)
+    expect(euler.x).toBeCloseTo(GameConfig.stages.trench.maxPitch);
+    // Yaw (y) should be clamped to -GameConfig.stages.trench.maxYaw (30 degrees ~ 0.52 rad)
+    expect(euler.y).toBeCloseTo(-GameConfig.stages.trench.maxYaw);
     // Roll (z) should be exactly 0
     expect(euler.z).toBeCloseTo(0);
   });
@@ -78,14 +78,14 @@ describe('Trench Integration', () => {
     const camera = new THREE.PerspectiveCamera();
     
     // Reaching kill threshold
-    for (let i = 0; i < GameConfig.stage.dogfightKillsThreshold; i++) {
+    for (let i = 0; i < GameConfig.stages.dogfight.killsThreshold; i++) {
       addKill();
     }
     updateState(0.1, camera);
     
     const deathStar = worldScene.getObjectByName('DeathStar');
     const dsPos = deathStar!.position.clone();
-    state.player!.position.copy(dsPos).add(new THREE.Vector3(0, 0, GameConfig.stage.deathStarSize + GameConfig.stage.trenchTransitionDistance - 10));
+    state.player!.position.copy(dsPos).add(new THREE.Vector3(0, 0, GameConfig.stages.deathStar.size + GameConfig.stages.trench.transitionDistance - 10));
     
     updateState(0.1, camera);
     
