@@ -439,7 +439,7 @@ export class UIManager {
     this.firstUpdate = false;
   }
 
-  private retriggerAnimation(element: HTMLElement, className: string, existingTimeout: TimerHandle | null, onComplete?: (timeout: TimerHandle) => void) {
+  private retriggerAnimation(element: HTMLElement, className: string, existingTimeout: TimerHandle | null, onComplete: (timeout: TimerHandle) => void) {
     if (existingTimeout) {
       clearTimeout(existingTimeout);
     }
