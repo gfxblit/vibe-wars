@@ -33,7 +33,7 @@ describe('TrenchStage Size Debug Integration', () => {
     const baseMesh = turret.mesh.children[0] as THREE.Mesh;
     baseMesh.geometry.computeBoundingBox();
     const box = baseMesh.geometry.boundingBox!;
-    const size = GameConfig.turret.meshSize;
+    const size = GameConfig.stages.trench.turretSize;
     expect(box.max.x - box.min.x).toBeCloseTo(size * 0.8);
     
     // Check fireball size via EntityManager
