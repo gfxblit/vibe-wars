@@ -134,4 +134,48 @@ describe('InputManager Multi-touch Repro (Issue #50)', () => {
     expect(inputManager.getInput().x).toBeCloseTo(0.5);
     expect(inputManager.getInput().isFiring).toBe(false);
   });
+
+  it('does not stop firing if one of two fingers on fire button is lifted', () => {
+    // 1. First finger on fire button
+    const touch0 = { identifier: 0, clientX: 900, clientY: 900, target: fireButton };
+    listeners['touchstart']({
+        touches: [touch0],
+        changedTouches: [touch0],
+        target: fireButton,
+        preventDefault: vi.fn()
+    });
+    expect(inputManager.getInput().isFiring).toBe(true);
+
+    // 2. Second finger on fire button
+    const touch1 = { identifier: 1, clientX: 910, clientY: 910, target: fireButton };
+    listeners['touchstart']({
+        touches: [touch0, touch1],
+        changedTouches: [touch1],
+        target: fireButton,
+        preventDefault: vi.fn()
+    });
+    expect(inputManager.getInput().isFiring).toBe(true);
+
+    // 3. Lift first finger
+    listeners['touchend']({
+        touches: [touch1],
+        changedTouches: [touch0],
+        target: fireButton,
+        preventDefault: vi.fn()
+    });
+
+    // Should still be firing because touch1 is still down
+    expect(inputManager.getInput().isFiring).toBe(true);
+
+    // 4. Lift second finger
+    listeners['touchend']({
+        touches: [],
+        changedTouches: [touch1],
+        target: fireButton,
+        preventDefault: vi.fn()
+    });
+
+    // Should stop firing now
+    expect(inputManager.getInput().isFiring).toBe(false);
+  });
 });
