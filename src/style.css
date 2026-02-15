@@ -2,6 +2,15 @@
 @tailwind components;
 @tailwind utilities;
 
+@font-face {
+  font-family: 'Vector Battle';
+  src: url('./assets/fonts/vector-battle.woff') format('woff'),
+       url('./assets/fonts/vector-battle.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
 body { margin: 0; overflow: hidden; background-color: black; }
 
 #cursor {
@@ -24,7 +33,7 @@ body { margin: 0; overflow: hidden; background-color: black; }
   border: 2px solid #ff0000;
   background: none;
   color: #ff0000;
-  font-family: 'Courier New', Courier, monospace;
+  font-family: theme('fontFamily.retro');
   font-size: 20px;
   font-weight: bold;
   border-radius: 50%;
