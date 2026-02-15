@@ -34,6 +34,35 @@ describe('Game State', () => {
     expect(state.debugKillsThreshold).toBeUndefined();
   })
 
+  test('debug mode should be enabled if debug param is true in dev or preview', () => {
+    // Note: import.meta.env.DEV is true in test env, so we test that debug=true enables it
+    const originalSearch = window.location.search;
+    const originalPath = window.location.pathname;
+
+    // Simulate PR preview path
+    Object.defineProperty(window, 'location', {
+      value: {
+        search: '?debug=true',
+        pathname: '/repo/pr-123/',
+        href: 'http://localhost/repo/pr-123/?debug=true'
+      },
+      writable: true
+    });
+
+    initGame(scene, hudScene);
+    expect(state.debug).toBe(true);
+
+    // Restore
+    Object.defineProperty(window, 'location', {
+      value: {
+        search: originalSearch,
+        pathname: originalPath,
+        href: `http://localhost${originalPath}${originalSearch}`
+      },
+      writable: true
+    });
+  })
+
   test('spawnLasers creates at least 2 lasers and alternates colors', () => {
     const crosshairPos = { x: 0, y: 0 };
 
