@@ -117,10 +117,7 @@ describe('InputManager', () => {
     expect(inputManager.getInput().x).toBeLessThan(0);
   });
 
-  it('responds to mouse movement when dragging', () => {
-    // Mouse down on document body (not UI)
-    listeners['mousedown'](createMouseEvent('mousedown'));
-    
+  it('responds to mouse movement', () => {
     listeners['mousemove'](new MouseEvent('mousemove', { clientX: 0, clientY: 0 }));
     inputManager.update(0);
     
@@ -134,23 +131,18 @@ describe('InputManager', () => {
     expect(inputManager.getInput().y).toBe(0);
   });
 
-  it('resets to zero when mouse is released', () => {
-    listeners['mousedown'](createMouseEvent('mousedown'));
+  it('maintains position when mouse is released', () => {
     listeners['mousemove'](new MouseEvent('mousemove', { clientX: 0, clientY: 0 }));
     inputManager.update(0);
     expect(inputManager.getInput().x).toBe(-1);
 
     listeners['mouseup'](new MouseEvent('mouseup'));
     inputManager.update(0.1);
-    // Vector magnitude decay:
-    // Initial: (-1, 1), Length: sqrt(2)
-    // Step: 0.2 (2.0 speed * 0.1s)
-    // New Length: sqrt(2) - 0.2
-    // New X: -1 * (sqrt(2) - 0.2) / sqrt(2) = -0.8585...
-    expect(inputManager.getInput().x).toBeCloseTo(-0.858578);
+    // Expect NO decay
+    expect(inputManager.getInput().x).toBe(-1);
 
-    inputManager.update(1.0); // Should definitely be zero now
-    expect(inputManager.getInput().x).toBe(0);
+    inputManager.update(1.0);
+    expect(inputManager.getInput().x).toBe(-1);
   });
 
   it('responds to touch movement', () => {
@@ -277,15 +269,22 @@ describe('InputManager', () => {
      expect(inputManager.getInput().x).toBe(-1);
   });
 
-  it('returns to center in a straight line during decay', () => {
-    listeners['mousedown'](createMouseEvent('mousedown'));
-    // Set an off-axis position: x=0.8, y=0.4 (Ratio 2:1)
-    listeners['mousemove'](new MouseEvent('mousemove', { clientX: 900, clientY: 300 }));
+  it('returns to center in a straight line during decay (Touch)', () => {
+    // Touch start
+    const touch0 = { identifier: 0, clientX: 500, clientY: 500, target: document.body };
+    listeners['touchstart']({ touches: [touch0], changedTouches: [touch0], target: document.body, preventDefault: vi.fn() });
+
+    // Touch move to (580, 460) -> x=0.8, y=0.4 (touchRadius=100)
+    const touchMove = { identifier: 0, clientX: 580, clientY: 460, target: document.body };
+    listeners['touchmove']({ touches: [touchMove], changedTouches: [touchMove], preventDefault: vi.fn() });
+
     inputManager.update(0);
     expect(inputManager.getInput().x).toBeCloseTo(0.8);
     expect(inputManager.getInput().y).toBeCloseTo(0.4);
 
-    listeners['mouseup'](new MouseEvent('mouseup'));
+    // Touch end
+    listeners['touchend']({ touches: [], changedTouches: [touchMove], target: document.body });
+
     // Small decay step
     inputManager.update(0.1);
     const pos = inputManager.getInput();
@@ -327,7 +326,8 @@ describe('InputManager', () => {
     
     // Should start decaying
     inputManager.update(0.1);
-    expect(inputManager.getInput().x).toBeGreaterThan(-1);
+    // Mouse input does not decay
+    expect(inputManager.getInput().x).toBe(-1);
   });
 
   it('reports isFiring only when touch is on fire button', () => {
@@ -362,7 +362,7 @@ describe('InputManager', () => {
     expect(inputManager.getInput().isFiring).toBe(false);
   });
 
-  it('ignores clicks on other UI elements', () => {
+  it('ignores clicks on other UI elements but allows mouse look', () => {
     const pauseButton = document.createElement('button');
     document.body.appendChild(pauseButton);
 
@@ -372,11 +372,10 @@ describe('InputManager', () => {
 
     expect(inputManager.getInput().isFiring).toBe(false);
     
-    // Check dragging state indirectly (update would change input if dragging)
-    // If not dragging, update shouldn't move input if mouse moves
+    // Mouse move should still update input (Mouse Look) even if clicked on UI
     listeners['mousemove'](new MouseEvent('mousemove', { clientX: 0, clientY: 0 }));
     inputManager.update(0);
-    expect(inputManager.getInput().x).toBe(0);
+    expect(inputManager.getInput().x).toBe(-1);
 
     document.body.removeChild(pauseButton);
   });

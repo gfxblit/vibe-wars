@@ -21,6 +21,7 @@ export class InputManager {
   private useRelativeInput: boolean = false;
   private pointerAnchor: THREE.Vector2 = new THREE.Vector2(0, 0);
   private fireButton: HTMLElement | null = null;
+  private lastInputType: 'mouse' | 'touch' = 'mouse';
   
   private handleKeyDown = (event: KeyboardEvent) => {
     if (event.code === 'Space') {
@@ -68,11 +69,12 @@ export class InputManager {
   };
 
   private handleMouseMove = (event: MouseEvent) => {
-    if (!this.isDragging) return;
+    this.lastInputType = 'mouse';
     this.updatePointerInput(event.clientX, event.clientY);
   };
 
   private handleTouchStart = (event: TouchEvent) => {
+    this.lastInputType = 'touch';
     for (let i = 0; i < event.changedTouches.length; i++) {
       const touch = event.changedTouches[i];
       const target = touch.target as HTMLElement;
@@ -207,7 +209,7 @@ export class InputManager {
     this.keyboardInput.y = this.moveTowards(this.keyboardInput.y, this.keyboardTarget.y, step);
 
     // Pointer decay when not dragging
-    if (!this.isDragging) {
+    if (!this.isDragging && this.lastInputType === 'touch') {
       const length = this.pointerInput.length();
       if (length > 1e-6) {
         const step = GameConfig.input.centeringSpeed * dt;
