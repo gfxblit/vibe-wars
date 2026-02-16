@@ -78,9 +78,15 @@ export const state: GameState = {
   debugFireballSize: undefined,
 };
 
+export function isDebugEnabled(search: string, pathname: string, isDev: boolean): boolean {
+  const urlParams = new URLSearchParams(search);
+  const debugRequested = urlParams.get('debug') === 'true';
+  const isPRPreview = pathname.includes('/pr-');
+  return debugRequested && (isDev || isPRPreview);
+}
+
 export function initGame(worldScene: THREE.Scene, hudScene: THREE.Scene) {
-  const urlParams = new URLSearchParams(window.location.search);
-  state.debug = urlParams.get('debug') === 'true';
+  state.debug = isDebugEnabled(window.location.search, window.location.pathname, import.meta.env.DEV);
 
   // Reset core game values
   state.score = 0;

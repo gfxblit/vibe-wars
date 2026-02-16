@@ -16,7 +16,7 @@ describe('SurfaceStage Control Stability', () => {
     vi.stubGlobal('window', {
         innerWidth: 1024,
         innerHeight: 768,
-        location: { search: '' }
+        location: { search: '', pathname: '/' }
     });
     
     initGame(scene, new THREE.Scene());

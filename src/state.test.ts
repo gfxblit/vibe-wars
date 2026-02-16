@@ -1,5 +1,5 @@
 import { expect, test, beforeEach, describe } from 'vitest'
-import { state, initGame, addScore, takeDamage, goToNextStage, checkCollision, updateState, spawnLasers, spawnFireball } from './state'
+import { state, initGame, addScore, takeDamage, goToNextStage, checkCollision, updateState, spawnLasers, spawnFireball, isDebugEnabled } from './state'
 import * as THREE from 'three';
 import { Player } from './entities/Player';
 import { TieFighter } from './entities/TieFighter';
@@ -234,4 +234,26 @@ describe('Physics Utils', () => {
     const pos2 = new THREE.Vector3(2, 0, 0);
     expect(checkCollision(pos1, 0.5, pos2, 0.5)).toBe(false);
   })
+});
+
+describe('Security Checks', () => {
+  test('isDebugEnabled logic', () => {
+    // ?debug=true in DEV -> true
+    expect(isDebugEnabled('?debug=true', '/', true)).toBe(true);
+
+    // ?debug=true in PROD -> false
+    expect(isDebugEnabled('?debug=true', '/', false)).toBe(false);
+
+    // ?debug=true in PR Preview (PROD) -> true
+    expect(isDebugEnabled('?debug=true', '/pr-123/', false)).toBe(true);
+
+    // ?debug=false in DEV -> false
+    expect(isDebugEnabled('?debug=false', '/', true)).toBe(false);
+
+    // No params in DEV -> false
+    expect(isDebugEnabled('', '/', true)).toBe(false);
+
+    // Param present but not 'true' in DEV -> false
+    expect(isDebugEnabled('?debug=1', '/', true)).toBe(false);
+  });
 });
