@@ -351,7 +351,7 @@ export class UIManager {
       this.lastStage = state.stage;
       
       const currentStage = state.stageManager?.getStage();
-      if (currentStage?.showTitle !== false) {
+      if (currentStage?.showTitle ?? true) {
         this.stageValue.textContent = `STAGE: ${state.stage}`;
         this.stageValue.classList.remove('hidden');
 

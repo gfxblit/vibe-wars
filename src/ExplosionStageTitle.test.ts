@@ -65,29 +65,25 @@ describe('ExplosionStageTitle', () => {
     expect(hud?.textContent).toContain('STAGE: DOGFIGHT');
   });
 
-  it('should NOT display STAGE: EXPLOSION when in EXPLOSION stage', () => {
-    // Initial update to establish lastStage
-    uiManager.update(mockState);
+  describe('when in EXPLOSION stage', () => {
+    beforeEach(() => {
+      // Initial update to establish lastStage
+      uiManager.update(mockState);
 
-    // Transition to EXPLOSION
-    mockState.stage = 'EXPLOSION';
-    (mockState.stageManager!.getStage as any).mockReturnValue({ showTitle: false });
-    uiManager.update(mockState);
-    
-    const hud = document.getElementById('hud');
-    expect(hud?.textContent).not.toContain('STAGE: EXPLOSION');
-  });
+      // Transition to EXPLOSION
+      mockState.stage = 'EXPLOSION';
+      (mockState.stageManager!.getStage as any).mockReturnValue({ showTitle: false });
+      uiManager.update(mockState);
+    });
 
-  it('should still display GREAT SHOT KID! when in EXPLOSION stage', () => {
-    // Initial update to establish lastStage
-    uiManager.update(mockState);
+    it('should NOT display STAGE: EXPLOSION', () => {
+      const hud = document.getElementById('hud');
+      expect(hud?.textContent).not.toContain('STAGE: EXPLOSION');
+    });
 
-    // Transition to EXPLOSION
-    mockState.stage = 'EXPLOSION';
-    (mockState.stageManager!.getStage as any).mockReturnValue({ showTitle: false });
-    uiManager.update(mockState);
-    
-    const hud = document.getElementById('hud');
-    expect(hud?.textContent).toContain('GREAT SHOT KID!');
+    it('should still display GREAT SHOT KID!', () => {
+      const hud = document.getElementById('hud');
+      expect(hud?.textContent).toContain('GREAT SHOT KID!');
+    });
   });
 });
