@@ -196,8 +196,8 @@ export class EntityManager {
     return fireball;
   }
 
-  public spawnLaser(origin2D: THREE.Vector2, target2D: THREE.Vector2, color: number): Laser {
-    const laser = new Laser(origin2D, target2D, color);
+  public spawnLaser(originX: number, originY: number, targetX: number, targetY: number, color: number): Laser {
+    const laser = new Laser(originX, originY, targetX, targetY, color);
     this.lasers.push(laser);
     this.hudScene.add(laser.mesh);
     return laser;

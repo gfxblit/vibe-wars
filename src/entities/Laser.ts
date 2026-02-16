@@ -6,26 +6,41 @@ export class Laser extends Entity {
   public readonly mesh: THREE.Mesh;
   private progress: number = 0; // 0 to 1
   
-  private readonly origin2D: THREE.Vector2;
-  private readonly target2D: THREE.Vector2;
+  private readonly originX: number;
+  private readonly originY: number;
+  private readonly targetX: number;
+  private readonly targetY: number;
   private readonly color: number;
 
-  constructor(origin2D: THREE.Vector2, target2D: THREE.Vector2, color: number) {
+  private static geometry: THREE.PlaneGeometry;
+  private static materials: Map<number, THREE.MeshBasicMaterial> = new Map();
+
+  constructor(originX: number, originY: number, targetX: number, targetY: number, color: number) {
     super();
-    this.origin2D = origin2D.clone();
-    this.target2D = target2D.clone();
+    this.originX = originX;
+    this.originY = originY;
+    this.targetX = targetX;
+    this.targetY = targetY;
     this.color = color;
 
-    // A simple quad centered at origin, pointing up (+Y)
-    const geometry = new THREE.PlaneGeometry(1, 1);
-    const material = new THREE.MeshBasicMaterial({ 
-      color: this.color,
-      transparent: true,
-      opacity: 1.0,
-      depthTest: false
-    });
+    // Initialize static geometry if not exists
+    if (!Laser.geometry) {
+      Laser.geometry = new THREE.PlaneGeometry(1, 1);
+    }
+
+    // Get or create material
+    let material = Laser.materials.get(color);
+    if (!material) {
+      material = new THREE.MeshBasicMaterial({
+        color: this.color,
+        transparent: true,
+        opacity: 1.0,
+        depthTest: false
+      });
+      Laser.materials.set(color, material);
+    }
     
-    this.mesh = new THREE.Mesh(geometry, material);
+    this.mesh = new THREE.Mesh(Laser.geometry, material);
     
     this.updateMeshTransform();
   }
@@ -38,16 +53,24 @@ export class Laser extends Entity {
     const startP = this.progress;
     const endP = Math.min(1.0, this.progress + normBoltLength);
 
-    const start = new THREE.Vector2().lerpVectors(this.origin2D, this.target2D, startP);
-    const end = new THREE.Vector2().lerpVectors(this.origin2D, this.target2D, endP);
+    // Linear interpolation manually to avoid Vector2 allocation
+    const startX = this.originX + (this.targetX - this.originX) * startP;
+    const startY = this.originY + (this.targetY - this.originY) * startP;
 
-    const delta = new THREE.Vector2().subVectors(end, start);
-    const length = delta.length();
-    const angle = Math.atan2(delta.y, delta.x);
+    const endX = this.originX + (this.targetX - this.originX) * endP;
+    const endY = this.originY + (this.targetY - this.originY) * endP;
+
+    const deltaX = endX - startX;
+    const deltaY = endY - startY;
+
+    const length = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+    const angle = Math.atan2(deltaY, deltaX);
 
     // Position at the center of the bolt segment
-    const center = new THREE.Vector2().lerpVectors(start, end, 0.5);
-    this.mesh.position.set(center.x, center.y, 0);
+    const centerX = (startX + endX) * 0.5;
+    const centerY = (startY + endY) * 0.5;
+
+    this.mesh.position.set(centerX, centerY, 0);
     
     // Rotate to align with trajectory
     // Standard PlaneGeometry(1,1) faces +Z, with its 'up' along +Y.
@@ -78,11 +101,7 @@ export class Laser extends Entity {
   }
 
   public dispose(): void {
-    this.mesh.geometry.dispose();
-    if (Array.isArray(this.mesh.material)) {
-      this.mesh.material.forEach(m => m.dispose());
-    } else {
-      this.mesh.material.dispose();
-    }
+    // Do NOT dispose shared geometry and material to allow reuse.
+    // EntityManager removes mesh from scene.
   }
 }
