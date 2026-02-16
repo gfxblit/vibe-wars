@@ -9,6 +9,7 @@ export class Turret extends Entity implements Targetable {
   public isExploded: boolean = false;
   private pieceVelocities: THREE.Vector3[] = [];
   private fireballSize: number;
+  private material: THREE.MeshBasicMaterial;
 
   private readonly scratchVector3: THREE.Vector3 = new THREE.Vector3();
 
@@ -27,14 +28,14 @@ export class Turret extends Entity implements Targetable {
     this.mesh.position.copy(position);
     this.fireballSize = fireballSize;
 
-    const material = new THREE.MeshBasicMaterial({
+    this.material = new THREE.MeshBasicMaterial({
       color: GameConfig.turret.meshColor,
       wireframe: true
     });
 
     // Base - stays on the wall
     const baseGeo = new THREE.BoxGeometry(size * 0.8, size * 0.8, size * 0.2);
-    const base = new THREE.Mesh(baseGeo, material.clone());
+    const base = new THREE.Mesh(baseGeo, this.material);
     this.mesh.add(base);
 
     // Swivel Body - this is what looks at the player
@@ -42,24 +43,21 @@ export class Turret extends Entity implements Targetable {
     this.mesh.add(this.swivelBody);
 
     const bodyGeo = new THREE.BoxGeometry(size * 0.8, size * 0.5, size * 0.8);
-    const body = new THREE.Mesh(bodyGeo, material.clone());
+    const body = new THREE.Mesh(bodyGeo, this.material);
     this.swivelBody.add(body);
 
     // Two Barrels
     const barrelGeo = new THREE.CylinderGeometry(size / 15, size / 15, size * 0.8, 8);
     
-    const leftBarrel = new THREE.Mesh(barrelGeo, material.clone());
+    const leftBarrel = new THREE.Mesh(barrelGeo, this.material);
     leftBarrel.position.set(-size * 0.2, 0, size * 0.4);
     leftBarrel.rotation.x = Math.PI / 2;
     this.swivelBody.add(leftBarrel);
 
-    const rightBarrel = new THREE.Mesh(barrelGeo, material.clone());
+    const rightBarrel = new THREE.Mesh(barrelGeo, this.material);
     rightBarrel.position.set(size * 0.2, 0, size * 0.4);
     rightBarrel.rotation.x = Math.PI / 2;
     this.swivelBody.add(rightBarrel);
-    
-    // Dispose of original material template
-    material.dispose();
   }
 
   public explode(): void {
@@ -67,11 +65,7 @@ export class Turret extends Entity implements Targetable {
     this.isExploded = true;
 
     // Change color to orange
-    this.mesh.traverse(child => {
-      if (child instanceof THREE.Mesh && child.material instanceof THREE.MeshBasicMaterial) {
-        child.material.color.setHex(0xffa500);
-      }
-    });
+    this.material.color.setHex(0xffa500);
 
     // Generate random velocities for each piece
     this.mesh.children.forEach(() => {
@@ -133,12 +127,10 @@ export class Turret extends Entity implements Targetable {
   }
 
   public dispose(): void {
+    this.material.dispose();
     this.mesh.traverse(child => {
       if (child instanceof THREE.Mesh) {
         child.geometry.dispose();
-        if (child.material instanceof THREE.Material) {
-          child.material.dispose();
-        }
       }
     });
   }

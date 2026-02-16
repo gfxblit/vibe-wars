@@ -11,6 +11,7 @@ abstract class BaseCombatStrategy implements CombatStrategy {
   protected readonly laserPos2D = new THREE.Vector2();
   protected readonly fbPos2D = new THREE.Vector2();
   protected readonly tempVector3 = new THREE.Vector3();
+  protected readonly scratchCameraPos = new THREE.Vector3();
 
   public update(deltaTime: number, input: UserInput, camera: THREE.Camera): void {
     this.fireCooldown -= deltaTime;
@@ -36,13 +37,16 @@ abstract class BaseCombatStrategy implements CombatStrategy {
 
     let closestTarget: Targetable | null = null;
     let closestDist = Infinity;
-    const cameraPos = new THREE.Vector3();
-    camera.getWorldPosition(cameraPos);
+    
+    camera.getWorldPosition(this.scratchCameraPos);
 
     for (const target of state.entityManager.getTargets()) {
+      // UsegetWorldPosition to get accurate world position regardless of scene graph depth
       const worldPos = target.getWorldPosition(this.tempVector3);
+      
+      // Only target active, non-exploded entities
       if (!target.isExploded && checkAim(worldPos, input, camera)) {
-        const dist = worldPos.distanceTo(cameraPos);
+        const dist = worldPos.distanceTo(this.scratchCameraPos);
         if (dist < closestDist) {
           closestDist = dist;
           closestTarget = target;
@@ -50,6 +54,7 @@ abstract class BaseCombatStrategy implements CombatStrategy {
       }
     }
 
+    // Only explode the single closest target that was aimed at
     if (closestTarget) {
       closestTarget.explode();
       addScore(closestTarget.getScore());
