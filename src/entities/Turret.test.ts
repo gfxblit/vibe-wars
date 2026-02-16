@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { Turret } from './Turret';
 
 describe('Turret Entity', () => {
@@ -12,6 +12,7 @@ describe('Turret Entity', () => {
 
   it('should initialize with correct position and mesh', () => {
     expect(turret.mesh.position.equals(initialPosition)).toBe(true);
+    expect(turret.position.equals(initialPosition)).toBe(true);
     expect(turret.mesh.children.length).toBeGreaterThan(0);
   });
 
@@ -75,5 +76,64 @@ describe('Turret Entity', () => {
         expect(child.material.color.getHex()).toBe(0xffa500); // Orange
       }
     });
+
+    // Calling explode again should not change anything
+    turret.explode();
+    expect(turret.isExploded).toBe(true);
+  });
+
+  it('should move pieces when updated after explosion', () => {
+    turret.explode();
+    
+    // Store initial positions of children
+    const initialPositions = turret.mesh.children.map(child => child.position.clone());
+    const initialRotations = turret.mesh.children.map(child => child.rotation.clone());
+
+    // Update the turret
+    turret.update(1.0, new THREE.Vector3(), new THREE.Quaternion(), 0);
+
+    // Verify at least one piece has moved or rotated
+    let moved = false;
+    let rotated = false;
+    turret.mesh.children.forEach((child, index) => {
+      if (!child.position.equals(initialPositions[index])) {
+        moved = true;
+      }
+      if (!child.rotation.equals(initialRotations[index])) {
+        rotated = true;
+      }
+    });
+
+    expect(moved).toBe(true);
+    expect(rotated).toBe(true);
+  });
+
+  it('should return correct score, velocity and fireball size', () => {
+    expect(turret.getScore()).toBeGreaterThan(0);
+    
+    const playerForward = new THREE.Vector3(0, 0, -1);
+    const playerSpeed = 100;
+    const velocity = turret.getVelocity(playerForward, playerSpeed);
+    expect(velocity.z).toBe(-100);
+    
+    expect(turret.getFireballSize()).toBeGreaterThan(0);
+  });
+
+  it('should dispose resources correctly', () => {
+    const materialDisposeSpy = vi.spyOn((turret as any).material, 'dispose');
+    
+    // Create a spy for geometry dispose
+    const geometries: THREE.BufferGeometry[] = [];
+    turret.mesh.traverse(child => {
+      if (child instanceof THREE.Mesh) {
+        geometries.push(child.geometry);
+      }
+    });
+    const geoSpies = geometries.map(geo => vi.spyOn(geo, 'dispose'));
+
+    turret.dispose();
+
+    expect(materialDisposeSpy).toHaveBeenCalled();
+    geoSpies.forEach(spy => expect(spy).toHaveBeenCalled());
   });
 });
