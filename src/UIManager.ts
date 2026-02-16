@@ -349,15 +349,19 @@ export class UIManager {
     // Handle Stage display and instructions
     if (this.lastStage !== state.stage) {
       this.lastStage = state.stage;
-      this.stageValue.textContent = `STAGE: ${state.stage}`;
-      this.stageValue.classList.remove('hidden');
+      
+      const currentStage = state.stageManager?.getStage();
+      if (currentStage?.showTitle ?? true) {
+        this.stageValue.textContent = `STAGE: ${state.stage}`;
+        this.stageValue.classList.remove('hidden');
 
-      // Auto-hide stage title after 3 seconds
-      if (this.stageTimeout) clearTimeout(this.stageTimeout);
-      this.stageTimeout = window.setTimeout(() => {
-        this.stageValue.classList.add('hidden');
-        this.stageTimeout = null;
-      }, 3000);
+        // Auto-hide stage title after 3 seconds
+        if (this.stageTimeout) clearTimeout(this.stageTimeout);
+        this.stageTimeout = window.setTimeout(() => {
+          this.stageValue.classList.add('hidden');
+          this.stageTimeout = null;
+        }, 3000);
+      }
 
       // Context-sensitive instructions
       if (this.instructionTimeout) clearTimeout(this.instructionTimeout);

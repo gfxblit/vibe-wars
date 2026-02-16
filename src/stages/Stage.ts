@@ -9,6 +9,9 @@ export abstract class Stage {
   public get showStarField(): boolean {
     return false;
   }
+  public get showTitle(): boolean {
+    return true;
+  }
   public getTurrets(): Turret[] {
     return [];
   }
