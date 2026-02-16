@@ -8,6 +8,7 @@ import { DeathStar } from '../entities/DeathStar';
 export class ExplosionStage extends Stage {
   public override get speed() { return GameConfig.explosionStage.escapeSpeed; }
   public override get showStarField(): boolean { return true; }
+  public override get showTitle(): boolean { return false; }
   private deathStar: DeathStar;
   private elapsedTime: number = 0;
   private hasExploded: boolean = false;

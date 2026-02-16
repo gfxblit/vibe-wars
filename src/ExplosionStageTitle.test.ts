@@ -15,6 +15,10 @@ describe('ExplosionStageTitle', () => {
     state.stageManager = null;
 
     // Setup mock state
+    const mockStageManager = {
+      getStage: vi.fn().mockReturnValue({ showTitle: true })
+    } as any;
+
     mockState = {
       score: 0,
       shields: GameConfig.player.maxShields,
@@ -24,7 +28,7 @@ describe('ExplosionStageTitle', () => {
       isGameOver: false,
       player: null,
       entityManager: null,
-      stageManager: null,
+      stageManager: mockStageManager,
       viewport: {
         width: 1024,
         height: 768,
@@ -67,10 +71,10 @@ describe('ExplosionStageTitle', () => {
 
     // Transition to EXPLOSION
     mockState.stage = 'EXPLOSION';
+    (mockState.stageManager!.getStage as any).mockReturnValue({ showTitle: false });
     uiManager.update(mockState);
     
     const hud = document.getElementById('hud');
-    // This is expected to FAIL initially
     expect(hud?.textContent).not.toContain('STAGE: EXPLOSION');
   });
 
@@ -80,6 +84,7 @@ describe('ExplosionStageTitle', () => {
 
     // Transition to EXPLOSION
     mockState.stage = 'EXPLOSION';
+    (mockState.stageManager!.getStage as any).mockReturnValue({ showTitle: false });
     uiManager.update(mockState);
     
     const hud = document.getElementById('hud');

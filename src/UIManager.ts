@@ -350,7 +350,8 @@ export class UIManager {
     if (this.lastStage !== state.stage) {
       this.lastStage = state.stage;
       
-      if (state.stage !== 'EXPLOSION') {
+      const currentStage = state.stageManager?.getStage();
+      if (currentStage?.showTitle !== false) {
         this.stageValue.textContent = `STAGE: ${state.stage}`;
         this.stageValue.classList.remove('hidden');
 
