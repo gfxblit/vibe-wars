@@ -89,27 +89,25 @@ describe('Issue 124 Reproduction: Hitting one turret destroys them all', () => {
     const turret1 = new Turret(new THREE.Vector3(0, 0, 0));
     const turret2 = new Turret(new THREE.Vector3(100, 0, 0));
 
-    const materials1: THREE.Material[] = [];
+    const materials1 = new Set<THREE.Material>();
     turret1.mesh.traverse(child => {
       if (child instanceof THREE.Mesh) {
-        materials1.push(child.material);
+        materials1.add(child.material as THREE.Material);
       }
     });
 
-    const materials2: THREE.Material[] = [];
+    const materials2 = new Set<THREE.Material>();
     turret2.mesh.traverse(child => {
       if (child instanceof THREE.Mesh) {
-        materials2.push(child.material);
+        materials2.add(child.material as THREE.Material);
       }
     });
 
-    expect(materials1.length).toBeGreaterThan(0);
-    expect(materials2.length).toBeGreaterThan(0);
+    expect(materials1.size).toBeGreaterThan(0);
+    expect(materials2.size).toBeGreaterThan(0);
 
-    materials1.forEach(m1 => {
-      materials2.forEach(m2 => {
-        expect(m1).not.toBe(m2);
-      });
-    });
+    for (const material of materials1) {
+      expect(materials2.has(material)).toBe(false);
+    }
   });
 });
