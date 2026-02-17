@@ -34,7 +34,15 @@ describe('DogfightCombatStrategy', () => {
     initGame(scene, hudScene);
     camera = new THREE.PerspectiveCamera();
     camera.updateMatrixWorld();
-    strategy = new DogfightCombatStrategy();
+    const strategyConfig = {
+      maxRange: GameConfig.laser.maxRange,
+      fireCooldown: GameConfig.laser.cooldown,
+      fireballCollisionRadiusNDC: GameConfig.fireball.collisionRadiusNDC,
+      fireballPoints: GameConfig.fireball.points,
+      baseForwardSpeed: GameConfig.player.baseForwardSpeed,
+      torpedoSpeedMultiplier: GameConfig.torpedo.speedMultiplier,
+    };
+    strategy = new DogfightCombatStrategy(strategyConfig);
     vi.clearAllMocks();
   });
 
@@ -68,7 +76,15 @@ describe('TrenchCombatStrategy', () => {
     initGame(scene, hudScene);
     camera = new THREE.PerspectiveCamera();
     camera.updateMatrixWorld();
-    strategy = new TrenchCombatStrategy();
+    const strategyConfig = {
+      maxRange: GameConfig.laser.maxRange,
+      fireCooldown: GameConfig.laser.cooldown,
+      fireballCollisionRadiusNDC: GameConfig.fireball.collisionRadiusNDC,
+      fireballPoints: GameConfig.fireball.points,
+      baseForwardSpeed: GameConfig.player.baseForwardSpeed,
+      torpedoSpeedMultiplier: GameConfig.torpedo.speedMultiplier,
+    };
+    strategy = new TrenchCombatStrategy(strategyConfig);
     vi.clearAllMocks();
   });
 
@@ -122,7 +138,15 @@ describe('SurfaceCombatStrategy', () => {
     initGame(scene, hudScene);
     camera = new THREE.PerspectiveCamera();
     camera.updateMatrixWorld();
-    strategy = new SurfaceCombatStrategy();
+    const strategyConfig = {
+      maxRange: GameConfig.laser.maxRange,
+      fireCooldown: GameConfig.laser.cooldown,
+      fireballCollisionRadiusNDC: GameConfig.fireball.collisionRadiusNDC,
+      fireballPoints: GameConfig.fireball.points,
+      baseForwardSpeed: GameConfig.player.baseForwardSpeed,
+      torpedoSpeedMultiplier: GameConfig.torpedo.speedMultiplier,
+    };
+    strategy = new SurfaceCombatStrategy(strategyConfig);
     vi.clearAllMocks();
   });
 
