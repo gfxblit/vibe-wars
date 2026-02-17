@@ -4,7 +4,7 @@ import { GameConfig } from './config';
 type TimerHandle = number;
 
 export class UIManager {
-  private static readonly BUTTON_CLASSES = 'px-2 py-1 border border-vector-green hover:bg-vector-green hover:text-black transition-colors font-retro';
+  private static readonly BUTTON_CLASSES = 'px-2 py-1 border border-vector-green hover:bg-vector-green hover:text-black transition-colors font-retro cursor-pointer';
 
   private hud: HTMLElement;
   private scoreValue!: HTMLElement;
@@ -81,14 +81,14 @@ export class UIManager {
   }
 
   private createDebugPanel() {
-    this.debugPanel = this.createEl('div', 'fixed bottom-4 left-4 pointer-events-auto bg-black bg-opacity-70 border border-vector-green p-4 flex flex-col space-y-2 text-vector-green font-retro font-bold text-xs z-20', document.body);
+    this.debugPanel = this.createEl('div', 'fixed bottom-4 left-4 pointer-events-auto bg-black bg-opacity-70 border border-vector-green p-4 flex flex-col space-y-2 text-vector-green font-retro font-bold text-xs z-20 cursor-auto', document.body);
     this.debugPanel.id = 'debug-panel';
 
     const header = this.createEl('div', 'flex justify-between items-center mb-2 border-b border-vector-green pb-1', this.debugPanel);
     const title = this.createEl('div', '', header);
     title.textContent = 'DEBUG CONSOLE';
 
-    const toggleBtn = this.createEl('button', 'ml-4 hover:text-white transition-colors font-retro', header);
+    const toggleBtn = this.createEl('button', 'ml-4 hover:text-white transition-colors font-retro cursor-pointer', header);
     toggleBtn.id = 'debug-minimize-toggle';
     toggleBtn.textContent = '[-]';
 
@@ -154,7 +154,7 @@ export class UIManager {
 
     // Kills Threshold
     this.createEl('div', 'mt-4 mb-2 border-b border-vector-green pb-1', content).textContent = 'KILLS TO ADVANCE';
-    const killsInput = this.createEl('input', 'w-full bg-black text-vector-green border border-vector-green px-2 py-1', content) as HTMLInputElement;
+    const killsInput = this.createEl('input', 'w-full bg-black text-vector-green border border-vector-green px-2 py-1 cursor-text', content) as HTMLInputElement;
     killsInput.id = 'debug-kills-input';
     killsInput.type = 'number';
     killsInput.min = '0';
@@ -173,7 +173,7 @@ export class UIManager {
 
     // Turret Size
     this.createEl('div', 'mt-4 mb-2 border-b border-vector-green pb-1', content).textContent = 'TURRET SIZE';
-    const turretSizeInput = this.createEl('input', 'w-full bg-black text-vector-green border border-vector-green px-2 py-1', content) as HTMLInputElement;
+    const turretSizeInput = this.createEl('input', 'w-full bg-black text-vector-green border border-vector-green px-2 py-1 cursor-text', content) as HTMLInputElement;
     turretSizeInput.id = 'debug-turret-size-input';
     turretSizeInput.type = 'number';
     turretSizeInput.min = '1';
@@ -193,7 +193,7 @@ export class UIManager {
 
     // Fireball Size
     this.createEl('div', 'mt-4 mb-2 border-b border-vector-green pb-1', content).textContent = 'FIREBALL SIZE';
-    const fireballSizeInput = this.createEl('input', 'w-full bg-black text-vector-green border border-vector-green px-2 py-1', content) as HTMLInputElement;
+    const fireballSizeInput = this.createEl('input', 'w-full bg-black text-vector-green border border-vector-green px-2 py-1 cursor-text', content) as HTMLInputElement;
     fireballSizeInput.id = 'debug-fireball-size-input';
     fireballSizeInput.type = 'number';
     fireballSizeInput.min = '1';
@@ -294,13 +294,13 @@ export class UIManager {
   }
 
   private createGameOverOverlay() {
-    this.gameOver = this.createEl('div', 'fixed inset-0 flex flex-col items-center justify-center bg-black bg-opacity-70 hidden z-50 pointer-events-auto', this.hud);
+    this.gameOver = this.createEl('div', 'fixed inset-0 flex flex-col items-center justify-center bg-black bg-opacity-70 hidden z-50 pointer-events-auto cursor-auto', this.hud);
     this.gameOver.id = 'game-over';
 
     const text = this.createEl('div', 'text-vector-red text-6xl font-retro animate-pulse mb-8', this.gameOver);
     text.textContent = 'GAME OVER';
 
-    const restartBtn = this.createEl('button', 'px-8 py-3 border-2 border-vector-green text-vector-green hover:bg-vector-green hover:text-black font-retro text-2xl transition-colors focus:outline-none focus:ring-2 focus:ring-vector-green focus:ring-offset-2 focus:ring-offset-black', this.gameOver);
+    const restartBtn = this.createEl('button', 'px-8 py-3 border-2 border-vector-green text-vector-green hover:bg-vector-green hover:text-black font-retro text-2xl transition-colors focus:outline-none focus:ring-2 focus:ring-vector-green focus:ring-offset-2 focus:ring-offset-black cursor-pointer', this.gameOver);
     restartBtn.textContent = 'RESTART MISSION';
     restartBtn.setAttribute('aria-label', 'Restart Game');
     restartBtn.onclick = () => window.location.reload();
