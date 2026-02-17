@@ -10,6 +10,7 @@ import { Fireball } from './entities/Fireball';
 import { GameConfig } from './config';
 import { EntityManager } from './entities/EntityManager';
 import { StageManager } from './StageManager';
+import { isDev } from './environment';
 
 export type GameStage = 'DOGFIGHT' | 'SURFACE' | 'TRENCH' | 'EXPLOSION';
 
@@ -80,7 +81,11 @@ export const state: GameState = {
 
 export function initGame(worldScene: THREE.Scene, hudScene: THREE.Scene) {
   const urlParams = new URLSearchParams(window.location.search);
-  state.debug = urlParams.get('debug') === 'true';
+  const isDebugParam = urlParams.get('debug') === 'true';
+  const isPrPreview = window.location.pathname.includes('/pr-');
+
+  // Security fix: Only allow debug mode in DEV environment or PR previews
+  state.debug = isDebugParam && (isDev() || isPrPreview);
 
   // Reset core game values
   state.score = 0;
