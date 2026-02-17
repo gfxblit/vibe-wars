@@ -4,6 +4,7 @@ import { UserInput } from './input';
 import { CombatStrategy } from './CombatStrategy';
 import { DogfightCombatStrategy, SurfaceCombatStrategy, TrenchCombatStrategy } from './CombatStrategies';
 import { GameStage } from './state';
+import { GameConfig } from './config';
 
 export class CombatSystem {
   private camera: THREE.Camera;
@@ -29,15 +30,24 @@ export class CombatSystem {
     }
 
     this.currentStage = state.stage;
+    const strategyConfig = {
+      maxRange: GameConfig.laser.maxRange,
+      fireCooldown: GameConfig.laser.cooldown,
+      fireballCollisionRadiusNDC: GameConfig.fireball.collisionRadiusNDC,
+      fireballPoints: GameConfig.fireball.points,
+      baseForwardSpeed: GameConfig.player.baseForwardSpeed,
+      torpedoSpeedMultiplier: GameConfig.torpedo.speedMultiplier,
+    };
+
     switch (this.currentStage) {
       case 'DOGFIGHT':
-        this.currentStrategy = new DogfightCombatStrategy();
+        this.currentStrategy = new DogfightCombatStrategy(strategyConfig);
         break;
       case 'SURFACE':
-        this.currentStrategy = new SurfaceCombatStrategy();
+        this.currentStrategy = new SurfaceCombatStrategy(strategyConfig);
         break;
       case 'TRENCH':
-        this.currentStrategy = new TrenchCombatStrategy();
+        this.currentStrategy = new TrenchCombatStrategy(strategyConfig);
         break;
       default:
         this.currentStrategy = null;

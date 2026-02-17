@@ -1,9 +1,8 @@
 import * as THREE from 'three';
-import { CombatStrategy } from './CombatStrategy';
+import { CombatStrategy, CombatStrategyConfig } from './CombatStrategy';
 import { UserInput } from './input';
 import { state, spawnLasers, addScore, addKill, spawnTorpedo } from './state';
 import { checkAim } from './collision';
-import { GameConfig } from './config';
 import { Targetable } from './entities/Entity';
 
 abstract class BaseCombatStrategy implements CombatStrategy {
@@ -11,13 +10,19 @@ abstract class BaseCombatStrategy implements CombatStrategy {
   protected readonly laserPos2D = new THREE.Vector2();
   protected readonly fbPos2D = new THREE.Vector2();
   protected readonly tempVector3 = new THREE.Vector3();
+  protected readonly scratchCameraPos = new THREE.Vector3();
+  protected readonly config: CombatStrategyConfig;
+
+  constructor(config: CombatStrategyConfig) {
+    this.config = config;
+  }
 
   public update(deltaTime: number, input: UserInput, camera: THREE.Camera): void {
     this.fireCooldown -= deltaTime;
 
     if (input.isFiring && this.fireCooldown <= 0) {
       this.fire(input, camera);
-      this.fireCooldown = GameConfig.laser.cooldown;
+      this.fireCooldown = this.config.fireCooldown;
     }
 
     this.updateLasers(camera);
@@ -36,20 +41,24 @@ abstract class BaseCombatStrategy implements CombatStrategy {
 
     let closestTarget: Targetable | null = null;
     let closestDist = Infinity;
-    const cameraPos = new THREE.Vector3();
-    camera.getWorldPosition(cameraPos);
+    
+    camera.getWorldPosition(this.scratchCameraPos);
 
     for (const target of state.entityManager.getTargets()) {
+      // UsegetWorldPosition to get accurate world position regardless of scene graph depth
       const worldPos = target.getWorldPosition(this.tempVector3);
+      
+      // Only target active, non-exploded entities within max range
       if (!target.isExploded && checkAim(worldPos, input, camera)) {
-        const dist = worldPos.distanceTo(cameraPos);
-        if (dist < closestDist) {
+        const dist = worldPos.distanceTo(this.scratchCameraPos);
+        if (dist < closestDist && dist < this.config.maxRange) {
           closestDist = dist;
           closestTarget = target;
         }
       }
     }
 
+    // Only explode the single closest target that was aimed at
     if (closestTarget) {
       closestTarget.explode();
       addScore(closestTarget.getScore());
@@ -66,7 +75,7 @@ abstract class BaseCombatStrategy implements CombatStrategy {
 
     const lasers = state.entityManager.getLasers();
     const fireballs = state.entityManager.getFireballs();
-    const collisionRadiusSq = GameConfig.fireball.collisionRadiusNDC * GameConfig.fireball.collisionRadiusNDC;
+    const collisionRadiusSq = this.config.fireballCollisionRadiusNDC * this.config.fireballCollisionRadiusNDC;
 
     lasers.forEach(laser => {
       this.laserPos2D.set(laser.mesh.position.x, laser.mesh.position.y);
@@ -80,7 +89,7 @@ abstract class BaseCombatStrategy implements CombatStrategy {
 
         const distSq = this.laserPos2D.distanceToSquared(this.fbPos2D);
         if (distSq < collisionRadiusSq) {
-          addScore(GameConfig.fireball.points);
+          addScore(this.config.fireballPoints);
           fb.explode();
         }
       }
@@ -89,18 +98,30 @@ abstract class BaseCombatStrategy implements CombatStrategy {
 }
 
 export class DogfightCombatStrategy extends BaseCombatStrategy {
+  constructor(config: CombatStrategyConfig) {
+    super(config);
+  }
+
   protected checkHits(input: UserInput, camera: THREE.Camera) {
     this.checkTargets(input, camera);
   }
 }
 
 export class SurfaceCombatStrategy extends BaseCombatStrategy {
+  constructor(config: CombatStrategyConfig) {
+    super(config);
+  }
+
   protected checkHits(input: UserInput, camera: THREE.Camera) {
     this.checkTargets(input, camera);
   }
 }
 
 export class TrenchCombatStrategy extends BaseCombatStrategy {
+  constructor(config: CombatStrategyConfig) {
+    super(config);
+  }
+
   protected checkHits(input: UserInput, camera: THREE.Camera) {
     this.checkTargets(input, camera);
   }
@@ -125,8 +146,8 @@ export class TrenchCombatStrategy extends BaseCombatStrategy {
     
     camera.getWorldPosition(this.tempVector3);
     const direction = new THREE.Vector3().subVectors(targetPoint, this.tempVector3).normalize();
-    const stageSpeed = state.stageManager?.getStage()?.speed ?? GameConfig.player.baseForwardSpeed;
-    const velocity = direction.multiplyScalar(stageSpeed * GameConfig.torpedo.speedMultiplier);
+    const stageSpeed = state.stageManager?.getStage()?.speed ?? this.config.baseForwardSpeed;
+    const velocity = direction.multiplyScalar(stageSpeed * this.config.torpedoSpeedMultiplier);
 
     spawnTorpedo(position, velocity);
   }

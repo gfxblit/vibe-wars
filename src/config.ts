@@ -162,6 +162,7 @@ export const GameConfig = deepFreeze({
   laser: {
     speed: 2000,
     cooldown: 0.15,
+    maxRange: 800,
     targetDepth: 200,
     boltLength: 30,
     thickness: 10,

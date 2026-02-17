@@ -95,8 +95,17 @@ describe('Turret Fireball Movement', () => {
     const projected = turretPos.clone().project(camera);
     const input = { x: projected.x, y: projected.y, isFiring: true };
 
+    const strategyConfig = {
+      maxRange: GameConfig.laser.maxRange,
+      fireCooldown: GameConfig.laser.cooldown,
+      fireballCollisionRadiusNDC: GameConfig.fireball.collisionRadiusNDC,
+      fireballPoints: GameConfig.fireball.points,
+      baseForwardSpeed: GameConfig.player.baseForwardSpeed,
+      torpedoSpeedMultiplier: GameConfig.torpedo.speedMultiplier,
+    };
+
     // Update via CombatSystem or directly via state methods
-    const strategy = new DogfightCombatStrategy();
+    const strategy = new DogfightCombatStrategy(strategyConfig);
     strategy.update(0.1, input, camera);
 
     expect(turret.isExploded).toBe(true);

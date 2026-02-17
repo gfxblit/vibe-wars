@@ -262,7 +262,9 @@ export class EntityManager {
   }
 
   public addTarget(target: Targetable): void {
-    this.additionalTargets.push(target);
+    if (!this.additionalTargets.includes(target)) {
+      this.additionalTargets.push(target);
+    }
   }
 
   public getTargets(): Targetable[] {
