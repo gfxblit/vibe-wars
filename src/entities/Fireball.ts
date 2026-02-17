@@ -10,6 +10,7 @@ export class Fireball extends Entity {
   explosionTimer: number = 0;
   private sparkleVelocities: THREE.Vector3[] = [];
   private sparkleRotationSpeeds: number[] = [];
+  private static sharedTexture: THREE.Texture | null = null;
 
   constructor(position: THREE.Vector3, velocity: THREE.Vector3, size: number = GameConfig.fireball.sparkleSize) {
     super();
@@ -17,6 +18,10 @@ export class Fireball extends Entity {
     this.mesh.position.copy(position);
     this.previousPosition = position.clone();
     this.velocity = velocity.clone();
+
+    if (!Fireball.sharedTexture) {
+      Fireball.sharedTexture = Fireball.createSparkleTexture();
+    }
 
     const baseColor = new THREE.Color(GameConfig.fireball.meshColor);
 
@@ -27,7 +32,7 @@ export class Fireball extends Entity {
       color.offsetHSL((Math.random() - 0.5) * 0.1, 0, (Math.random() - 0.5) * 0.2);
 
       const material = new THREE.SpriteMaterial({
-        map: this.createSparkleTexture(),
+        map: Fireball.sharedTexture,
         color: color,
         transparent: true,
         blending: THREE.AdditiveBlending,
@@ -51,7 +56,7 @@ export class Fireball extends Entity {
     }
   }
 
-  private createSparkleTexture(): THREE.Texture {
+  private static createSparkleTexture(): THREE.Texture {
     const canvas = document.createElement('canvas');
     canvas.width = 64;
     canvas.height = 64;
@@ -142,7 +147,7 @@ export class Fireball extends Entity {
   dispose(): void {
     this.mesh.children.forEach(child => {
       if (child instanceof THREE.Sprite) {
-        child.material.map?.dispose();
+        // Do not dispose the shared texture map
         child.material.dispose();
       }
     });
