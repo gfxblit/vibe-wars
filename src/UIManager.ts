@@ -20,8 +20,10 @@ export class UIManager {
   private gameOver!: HTMLElement;
   private debugPanel?: HTMLElement;
   private damageOverlay!: HTMLElement;
+  private restartButton!: HTMLButtonElement;
   private stageButtons?: Map<string, HTMLElement>;
   private lastShields: number;
+  private lastIsGameOver: boolean = false;
   private lastStage: string = '';
   private lastIsDeathStarDestroyed: boolean = false;
   private damageTimeout: TimerHandle | null = null;
@@ -302,6 +304,7 @@ export class UIManager {
     restartBtn.textContent = 'RESTART MISSION';
     restartBtn.setAttribute('aria-label', 'Restart Game');
     restartBtn.onclick = () => window.location.reload();
+    this.restartButton = restartBtn as HTMLButtonElement;
   }
 
   destroy() {
@@ -420,9 +423,15 @@ export class UIManager {
 
     if (state.isGameOver) {
       this.gameOver.classList.remove('hidden');
+      if (!this.lastIsGameOver) {
+        this.gameOver.classList.add('animate-fade-in');
+        this.restartButton?.focus();
+      }
     } else {
       this.gameOver.classList.add('hidden');
+      this.gameOver.classList.remove('animate-fade-in');
     }
+    this.lastIsGameOver = state.isGameOver;
 
     if (this.stageButtons) {
       this.updateStageButtons(state.stage);

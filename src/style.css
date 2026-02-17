@@ -68,12 +68,21 @@ body { margin: 0; overflow: hidden; background-color: black; }
   100% { transform: scale(1); filter: brightness(1); }
 }
 
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
 .animate-damage-flash {
   animation: damage-flash var(--ui-damage-flash-duration, 0.15s) ease-out forwards;
 }
 
 .animate-shield-impact {
   animation: shield-impact var(--ui-damage-flash-duration, 0.15s) ease-out forwards;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-out forwards;
 }
 
 .debug-minimized {
