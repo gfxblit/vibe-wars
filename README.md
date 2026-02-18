@@ -18,27 +18,24 @@ A first-person space combat simulator that puts the player in the role of Luke S
 The control scheme simulates the original flight yoke. The ship's nose "chases" the crosshair.
 
 *   **PC (Mouse):** Mouse moves crosshair; edges pitch/yaw ship. Left Click/Space for Laser. Torpedoes auto-fire when aiming at the exhaust port while firing.
-    *   **Inverted Option:** Toggle available in settings to invert Y-Axis (Mouse Up = Ship Down) to mimic real flight controls.
 *   **Mobile (Touch):** Virtual yoke (left) for steering, Action button (right) for fire. Torpedoes auto-fire when aiming at the exhaust port while firing.
 
 ### Level Stages
 1.  **Dogfight:** Destroy TIE Fighters and avoid fireballs.
-2.  **Surface:** Destroy bunkers and towers on the Death Star surface.
+2.  **Surface:** Destroy bunkers and towers on the Death Star surface. (Skipped in Wave 1)
 3.  **Trench Run:** Navigate obstacles and auto-fire the proton torpedo into the exhaust port by aiming while firing.
 
 ### Scoring System
 | Action | Points Awarded |
 | :--- | :--- |
-| Destroy TIE Fighter | 1,000 |
-| Destroy Fireball | 33 |
+| Destroy TIE Fighter | 100 |
+| Destroy Fireball | 100 |
 | Destroy Laser Tower | 200 |
-| Destroy Tower Top | 50 |
-| **Destroy Death Star** | **25,000 / 50,000 / 100,000** (Scales by wave) |
-| Remaining Shields Bonus | Variable based on wave |
+| **Destroy Death Star** | **10,000** |
+| Remaining Shields Bonus | +1 Shield (up to max) |
 
 ### Visual Style
 *   **1983 Arcade Aesthetic:** Vector graphics using colored lines (Green, Red, Yellow, Blue).
-*   **Audio:** Chiptune music and digitized voice samples.
 
 ---
 
