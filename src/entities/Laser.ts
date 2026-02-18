@@ -10,22 +10,33 @@ export class Laser extends Entity {
   private readonly target2D: THREE.Vector2;
   private readonly color: number;
 
+  private static geometry: THREE.PlaneGeometry;
+  private static materials: Map<number, THREE.MeshBasicMaterial> = new Map();
+
   constructor(origin2D: THREE.Vector2, target2D: THREE.Vector2, color: number) {
     super();
     this.origin2D = origin2D.clone();
     this.target2D = target2D.clone();
     this.color = color;
 
-    // A simple quad centered at origin, pointing up (+Y)
-    const geometry = new THREE.PlaneGeometry(1, 1);
-    const material = new THREE.MeshBasicMaterial({ 
-      color: this.color,
-      transparent: true,
-      opacity: 1.0,
-      depthTest: false
-    });
+    // Use shared geometry
+    if (!Laser.geometry) {
+      Laser.geometry = new THREE.PlaneGeometry(1, 1);
+    }
+
+    // Use shared material per color
+    let material = Laser.materials.get(color);
+    if (!material) {
+      material = new THREE.MeshBasicMaterial({
+        color: this.color,
+        transparent: true,
+        opacity: 1.0,
+        depthTest: false
+      });
+      Laser.materials.set(color, material);
+    }
     
-    this.mesh = new THREE.Mesh(geometry, material);
+    this.mesh = new THREE.Mesh(Laser.geometry, material);
     
     this.updateMeshTransform();
   }
@@ -78,11 +89,7 @@ export class Laser extends Entity {
   }
 
   public dispose(): void {
-    this.mesh.geometry.dispose();
-    if (Array.isArray(this.mesh.material)) {
-      this.mesh.material.forEach(m => m.dispose());
-    } else {
-      this.mesh.material.dispose();
-    }
+    // Shared geometry and materials should NOT be disposed as they are reused by all lasers
+    // The mesh itself will be garbage collected when removed from the scene
   }
 }

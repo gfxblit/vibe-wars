@@ -25,14 +25,34 @@ describe('Laser (HUD-based)', () => {
     expect(laser.isExpired()).toBe(true);
   });
 
-  it('disposes of geometry and material', () => {
+  it('does NOT dispose of shared geometry and material', () => {
     const laser = new Laser(new THREE.Vector2(), new THREE.Vector2(), 0xffffff);
     const geometryDisposeSpy = vi.spyOn(laser.mesh.geometry, 'dispose');
     const materialDisposeSpy = vi.spyOn(laser.mesh.material as THREE.Material, 'dispose');
     
     laser.dispose();
     
-    expect(geometryDisposeSpy).toHaveBeenCalled();
-    expect(materialDisposeSpy).toHaveBeenCalled();
+    expect(geometryDisposeSpy).not.toHaveBeenCalled();
+    expect(materialDisposeSpy).not.toHaveBeenCalled();
+  });
+
+  it('reuses geometry and material for same color', () => {
+    const origin = new THREE.Vector2();
+    const target = new THREE.Vector2();
+    const laser1 = new Laser(origin, target, 0xffffff);
+    const laser2 = new Laser(origin, target, 0xffffff);
+
+    expect(laser1.mesh.geometry).toBe(laser2.mesh.geometry);
+    expect(laser1.mesh.material).toBe(laser2.mesh.material);
+  });
+
+  it('reuses geometry but different material for different color', () => {
+    const origin = new THREE.Vector2();
+    const target = new THREE.Vector2();
+    const laser1 = new Laser(origin, target, 0xffffff);
+    const laser2 = new Laser(origin, target, 0xff0000);
+
+    expect(laser1.mesh.geometry).toBe(laser2.mesh.geometry);
+    expect(laser1.mesh.material).not.toBe(laser2.mesh.material);
   });
 });
