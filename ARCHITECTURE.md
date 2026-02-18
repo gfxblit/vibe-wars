@@ -28,7 +28,19 @@ Vibe Wars is a state-driven, 3D space combat simulator inspired by the 1983 *Sta
 *   **Input Handling:** Normalizes mouse, keyboard, and touch events into a unified control scheme.
 *   **Virtual Yoke:** Implements the logic for virtual joystick controls on mobile.
 
-### 3.4 Entities (`src/entities/`)
+### 3.4 Stage Management (`src/StageManager.ts`)
+*   **Transitions:** Manages the flow between different game stages (Dogfight, Surface, Trench, Explosion).
+*   **Wave Logic:** Handles difficulty progression and stage skipping (e.g. skipping Surface in Wave 1).
+*   **Delegation:** Instantiates and updates the specific `Stage` classes located in `src/stages/`.
+
+### 3.5 Combat System (`src/CombatSystem.ts`)
+*   **Aiming:** Handles crosshair targeting logic.
+*   **Hit Detection:** Manages logic for raycasting and collision for combat events.
+
+### 3.6 Game Loop (`src/GameSystem.ts`)
+*   **Orchestration:** The main game loop that coordinates state updates, combat, and rendering.
+
+### 3.7 Entities (`src/entities/`)
 *   **Modular Actors:** Classes for X-Wings, TIE Fighters, fireballs, and towers.
 *   **Definition:** Entities define their geometry (as lines) and behavior.
 
@@ -60,6 +72,10 @@ src/
 ├── state.ts         # Game state and physics logic
 ├── renderer.ts      # Three.js lifecycle and vector rendering
 ├── input.ts         # Input abstraction
+├── StageManager.ts  # Stage transition logic
+├── CombatSystem.ts  # Combat logic
+├── GameSystem.ts    # Main game system
+├── stages/          # Stage implementations (Dogfight, Surface, Trench)
 └── entities/        # Modular game actor classes
     └── Entity.ts    # Base class for all entities
 ```

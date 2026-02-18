@@ -30,7 +30,6 @@ The control scheme simulates the original flight yoke using modern input methods
     * Moving the crosshair to the edges of the screen banks and pitches the X-Wing.
 * **Combat:**
     * **Left Click / Spacebar:** Fire Laser Cannons (Quad-link fire). Torpedoes auto-fire when aiming at the exhaust port during the trench run.
-* **Inverted Option:** Toggle available in settings to invert Y-Axis (Mouse Up = Ship Down) to mimic real flight controls.
 
 **B. Mobile (Touch Screen)**
 * **Steering (Virtual Yoke - Left Side):**
@@ -44,7 +43,7 @@ The control scheme simulates the original flight yoke using modern input methods
 * The player starts with **6 Shields**.
 * **Damage:** One shield is lost upon collision with an enemy ship, a fireball, or a tower.
 * **Game Over:** Occurs when shields reach 0 and the ship takes damage.
-* **Bonus:** Every time the Death Star is destroyed, the player earns a shield bonus (up to the starting max).
+* **Bonus:** Every time the Death Star is destroyed, the player earns a +1 shield bonus (up to the starting max).
 
 ---
 
@@ -57,7 +56,7 @@ The game loops through three distinct stages of increasing difficulty.
 * **Hazards:** Enemy ships fire "fireballs" (slow-moving projectiles) that the player must shoot or dodge.
 * **Transition:** Once a set number of enemies are defeated or time elapses, the player approaches the Death Star surface.
 
-### Stage 2: The Surface
+### Stage 2: The Surface (Skipped in Wave 1)
 * **Objective:** Destroy defensive bunkers and laser towers on the surface of the Death Star.
 * **Hazards:**
     * **Towers:** The tops of towers must be shot off to prevent them from firing.
@@ -84,11 +83,6 @@ The game loops through three distinct stages of increasing difficulty.
     * **Yellow/Orange:** Explosions and text.
     * **Blue:** Death Star surface lines.
 
-### 4.2 Audio
-* **Music:** Chiptune/synthesized renditions of John Williams' *Star Wars Theme*.
-* **Sound Effects:** Iconic sounds including blaster fire, R2-D2 beeps, and TIE fighter screams.
-* **Voice Synthesis:** Digital samples of Luke, Obi-Wan, Vader, and Han Solo.
-
 ---
 
 ## 5. Progression & Difficulty
@@ -105,9 +99,8 @@ The game uses an **infinite loop** system. After destroying the Death Star, the 
 
 | Action | Points Awarded |
 | :--- | :--- |
-| Destroy TIE Fighter | 1,000 |
-| Destroy Fireball | 33 |
+| Destroy TIE Fighter | 100 |
+| Destroy Fireball | 100 |
 | Destroy Laser Tower | 200 |
-| Destroy Tower Top | 50 |
-| **Destroy Death Star** | **25,000 / 50,000 / 100,000** (Scales by wave) |
-| Remaining Shields Bonus | Variable based on wave |
+| **Destroy Death Star** | **10,000** |
+| Remaining Shields Bonus | +1 Shield (up to max) |
