@@ -91,6 +91,7 @@ export class UIManager {
     const toggleBtn = this.createEl('button', 'ml-4 hover:text-white transition-colors font-retro', header);
     toggleBtn.id = 'debug-minimize-toggle';
     toggleBtn.textContent = '[-]';
+    toggleBtn.setAttribute('aria-label', 'Minimize Debug Panel');
 
     const content = this.createEl('div', 'flex flex-col space-y-2', this.debugPanel);
     content.id = 'debug-panel-content';
@@ -98,6 +99,7 @@ export class UIManager {
     toggleBtn.onclick = () => {
       const isMinimized = content.classList.toggle('hidden');
       toggleBtn.textContent = isMinimized ? '[+]' : '[-]';
+      toggleBtn.setAttribute('aria-label', isMinimized ? 'Expand Debug Panel' : 'Minimize Debug Panel');
       this.debugPanel?.classList.toggle('debug-minimized', isMinimized);
       
       // Clean up header when minimized
@@ -156,6 +158,7 @@ export class UIManager {
     this.createEl('div', 'mt-4 mb-2 border-b border-vector-green pb-1', content).textContent = 'KILLS TO ADVANCE';
     const killsInput = this.createEl('input', 'w-full bg-black text-vector-green border border-vector-green px-2 py-1', content) as HTMLInputElement;
     killsInput.id = 'debug-kills-input';
+    killsInput.setAttribute('aria-label', 'Kills to advance threshold');
     killsInput.type = 'number';
     killsInput.min = '0';
     killsInput.placeholder = `Default (${GameConfig.stages.dogfight.killsThreshold})`;
@@ -175,6 +178,7 @@ export class UIManager {
     this.createEl('div', 'mt-4 mb-2 border-b border-vector-green pb-1', content).textContent = 'TURRET SIZE';
     const turretSizeInput = this.createEl('input', 'w-full bg-black text-vector-green border border-vector-green px-2 py-1', content) as HTMLInputElement;
     turretSizeInput.id = 'debug-turret-size-input';
+    turretSizeInput.setAttribute('aria-label', 'Turret mesh size');
     turretSizeInput.type = 'number';
     turretSizeInput.min = '1';
     turretSizeInput.step = '1';
@@ -195,6 +199,7 @@ export class UIManager {
     this.createEl('div', 'mt-4 mb-2 border-b border-vector-green pb-1', content).textContent = 'FIREBALL SIZE';
     const fireballSizeInput = this.createEl('input', 'w-full bg-black text-vector-green border border-vector-green px-2 py-1', content) as HTMLInputElement;
     fireballSizeInput.id = 'debug-fireball-size-input';
+    fireballSizeInput.setAttribute('aria-label', 'Fireball sparkle size');
     fireballSizeInput.type = 'number';
     fireballSizeInput.min = '1';
     fireballSizeInput.step = '1';
