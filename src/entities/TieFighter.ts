@@ -15,6 +15,9 @@ export class TieFighter extends Entity implements Targetable {
   private static bodyGeo: THREE.SphereGeometry;
   private static wingGeo: THREE.PlaneGeometry;
 
+  private material: THREE.MeshBasicMaterial;
+  private lastAppliedColor: number = GameConfig.tieFighter.meshColor;
+
   private fireCooldown: number = Math.random() * GameConfig.fireball.fireRate;
 
   public getWorldPosition(target: THREE.Vector3): THREE.Vector3 {
@@ -48,19 +51,21 @@ export class TieFighter extends Entity implements Targetable {
       TieFighter.wingGeo = new THREE.PlaneGeometry(size, size);
     }
 
+    // Optimization: Clone material once and reuse for all parts
+    this.material = TieFighter.material.clone();
+
     // Body (Sphere)
-    const bodyMaterial = TieFighter.material.clone();
-    const body = new THREE.Mesh(TieFighter.bodyGeo, bodyMaterial);
+    const body = new THREE.Mesh(TieFighter.bodyGeo, this.material);
     this.mesh.add(body);
 
     // Left Wing (Plane)
-    const leftWing = new THREE.Mesh(TieFighter.wingGeo, bodyMaterial);
+    const leftWing = new THREE.Mesh(TieFighter.wingGeo, this.material);
     leftWing.position.set(-size * 0.8, 0, 0);
     leftWing.rotation.y = Math.PI / 2;
     this.mesh.add(leftWing);
 
     // Right Wing (Plane)
-    const rightWing = new THREE.Mesh(TieFighter.wingGeo, bodyMaterial);
+    const rightWing = new THREE.Mesh(TieFighter.wingGeo, this.material);
     rightWing.position.set(size * 0.8, 0, 0);
     rightWing.rotation.y = Math.PI / 2;
     this.mesh.add(rightWing);
@@ -99,13 +104,13 @@ export class TieFighter extends Entity implements Targetable {
     this.strategy.update(deltaTime, this.mesh.position, this.mesh.quaternion, playerPosition, playerQuaternion, playerSpeed);
 
     // Debug: Update color if strategy provides one and mode coloring is enabled
+    // Optimization: Only update if color has changed
     if (this.strategy.getColor) {
       const color = this.strategy.getColor(state.isModeColoring);
-      this.mesh.children.forEach(child => {
-        if (child instanceof THREE.Mesh && child.material instanceof THREE.MeshBasicMaterial) {
-          child.material.color.setHex(color);
-        }
-      });
+      if (this.lastAppliedColor !== color) {
+        this.material.color.setHex(color);
+        this.lastAppliedColor = color;
+      }
     }
 
     if (this.fireCooldown <= 0) {
@@ -130,12 +135,6 @@ export class TieFighter extends Entity implements Targetable {
   }
 
   public dispose(): void {
-    this.mesh.traverse(child => {
-      if (child instanceof THREE.Mesh) {
-        if (child.material instanceof THREE.Material) {
-          child.material.dispose();
-        }
-      }
-    });
+    this.material.dispose();
   }
 }
