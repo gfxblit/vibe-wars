@@ -123,15 +123,18 @@ export class TieFighter extends Entity implements Targetable {
       targetColor = this.strategy.getColor(state.isModeColoring);
     }
 
-    if (targetColor !== undefined) {
-      this.mesh.children.forEach(child => {
-        if (child instanceof THREE.Mesh && child.material instanceof THREE.MeshBasicMaterial) {
-           if (child.material.color.getHex() !== targetColor) {
-             child.material.color.setHex(targetColor);
-           }
-        }
-      });
+    // If still undefined, use default
+    if (targetColor === undefined) {
+      targetColor = GameConfig.tieFighter.meshColor;
     }
+
+    this.mesh.children.forEach(child => {
+      if (child instanceof THREE.Mesh && child.material instanceof THREE.MeshBasicMaterial) {
+        if (child.material.color.getHex() !== targetColor) {
+          child.material.color.setHex(targetColor!);
+        }
+      }
+    });
 
     if (this.fireCooldown <= 0) {
       this.fireCooldown = GameConfig.fireball.fireRate;

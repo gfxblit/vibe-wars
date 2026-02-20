@@ -25,7 +25,6 @@ describe('TieFighter Refactor Verification', () => {
 
   it('should accept an initial size in constructor', () => {
     const initialSize = 2.5;
-    // @ts-ignore: Testing new signature before implementation
     const tf = new TieFighter(strategy, initialSize);
     expect(tf.mesh.scale.x).toBe(initialSize);
   });
@@ -38,7 +37,6 @@ describe('TieFighter Refactor Verification', () => {
     const pos = new THREE.Vector3();
     const quat = new THREE.Quaternion();
     
-    // @ts-ignore: Testing new signature
     tf.update(0.1, pos, quat, 100, overrideSize);
     
     expect(tf.mesh.scale.x).toBe(overrideSize);
@@ -46,16 +44,13 @@ describe('TieFighter Refactor Verification', () => {
 
   it('should revert to base size when overrideSize is undefined', () => {
     const baseSize = 1.5;
-    // @ts-ignore: Testing new signature
     const tf = new TieFighter(strategy, baseSize);
     
     // First update with override
-    // @ts-ignore: Testing new signature
     tf.update(0.1, new THREE.Vector3(), new THREE.Quaternion(), 100, 5.0);
     expect(tf.mesh.scale.x).toBe(5.0);
     
     // Second update without override
-    // @ts-ignore: Testing new signature
     tf.update(0.1, new THREE.Vector3(), new THREE.Quaternion(), 100);
     expect(tf.mesh.scale.x).toBe(baseSize);
   });
@@ -64,13 +59,38 @@ describe('TieFighter Refactor Verification', () => {
     const tf = new TieFighter(strategy);
     const overrideColor = 0x00FF00; // Green
     
-    // @ts-ignore: Testing new signature
     tf.update(0.1, new THREE.Vector3(), new THREE.Quaternion(), 100, undefined, overrideColor);
     
     // Check if children have the color
     tf.mesh.children.forEach(child => {
       if (child instanceof THREE.Mesh) {
          expect((child.material as THREE.MeshBasicMaterial).color.getHex()).toBe(overrideColor);
+      }
+    });
+  });
+
+  it('should revert to default color when overrideColor is undefined', () => {
+    const tf = new TieFighter(strategy);
+    const overrideColor = 0x00FF00; // Green
+    const defaultColor = GameConfig.tieFighter.meshColor;
+
+    // Apply override
+    tf.update(0.1, new THREE.Vector3(), new THREE.Quaternion(), 100, undefined, overrideColor);
+    
+    // Verify override applied
+    tf.mesh.children.forEach(child => {
+      if (child instanceof THREE.Mesh) {
+         expect((child.material as THREE.MeshBasicMaterial).color.getHex()).toBe(overrideColor);
+      }
+    });
+
+    // Remove override
+    tf.update(0.1, new THREE.Vector3(), new THREE.Quaternion(), 100, undefined, undefined);
+
+    // Verify reverted to default
+    tf.mesh.children.forEach(child => {
+      if (child instanceof THREE.Mesh) {
+         expect((child.material as THREE.MeshBasicMaterial).color.getHex()).toBe(defaultColor);
       }
     });
   });
