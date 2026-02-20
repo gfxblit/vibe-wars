@@ -91,6 +91,8 @@ export class UIManager {
     const toggleBtn = this.createEl('button', 'ml-4 hover:text-white transition-colors font-retro', header);
     toggleBtn.id = 'debug-minimize-toggle';
     toggleBtn.textContent = '[-]';
+    toggleBtn.setAttribute('aria-label', 'Minimize Debug Panel');
+    toggleBtn.setAttribute('aria-expanded', 'true');
 
     const content = this.createEl('div', 'flex flex-col space-y-2', this.debugPanel);
     content.id = 'debug-panel-content';
@@ -98,6 +100,8 @@ export class UIManager {
     toggleBtn.onclick = () => {
       const isMinimized = content.classList.toggle('hidden');
       toggleBtn.textContent = isMinimized ? '[+]' : '[-]';
+      toggleBtn.setAttribute('aria-label', isMinimized ? 'Expand Debug Panel' : 'Minimize Debug Panel');
+      toggleBtn.setAttribute('aria-expanded', (!isMinimized).toString());
       this.debugPanel?.classList.toggle('debug-minimized', isMinimized);
       
       // Clean up header when minimized
