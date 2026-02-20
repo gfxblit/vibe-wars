@@ -271,6 +271,17 @@ export class EntityManager {
     return [...this.tieFighters, ...this.additionalTargets];
   }
 
+  public forEachTarget(callback: (target: Targetable) => void): void {
+    // Iterate TIE fighters
+    for (let i = 0; i < this.tieFighters.length; i++) {
+      callback(this.tieFighters[i]);
+    }
+    // Iterate additional targets
+    for (let i = 0; i < this.additionalTargets.length; i++) {
+      callback(this.additionalTargets[i]);
+    }
+  }
+
   public removeTarget(target: Targetable): void {
     const index = this.additionalTargets.indexOf(target);
     if (index !== -1) {
