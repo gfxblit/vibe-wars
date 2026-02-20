@@ -40,10 +40,13 @@ export class EntityManager {
   public update(deltaTime: number, playerPosition: THREE.Vector3, playerQuaternion: THREE.Quaternion, isSmartAI: boolean, camera: THREE.Camera, playerSpeed: number, onPlayerHit?: (damage: number) => void): void {
     this.scratchPlayerForward.set(0, 0, -1).applyQuaternion(playerQuaternion);
 
+    const debugSize = state.debug ? state.debugTieFighterSize : undefined;
+    const debugColor = state.debug ? state.debugTieFighterColor : undefined;
+
     // 1. Update existing TIE fighters
     for (let i = this.tieFighters.length - 1; i >= 0; i--) {
       const tf = this.tieFighters[i];
-      const fireDirection = tf.update(deltaTime, playerPosition, playerQuaternion, playerSpeed);
+      const fireDirection = tf.update(deltaTime, playerPosition, playerQuaternion, playerSpeed, debugSize, debugColor);
 
       if (fireDirection && !tf.isExploded) {
         this.spawnFireballFromTarget(tf, fireDirection, playerQuaternion, playerSpeed);
@@ -183,7 +186,8 @@ export class EntityManager {
 
   public spawnTieFighter(isSmartAI: boolean): void {
     const strategy = this.strategyFactory.createStrategy(isSmartAI);
-    const tf = new TieFighter(strategy);
+    const initialSize = (state.debug && state.debugTieFighterSize) ? state.debugTieFighterSize : GameConfig.tieFighter.meshSize;
+    const tf = new TieFighter(strategy, initialSize);
     this.tieFighters.push(tf);
     this.worldScene.add(tf.mesh);
   }
