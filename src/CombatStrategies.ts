@@ -39,29 +39,33 @@ abstract class BaseCombatStrategy implements CombatStrategy {
   protected checkTargets(input: UserInput, camera: THREE.Camera) {
     if (!state.entityManager) return;
 
-    let closestTarget: Targetable | null = null;
-    let closestDist = Infinity;
+    // Use a mutable object to handle closure updates in forEachTarget callback
+    // This avoids TS control flow analysis issues where it assumes captured vars aren't modified
+    const hitResult = {
+      closestTarget: null as Targetable | null,
+      closestDist: Infinity
+    };
     
     camera.getWorldPosition(this.scratchCameraPos);
 
-    for (const target of state.entityManager.getTargets()) {
+    state.entityManager.forEachTarget((target) => {
       // UsegetWorldPosition to get accurate world position regardless of scene graph depth
       const worldPos = target.getWorldPosition(this.tempVector3);
       
       // Only target active, non-exploded entities within max range
       if (!target.isExploded && checkAim(worldPos, input, camera)) {
         const dist = worldPos.distanceTo(this.scratchCameraPos);
-        if (dist < closestDist && dist < this.config.maxRange) {
-          closestDist = dist;
-          closestTarget = target;
+        if (dist < hitResult.closestDist && dist < this.config.maxRange) {
+          hitResult.closestDist = dist;
+          hitResult.closestTarget = target;
         }
       }
-    }
+    });
 
     // Only explode the single closest target that was aimed at
-    if (closestTarget) {
-      closestTarget.explode();
-      addScore(closestTarget.getScore());
+    if (hitResult.closestTarget) {
+      hitResult.closestTarget.explode();
+      addScore(hitResult.closestTarget.getScore());
       addKill();
     }
   }
