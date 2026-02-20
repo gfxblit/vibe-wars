@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { TieFighter } from './TieFighter';
 import { DumbAIStrategy } from './DumbAIStrategy';
 import { GameConfig } from '../config';
@@ -13,13 +13,6 @@ describe('TieFighter Refactor Verification', () => {
 
   it('should initialize with config size by default', () => {
     const tf = new TieFighter(strategy);
-    // After refactor, geometry is 1.0, scale is size based.
-    // Initially (before refactor), scale is 1.0. If config size is 1.0, this passes trivially.
-    // But if we change config size, it might fail.
-    // However, the purpose is to verify the refactor logic.
-    // Let's assume we want to verify that scale IS set to the config size.
-    // In current code, scale is 1.0 always.
-    // In new code, scale should be GameConfig.tieFighter.meshSize.
     expect(tf.mesh.scale.x).toBe(GameConfig.tieFighter.meshSize);
   });
 
@@ -37,7 +30,7 @@ describe('TieFighter Refactor Verification', () => {
     const pos = new THREE.Vector3();
     const quat = new THREE.Quaternion();
     
-    tf.update(0.1, pos, quat, 100, overrideSize);
+    tf.update(0.1, pos, quat, 100, false, overrideSize);
     
     expect(tf.mesh.scale.x).toBe(overrideSize);
   });
@@ -47,11 +40,11 @@ describe('TieFighter Refactor Verification', () => {
     const tf = new TieFighter(strategy, baseSize);
     
     // First update with override
-    tf.update(0.1, new THREE.Vector3(), new THREE.Quaternion(), 100, 5.0);
+    tf.update(0.1, new THREE.Vector3(), new THREE.Quaternion(), 100, false, 5.0);
     expect(tf.mesh.scale.x).toBe(5.0);
     
     // Second update without override
-    tf.update(0.1, new THREE.Vector3(), new THREE.Quaternion(), 100);
+    tf.update(0.1, new THREE.Vector3(), new THREE.Quaternion(), 100, false);
     expect(tf.mesh.scale.x).toBe(baseSize);
   });
 
@@ -59,7 +52,7 @@ describe('TieFighter Refactor Verification', () => {
     const tf = new TieFighter(strategy);
     const overrideColor = 0x00FF00; // Green
     
-    tf.update(0.1, new THREE.Vector3(), new THREE.Quaternion(), 100, undefined, overrideColor);
+    tf.update(0.1, new THREE.Vector3(), new THREE.Quaternion(), 100, false, undefined, overrideColor);
     
     // Check if children have the color
     tf.mesh.children.forEach(child => {
@@ -75,7 +68,7 @@ describe('TieFighter Refactor Verification', () => {
     const defaultColor = GameConfig.tieFighter.meshColor;
 
     // Apply override
-    tf.update(0.1, new THREE.Vector3(), new THREE.Quaternion(), 100, undefined, overrideColor);
+    tf.update(0.1, new THREE.Vector3(), new THREE.Quaternion(), 100, false, undefined, overrideColor);
     
     // Verify override applied
     tf.mesh.children.forEach(child => {
@@ -85,7 +78,7 @@ describe('TieFighter Refactor Verification', () => {
     });
 
     // Remove override
-    tf.update(0.1, new THREE.Vector3(), new THREE.Quaternion(), 100, undefined, undefined);
+    tf.update(0.1, new THREE.Vector3(), new THREE.Quaternion(), 100, false, undefined, undefined);
 
     // Verify reverted to default
     tf.mesh.children.forEach(child => {
@@ -93,5 +86,20 @@ describe('TieFighter Refactor Verification', () => {
          expect((child.material as THREE.MeshBasicMaterial).color.getHex()).toBe(defaultColor);
       }
     });
+  });
+
+  it('should pass isModeColoring to strategy.getColor', () => {
+    const mockStrategy = {
+      update: vi.fn(),
+      getColor: vi.fn().mockReturnValue(0xFF0000)
+    };
+    const tf = new TieFighter(mockStrategy as any);
+    const isModeColoring = true;
+    
+    // In strict TDD, this call will fail compilation first because the signature is not updated yet.
+    // But we are verifying logic.
+    tf.update(0.1, new THREE.Vector3(), new THREE.Quaternion(), 100, isModeColoring);
+    
+    expect(mockStrategy.getColor).toHaveBeenCalledWith(isModeColoring);
   });
 });

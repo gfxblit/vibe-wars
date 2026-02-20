@@ -2,7 +2,6 @@ import * as THREE from 'three';
 import { Entity, Targetable } from './Entity';
 import { GameConfig } from '../config';
 import { AIStrategy } from './AIStrategy';
-import { state } from '../state';
 
 export class TieFighter extends Entity implements Targetable {
   public readonly mesh: THREE.Group;
@@ -92,6 +91,7 @@ export class TieFighter extends Entity implements Targetable {
     playerPosition: THREE.Vector3,
     playerQuaternion: THREE.Quaternion,
     playerSpeed: number,
+    isModeColoring: boolean = false,
     overrideSize?: number,
     overrideColor?: number
   ): THREE.Vector3 | null {
@@ -120,7 +120,7 @@ export class TieFighter extends Entity implements Targetable {
     let targetColor: number | undefined = overrideColor;
 
     if (targetColor === undefined && this.strategy.getColor) {
-      targetColor = this.strategy.getColor(state.isModeColoring);
+      targetColor = this.strategy.getColor(isModeColoring);
     }
 
     // If still undefined, use default

@@ -46,7 +46,7 @@ export class EntityManager {
     // 1. Update existing TIE fighters
     for (let i = this.tieFighters.length - 1; i >= 0; i--) {
       const tf = this.tieFighters[i];
-      const fireDirection = tf.update(deltaTime, playerPosition, playerQuaternion, playerSpeed, debugSize, debugColor);
+      const fireDirection = tf.update(deltaTime, playerPosition, playerQuaternion, playerSpeed, state.isModeColoring, debugSize, debugColor);
 
       if (fireDirection && !tf.isExploded) {
         this.spawnFireballFromTarget(tf, fireDirection, playerQuaternion, playerSpeed);
@@ -312,5 +312,3 @@ export class EntityManager {
     this.spawnTimer = 0;
   }
 }
-
-
