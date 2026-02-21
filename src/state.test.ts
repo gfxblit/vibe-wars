@@ -5,6 +5,26 @@ import { Player } from './entities/Player';
 import { TieFighter } from './entities/TieFighter';
 import { GameConfig } from './config';
 
+const localStorageMock = (() => {
+  let store: Record<string, string> = {};
+  return {
+    getItem: (key: string) => store[key] || null,
+    setItem: (key: string, value: string) => {
+      store[key] = value.toString();
+    },
+    clear: () => {
+      store = {};
+    },
+    removeItem: (key: string) => {
+      delete store[key];
+    }
+  };
+})();
+
+Object.defineProperty(window, 'localStorage', {
+  value: localStorageMock
+});
+
 const scene = new THREE.Scene();
 const hudScene = new THREE.Scene();
 const mockCamera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
@@ -15,6 +35,7 @@ mockCamera.updateMatrixWorld();
 mockCamera.updateProjectionMatrix();
 
 beforeEach(() => {
+  localStorage.clear();
   initGame(scene, hudScene);
 });
 

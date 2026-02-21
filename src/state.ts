@@ -83,7 +83,7 @@ export const state: GameState = {
 };
 
 export function saveState() {
-  if (typeof window !== 'undefined' && window.localStorage) {
+  if (typeof window !== 'undefined' && window.localStorage && typeof window.localStorage.setItem === 'function') {
     const gameState = {
       score: state.score,
       shields: state.shields,
@@ -96,7 +96,7 @@ export function saveState() {
 }
 
 function loadState(): Partial<GameState> | null {
-  if (typeof window !== 'undefined' && window.localStorage) {
+  if (typeof window !== 'undefined' && window.localStorage && typeof window.localStorage.getItem === 'function') {
     const stored = window.localStorage.getItem('vibe_wars_state');
     if (stored) {
       try {
