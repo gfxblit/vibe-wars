@@ -268,6 +268,46 @@ export class UIManager {
           state.debugTieFighterColor = undefined;
       }
     };
+
+    // Surface Fireball Size
+    this.createEl('div', 'mt-4 mb-2 border-b border-vector-green pb-1', content).textContent = 'SURFACE FIREBALL SIZE';
+    const surfaceFireballSizeInput = this.createEl('input', 'w-full bg-black text-vector-green border border-vector-green px-2 py-1', content) as HTMLInputElement;
+    surfaceFireballSizeInput.id = 'debug-surface-fireball-size-input';
+    surfaceFireballSizeInput.type = 'number';
+    surfaceFireballSizeInput.min = '1';
+    surfaceFireballSizeInput.step = '1';
+    surfaceFireballSizeInput.placeholder = `Default (${GameConfig.stages.surface.fireballSize})`;
+    if (state.debugSurfaceFireballSize !== undefined) {
+      surfaceFireballSizeInput.value = state.debugSurfaceFireballSize.toString();
+    }
+    surfaceFireballSizeInput.onchange = (e) => {
+      const val = parseFloat((e.target as HTMLInputElement).value);
+      if (!isNaN(val)) {
+        state.debugSurfaceFireballSize = Math.max(1, val);
+      } else {
+        state.debugSurfaceFireballSize = undefined;
+      }
+    };
+
+    // Surface Fireball Speed
+    this.createEl('div', 'mt-4 mb-2 border-b border-vector-green pb-1', content).textContent = 'SURFACE FIREBALL SPEED';
+    const surfaceFireballSpeedInput = this.createEl('input', 'w-full bg-black text-vector-green border border-vector-green px-2 py-1', content) as HTMLInputElement;
+    surfaceFireballSpeedInput.id = 'debug-surface-fireball-speed-input';
+    surfaceFireballSpeedInput.type = 'number';
+    surfaceFireballSpeedInput.min = '1';
+    surfaceFireballSpeedInput.step = '1';
+    surfaceFireballSpeedInput.placeholder = `Default (${GameConfig.stages.surface.fireballSpeed})`;
+    if (state.debugSurfaceFireballSpeed !== undefined) {
+      surfaceFireballSpeedInput.value = state.debugSurfaceFireballSpeed.toString();
+    }
+    surfaceFireballSpeedInput.onchange = (e) => {
+      const val = parseFloat((e.target as HTMLInputElement).value);
+      if (!isNaN(val)) {
+        state.debugSurfaceFireballSpeed = Math.max(1, val);
+      } else {
+        state.debugSurfaceFireballSpeed = undefined;
+      }
+    };
   }
 
   private createToggleButton(id: string, getText: () => string, onClick: () => void, parent: HTMLElement, isPressed?: () => boolean) {
@@ -543,35 +583,19 @@ export class UIManager {
     }
   }
 
-
-
   private triggerDamageFX() {
-
     this.retriggerAnimation(
-
       this.damageOverlay,
-
       'animate-damage-flash',
-
       this.damageTimeout,
-
       (t) => this.damageTimeout = t
-
     );
 
     this.retriggerAnimation(
-
       this.shieldBar,
-
       'animate-shield-impact',
-
       this.shieldTimeout,
-
       (t) => this.shieldTimeout = t
-
     );
-
   }
-
 }
-

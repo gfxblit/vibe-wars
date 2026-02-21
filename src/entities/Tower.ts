@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { Entity, Targetable } from './Entity';
 import { GameConfig } from '../config';
+import { state } from '../state';
 
 export class Tower extends Entity implements Targetable {
     public mesh: THREE.Group;
@@ -32,6 +33,14 @@ export class Tower extends Entity implements Targetable {
 
     public getScore(): number {
       return GameConfig.stages.surface.towerPoints;
+    }
+
+    public getFireballSize(): number {
+      return state.debugSurfaceFireballSize ?? GameConfig.stages.surface.fireballSize ?? GameConfig.fireball.sparkleSize;
+    }
+
+    public getFireballSpeed(): number {
+      return state.debugSurfaceFireballSpeed ?? GameConfig.stages.surface.fireballSpeed ?? GameConfig.fireball.relativeSpeed;
     }
 
     public explode(): void {

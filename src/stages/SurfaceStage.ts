@@ -49,11 +49,7 @@ export class SurfaceStage extends Stage {
     player.position.x = THREE.MathUtils.clamp(player.position.x, -halfWidth, halfWidth);
     player.position.y = THREE.MathUtils.clamp(player.position.y, GameConfig.stages.surface.floorY - GameConfig.stages.surface.floorClampBuffer, GameConfig.stages.surface.maxHeight);
     
-    this.surface.update(deltaTime, player.position, state.entityManager || undefined, (pos, vel) => {
-        if (state.entityManager) {
-            state.entityManager.spawnFireball(pos, vel);
-        }
-    });
+    this.surface.update(deltaTime, player.position, state.entityManager || undefined);
 
     const playerBox = this.playerBox.setFromObject(player.mesh);
     

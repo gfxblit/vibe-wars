@@ -79,26 +79,19 @@ describe('Surface Entity', () => {
       expect(towerHit).toBe(tower);
   });
 
-  it('should trigger spawnFireball callback when towers fire', () => {
-    // Force spawn
-    vi.spyOn(Math, 'random').mockReturnValue(0); // Ensure immediate firing
-    surface.update(0.1, new THREE.Vector3(0, 0, 0));
-    
-    const spawnFireball = vi.fn();
-    const playerPos = new THREE.Vector3(0, 0, 0); // Player is ahead of tower (tower at -1000)
-    // Wait, if tower is at -1000, and player at 0. Player is BEHIND tower?
-    // Player moves -Z.
-    // 0 is start. -1000 is destination.
-    // Tower spawns at playerZ - 1000 = -1000.
-    // So tower is ahead of player.
-    // Tower fires at player.
+  it('should add spawned towers to EntityManager', () => {
+    const entityManager = {
+        addTarget: vi.fn(),
+        removeTarget: vi.fn(),
+    } as any;
 
-    // Update with time delta to trigger fire
-    // Note: First update consumed the initial 0 cooldown. It reset to 2.0.
-    // So we need to advance > 2.0s.
-    surface.update(2.1, playerPos, undefined, spawnFireball);
+    // Force spawn
+    surface.update(0.1, new THREE.Vector3(0, 0, 0), entityManager);
     
-    expect(spawnFireball).toHaveBeenCalled();
+    expect(entityManager.addTarget).toHaveBeenCalled();
+    const towers = surface.getTowers();
+    expect(towers.length).toBeGreaterThan(0);
+    expect(entityManager.addTarget).toHaveBeenCalledWith(towers[0]);
   });
 
   it('should spawn towers relative to the player X position', () => {
