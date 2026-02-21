@@ -7,6 +7,7 @@ import { Laser } from './Laser';
 import { Torpedo } from './Torpedo';
 import { Targetable } from './Entity';
 import { state } from '../state';
+import { Tower } from './Tower';
 
 export class EntityManager {
   private tieFighters: TieFighter[] = [];
@@ -171,13 +172,23 @@ export class EntityManager {
       this.scratchPlayerVelocity.copy(this.scratchPlayerForward).multiplyScalar(playerSpeed);
     }
 
-    const relativeSpeed = target.getFireballSpeed ? target.getFireballSpeed() : GameConfig.fireball.relativeSpeed;
+    let relativeSpeed = target.getFireballSpeed ? target.getFireballSpeed() : GameConfig.fireball.relativeSpeed;
+    let size = target.getFireballSize ? target.getFireballSize() : undefined;
+
+    if (target instanceof Tower) {
+      if (state.debugSurfaceFireballSpeed !== undefined) {
+        relativeSpeed = state.debugSurfaceFireballSpeed;
+      }
+      if (state.debugSurfaceFireballSize !== undefined) {
+        size = state.debugSurfaceFireballSize;
+      }
+    }
+
     this.scratchRelativeVelocity.copy(fireDirection).multiplyScalar(relativeSpeed);
     this.scratchTotalVelocity.copy(this.scratchPlayerVelocity).add(this.scratchRelativeVelocity);
 
     target.getWorldPosition(this.scratchFireballPos);
     
-    const size = target.getFireballSize ? target.getFireballSize() : undefined;
     this.spawnFireball(this.scratchFireballPos, this.scratchTotalVelocity, size);
   }
 
