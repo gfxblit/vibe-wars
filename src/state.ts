@@ -82,16 +82,71 @@ export const state: GameState = {
   debugTieFighterColor: undefined,
 };
 
+export function saveState() {
+  if (typeof window !== 'undefined' && window.localStorage) {
+    const gameState = {
+      score: state.score,
+      shields: state.shields,
+      kills: state.kills,
+      wave: state.wave,
+      stage: state.stage,
+    };
+    window.localStorage.setItem('vibe_wars_state', JSON.stringify(gameState));
+  }
+}
+
+function loadState(): Partial<GameState> | null {
+  if (typeof window !== 'undefined' && window.localStorage) {
+    const stored = window.localStorage.getItem('vibe_wars_state');
+    if (stored) {
+      try {
+        return JSON.parse(stored);
+      } catch (e) {
+        console.error('Failed to parse saved state', e);
+      }
+    }
+  }
+  return null;
+}
+
 export function initGame(worldScene: THREE.Scene, hudScene: THREE.Scene) {
   const urlParams = new URLSearchParams(window.location.search);
   state.debug = urlParams.get('debug') === 'true';
+  const shouldContinue = urlParams.get('continue') === 'true';
+  const stageOverride = urlParams.get('s') || urlParams.get('stage');
+
+  // Default values
+  let initialScore = 0;
+  let initialShields: number = GameConfig.player.maxShields;
+  let initialKills = 0;
+  let initialWave = 1;
+  let initialStage: GameStage = 'DOGFIGHT';
+
+  if (shouldContinue) {
+    const saved = loadState();
+    if (saved) {
+      initialScore = saved.score ?? initialScore;
+      initialShields = saved.shields ?? initialShields;
+      initialKills = saved.kills ?? initialKills;
+      initialWave = saved.wave ?? initialWave;
+      initialStage = saved.stage ?? initialStage;
+    }
+  }
+
+  // Override stage if provided
+  if (stageOverride) {
+    const validStages: GameStage[] = ['DOGFIGHT', 'SURFACE', 'TRENCH', 'EXPLOSION'];
+    if (validStages.includes(stageOverride as GameStage)) {
+      initialStage = stageOverride as GameStage;
+    }
+  }
 
   // Reset core game values
-  state.score = 0;
-  state.shields = GameConfig.player.maxShields;
-  state.kills = 0;
-  state.wave = 1;
-  state.stage = 'DOGFIGHT';
+  state.score = initialScore;
+  state.shields = initialShields;
+  state.kills = initialKills;
+  state.wave = initialWave;
+  state.stage = initialStage;
   state.isGameOver = false;
   state.gunColorToggles = GameConfig.laser.offsets.map(() => false);
   state.canFireTorpedo = false;
@@ -110,6 +165,10 @@ export function initGame(worldScene: THREE.Scene, hudScene: THREE.Scene) {
     state.stageManager.destroy();
   }
   state.stageManager = new StageManager(worldScene);
+  // Ensure the stage manager is set to the correct stage if we loaded a different one
+  if (state.stage !== 'DOGFIGHT') {
+    state.stageManager.setStage(state.stage);
+  }
 
   if (state.entityManager) {
     state.entityManager.clear();
@@ -217,6 +276,7 @@ export function takeDamage(amount: number = 1) {
 export function goToNextStage() {
   if (state.stageManager) {
     state.stageManager.goToNextStage();
+    saveState();
   }
 }
 
