@@ -10,6 +10,8 @@ import { Fireball } from './entities/Fireball';
 import { GameConfig } from './config';
 import { EntityManager } from './entities/EntityManager';
 import { StageManager } from './StageManager';
+import { StorageService, LocalStorageService } from './services/StorageService';
+import { saveGameState, loadGameState } from './services/PersistenceService';
 
 export type GameStage = 'DOGFIGHT' | 'SURFACE' | 'TRENCH' | 'EXPLOSION';
 
@@ -82,31 +84,14 @@ export const state: GameState = {
   debugTieFighterColor: undefined,
 };
 
-export function saveState() {
-  if (typeof window !== 'undefined' && window.localStorage && typeof window.localStorage.setItem === 'function') {
-    const gameState = {
-      score: state.score,
-      shields: state.shields,
-      kills: state.kills,
-      wave: state.wave,
-      stage: state.stage,
-    };
-    window.localStorage.setItem('vibe_wars_state', JSON.stringify(gameState));
-  }
+let storageService: StorageService = new LocalStorageService();
+
+export function setStorageService(service: StorageService) {
+  storageService = service;
 }
 
-function loadState(): Partial<GameState> | null {
-  if (typeof window !== 'undefined' && window.localStorage && typeof window.localStorage.getItem === 'function') {
-    const stored = window.localStorage.getItem('vibe_wars_state');
-    if (stored) {
-      try {
-        return JSON.parse(stored);
-      } catch (e) {
-        console.error('Failed to parse saved state', e);
-      }
-    }
-  }
-  return null;
+export function saveState() {
+  saveGameState(state, storageService);
 }
 
 export function initGame(worldScene: THREE.Scene, hudScene: THREE.Scene) {
@@ -123,7 +108,7 @@ export function initGame(worldScene: THREE.Scene, hudScene: THREE.Scene) {
   let initialStage: GameStage = 'DOGFIGHT';
 
   if (shouldContinue) {
-    const saved = loadState();
+    const saved = loadGameState(storageService);
     if (saved) {
       initialScore = saved.score ?? initialScore;
       initialShields = saved.shields ?? initialShields;

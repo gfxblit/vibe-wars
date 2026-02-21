@@ -1,29 +1,10 @@
 import { expect, test, beforeEach, describe } from 'vitest'
-import { state, initGame, addScore, takeDamage, goToNextStage, checkCollision, updateState, spawnLasers, spawnFireball } from './state'
+import { state, initGame, addScore, takeDamage, goToNextStage, checkCollision, updateState, spawnLasers, spawnFireball, setStorageService } from './state'
 import * as THREE from 'three';
 import { Player } from './entities/Player';
 import { TieFighter } from './entities/TieFighter';
 import { GameConfig } from './config';
-
-const localStorageMock = (() => {
-  let store: Record<string, string> = {};
-  return {
-    getItem: (key: string) => store[key] || null,
-    setItem: (key: string, value: string) => {
-      store[key] = value.toString();
-    },
-    clear: () => {
-      store = {};
-    },
-    removeItem: (key: string) => {
-      delete store[key];
-    }
-  };
-})();
-
-Object.defineProperty(window, 'localStorage', {
-  value: localStorageMock
-});
+import { InMemoryStorageService } from './services/StorageService';
 
 const scene = new THREE.Scene();
 const hudScene = new THREE.Scene();
@@ -35,7 +16,7 @@ mockCamera.updateMatrixWorld();
 mockCamera.updateProjectionMatrix();
 
 beforeEach(() => {
-  localStorage.clear();
+  setStorageService(new InMemoryStorageService());
   initGame(scene, hudScene);
 });
 
