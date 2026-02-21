@@ -146,6 +146,8 @@ describe('CombatSystem', () => {
 
     state.stageManager!.reset();
     
+    // Must release fire button to fire again (accidental fire prevention)
+    combatSystem.update(0.01, { ...input, isFiring: false });
     combatSystem.update(0.01, input);
     expect(StateModule.spawnTorpedo).toHaveBeenCalledTimes(2);
   });
