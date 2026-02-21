@@ -10,6 +10,12 @@ export class Laser extends Entity {
   private readonly target2D: THREE.Vector2;
   private readonly color: number;
 
+  // Reusable vectors to reduce GC pressure
+  private readonly _start = new THREE.Vector2();
+  private readonly _end = new THREE.Vector2();
+  private readonly _delta = new THREE.Vector2();
+  private readonly _center = new THREE.Vector2();
+
   constructor(origin2D: THREE.Vector2, target2D: THREE.Vector2, color: number) {
     super();
     this.origin2D = origin2D.clone();
@@ -38,16 +44,17 @@ export class Laser extends Entity {
     const startP = this.progress;
     const endP = Math.min(1.0, this.progress + normBoltLength);
 
-    const start = new THREE.Vector2().lerpVectors(this.origin2D, this.target2D, startP);
-    const end = new THREE.Vector2().lerpVectors(this.origin2D, this.target2D, endP);
+    // Reuse vectors
+    this._start.lerpVectors(this.origin2D, this.target2D, startP);
+    this._end.lerpVectors(this.origin2D, this.target2D, endP);
 
-    const delta = new THREE.Vector2().subVectors(end, start);
-    const length = delta.length();
-    const angle = Math.atan2(delta.y, delta.x);
+    this._delta.subVectors(this._end, this._start);
+    const length = this._delta.length();
+    const angle = Math.atan2(this._delta.y, this._delta.x);
 
     // Position at the center of the bolt segment
-    const center = new THREE.Vector2().lerpVectors(start, end, 0.5);
-    this.mesh.position.set(center.x, center.y, 0);
+    this._center.lerpVectors(this._start, this._end, 0.5);
+    this.mesh.position.set(this._center.x, this._center.y, 0);
     
     // Rotate to align with trajectory
     // Standard PlaneGeometry(1,1) faces +Z, with its 'up' along +Y.

@@ -1,0 +1,3 @@
+## 2024-05-23 - Vector Allocation Churn in Projectiles
+**Learning:** The `Laser` entity was creating 4 new `THREE.Vector2` instances per frame during `updateMeshTransform`. In a bullet-hell style game where lasers are frequent, this creates significant GC pressure.
+**Action:** When implementing projectile or particle systems in Three.js, always use reusable class member vectors (`_tempVec`, `_start`, `_end`) and methods like `.copy()`, `.add()`, `.lerpVectors()` instead of `new THREE.Vector2()` in the update loop.
