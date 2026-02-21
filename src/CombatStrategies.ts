@@ -118,6 +118,8 @@ export class SurfaceCombatStrategy extends BaseCombatStrategy {
 }
 
 export class TrenchCombatStrategy extends BaseCombatStrategy {
+  private wasFiring: boolean = false;
+
   constructor(config: CombatStrategyConfig) {
     super(config);
   }
@@ -130,10 +132,13 @@ export class TrenchCombatStrategy extends BaseCombatStrategy {
     if (state.stage === 'TRENCH' && state.stageManager) {
       state.canFireTorpedo = state.stageManager.checkExhaustPortHit(input, camera);
       
-      if (input.isFiring && state.canFireTorpedo && !state.hasFiredTorpedo) {
+      // Only fire if button was NOT pressed in previous frame (fresh press)
+      if (input.isFiring && !this.wasFiring && state.canFireTorpedo && !state.hasFiredTorpedo) {
         this.launchTorpedo(input, camera);
         state.hasFiredTorpedo = true;
       }
+
+      this.wasFiring = input.isFiring;
     }
   }
 
