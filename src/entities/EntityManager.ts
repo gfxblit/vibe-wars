@@ -5,9 +5,8 @@ import { GameConfig } from '../config';
 import { Fireball } from './Fireball';
 import { Laser } from './Laser';
 import { Torpedo } from './Torpedo';
-import { Targetable } from './Entity';
+import { Targetable, FireballDebugContext } from './Entity';
 import { state } from '../state';
-import { Tower } from './Tower';
 
 export class EntityManager {
   private tieFighters: TieFighter[] = [];
@@ -172,17 +171,13 @@ export class EntityManager {
       this.scratchPlayerVelocity.copy(this.scratchPlayerForward).multiplyScalar(playerSpeed);
     }
 
-    let relativeSpeed = target.getFireballSpeed ? target.getFireballSpeed() : GameConfig.fireball.relativeSpeed;
-    let size = target.getFireballSize ? target.getFireballSize() : undefined;
+    const debugContext: FireballDebugContext = {
+      surfaceFireballSize: state.debugSurfaceFireballSize,
+      surfaceFireballSpeed: state.debugSurfaceFireballSpeed,
+    };
 
-    if (target instanceof Tower) {
-      if (state.debugSurfaceFireballSpeed !== undefined) {
-        relativeSpeed = state.debugSurfaceFireballSpeed;
-      }
-      if (state.debugSurfaceFireballSize !== undefined) {
-        size = state.debugSurfaceFireballSize;
-      }
-    }
+    const relativeSpeed = target.getFireballSpeed ? target.getFireballSpeed(debugContext) : GameConfig.fireball.relativeSpeed;
+    const size = target.getFireballSize ? target.getFireballSize(debugContext) : undefined;
 
     this.scratchRelativeVelocity.copy(fireDirection).multiplyScalar(relativeSpeed);
     this.scratchTotalVelocity.copy(this.scratchPlayerVelocity).add(this.scratchRelativeVelocity);
