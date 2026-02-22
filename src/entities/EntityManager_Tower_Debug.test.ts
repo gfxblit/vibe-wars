@@ -90,16 +90,15 @@ describe('EntityManager Tower Debug Overrides', () => {
     expect(spawnSpy).toHaveBeenCalled();
     const velocity = spawnSpy.mock.calls[0][1] as THREE.Vector3;
     
-    // playerVelocity is forward * speed (0,0,-1 * 10 = 0,0,-10)
+    // playerVelocity is (0,0,0) for towers
     // fireDirection is 0,0,1
     // relativeVelocity = 0,0,1 * 100 = 0,0,100
-    // total = 0,0,90
-    // If default speed (60), total = 0,0,50
+    // total = 0,0,100
     
     // With 100 speed:
     // We can't easily assert exact value without reproducing logic, but we can verify it's NOT the default.
-    // playerVelocity (0,0,-10) + relativeVelocity (0,0,100) = (0,0,90)
-    expect(velocity.z).toBe(90);
+    // playerVelocity (0,0,0) + relativeVelocity (0,0,100) = (0,0,100)
+    expect(velocity.z).toBe(100);
   });
 
   it('should NOT apply debugSurfaceFireballSize for non-Tower targets', () => {

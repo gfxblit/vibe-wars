@@ -78,8 +78,8 @@ export const GameConfig = deepFreeze({
       maxPitch: Math.PI / 4,
       maxYaw: Math.PI / 4,
       maxHeight: 150,
-      fireballSize: 20.0,
-      fireballSpeed: 40.0,
+      fireballSize: 40.0,
+      fireballSpeed: 400.0,
     },
     trench: {
       transitionDistance: 100,

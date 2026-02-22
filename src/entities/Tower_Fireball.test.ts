@@ -28,24 +28,24 @@ describe('Tower Fireball Configuration', () => {
 
   it('getFireballSize should return default config value when debug is not set', () => {
     const size = tower.getFireballSize();
-    expect(size).toBe(20.0);
+    expect(size).toBe(40.0);
   });
 
   it('getFireballSpeed should return default config value when debug is not set', () => {
     const speed = tower.getFireballSpeed();
-    expect(speed).toBe(40.0);
+    expect(speed).toBe(400.0);
   });
 
   it('getFireballSize should return default value even when debug is set', () => {
     state.debugSurfaceFireballSize = 50.0;
     const size = tower.getFireballSize();
-    expect(size).toBe(20.0);
+    expect(size).toBe(40.0);
   });
 
   it('getFireballSpeed should return default value even when debug is set', () => {
     state.debugSurfaceFireballSpeed = 100.0;
     const speed = tower.getFireballSpeed();
-    expect(speed).toBe(40.0);
+    expect(speed).toBe(400.0);
   });
 });
 

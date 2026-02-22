@@ -141,6 +141,6 @@ describe('Turret and Fireball Size Debug', () => {
     expect(fireballs.length).toBe(1);
     const fb = fireballs[0];
     
-    expect(fb.velocity.z).toBeCloseTo(-playerSpeed + GameConfig.fireball.relativeSpeed);
+    expect(fb.velocity.z).toBeCloseTo(GameConfig.fireball.relativeSpeed);
   });
 });

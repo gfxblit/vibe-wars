@@ -42,6 +42,10 @@ export class Tower extends Entity implements Targetable {
       return context?.surfaceFireballSpeed ?? GameConfig.stages.surface.fireballSpeed;
     }
 
+    public getVelocity(_playerForward: THREE.Vector3, _playerSpeed: number): THREE.Vector3 {
+      return new THREE.Vector3(0, 0, 0);
+    }
+
     public explode(): void {
       this.isExploded = true;
     }

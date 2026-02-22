@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Entity, Targetable } from './Entity';
+import { Entity, Targetable, FireballDebugContext } from './Entity';
 import { GameConfig } from '../config';
 
 export class Turret extends Entity implements Targetable {
@@ -118,12 +118,16 @@ export class Turret extends Entity implements Targetable {
     return GameConfig.turret.points;
   }
 
-  public getVelocity(playerForward: THREE.Vector3, playerSpeed: number): THREE.Vector3 {
-    return playerForward.clone().multiplyScalar(playerSpeed);
+  public getVelocity(_playerForward: THREE.Vector3, _playerSpeed: number): THREE.Vector3 {
+    return new THREE.Vector3(0, 0, 0);
   }
 
-  public getFireballSize(): number {
+  public getFireballSize(_context?: FireballDebugContext): number {
     return this.fireballSize;
+  }
+
+  public getFireballSpeed(_context?: FireballDebugContext): number {
+    return GameConfig.fireball.relativeSpeed;
   }
 
   public dispose(): void {
