@@ -7,6 +7,7 @@ export class DebugUIManager {
   private debugPanel?: HTMLElement;
   private tieFighterCountValue?: HTMLElement;
   private stageButtons?: Map<string, HTMLElement>;
+  private lastStage?: string;
 
   constructor() {
     this.createDebugPanel();
@@ -43,13 +44,7 @@ export class DebugUIManager {
     };
 
     // Stats
-    const statsTitle = this.createEl('div', 'mb-2 border-b border-vector-green pb-1', content);
-    statsTitle.textContent = 'STATS';
-    const tfRow = this.createEl('div', 'flex justify-between', content);
-    this.createEl('span', '', tfRow).textContent = 'TIE FIGHTERS:';
-    this.tieFighterCountValue = this.createEl('span', '', tfRow);
-    this.tieFighterCountValue.id = 'debug-tie-fighter-count';
-    this.tieFighterCountValue.textContent = '0';
+    this.createStatsSection(content);
 
     this.createToggleButton(
       'ai-mode-toggle',
@@ -90,89 +85,55 @@ export class DebugUIManager {
     this.stageButtons.set('TRENCH', trenchBtn);
 
     this.updateStageButtons(state.stage);
+    this.lastStage = state.stage;
 
     // Kills Threshold
-    this.createEl('div', 'mt-4 mb-2 border-b border-vector-green pb-1', content).textContent = 'KILLS TO ADVANCE';
-    const killsInput = this.createEl('input', 'w-full bg-black text-vector-green border border-vector-green px-2 py-1', content) as HTMLInputElement;
-    killsInput.id = 'debug-kills-input';
-    killsInput.setAttribute('aria-label', 'Kills to Advance');
-    killsInput.type = 'number';
-    killsInput.min = '0';
-    killsInput.placeholder = `Default (${GameConfig.stages.dogfight.killsThreshold})`;
-    if (state.debugKillsThreshold !== undefined) {
-      killsInput.value = state.debugKillsThreshold.toString();
-    }
-    killsInput.onchange = (e) => {
-      const val = parseInt((e.target as HTMLInputElement).value);
-      if (!isNaN(val)) {
-        state.debugKillsThreshold = Math.max(0, val);
-      } else {
-        state.debugKillsThreshold = undefined;
-      }
-    };
+    this.createNumericInput(
+      'KILLS TO ADVANCE',
+      'debug-kills-input',
+      0,
+      1,
+      `Default (${GameConfig.stages.dogfight.killsThreshold})`,
+      state.debugKillsThreshold,
+      (val) => { state.debugKillsThreshold = val; },
+      content
+    );
 
     // Turret Size
-    this.createEl('div', 'mt-4 mb-2 border-b border-vector-green pb-1', content).textContent = 'TURRET SIZE';
-    const turretSizeInput = this.createEl('input', 'w-full bg-black text-vector-green border border-vector-green px-2 py-1', content) as HTMLInputElement;
-    turretSizeInput.id = 'debug-turret-size-input';
-    turretSizeInput.setAttribute('aria-label', 'Turret Size');
-    turretSizeInput.type = 'number';
-    turretSizeInput.min = '1';
-    turretSizeInput.step = '1';
-    turretSizeInput.placeholder = `Default (${GameConfig.turret.meshSize})`;
-    if (state.debugTurretSize !== undefined) {
-      turretSizeInput.value = state.debugTurretSize.toString();
-    }
-    turretSizeInput.onchange = (e) => {
-      const val = parseFloat((e.target as HTMLInputElement).value);
-      if (!isNaN(val)) {
-        state.debugTurretSize = Math.max(1, val);
-      } else {
-        state.debugTurretSize = undefined;
-      }
-    };
+    this.createNumericInput(
+      'TURRET SIZE',
+      'debug-turret-size-input',
+      1,
+      1,
+      `Default (${GameConfig.turret.meshSize})`,
+      state.debugTurretSize,
+      (val) => { state.debugTurretSize = val; },
+      content
+    );
 
     // Fireball Size
-    this.createEl('div', 'mt-4 mb-2 border-b border-vector-green pb-1', content).textContent = 'FIREBALL SIZE';
-    const fireballSizeInput = this.createEl('input', 'w-full bg-black text-vector-green border border-vector-green px-2 py-1', content) as HTMLInputElement;
-    fireballSizeInput.id = 'debug-fireball-size-input';
-    fireballSizeInput.setAttribute('aria-label', 'Fireball Size');
-    fireballSizeInput.type = 'number';
-    fireballSizeInput.min = '1';
-    fireballSizeInput.step = '1';
-    fireballSizeInput.placeholder = `Default (${GameConfig.fireball.sparkleSize})`;
-    if (state.debugFireballSize !== undefined) {
-      fireballSizeInput.value = state.debugFireballSize.toString();
-    }
-    fireballSizeInput.onchange = (e) => {
-      const val = parseFloat((e.target as HTMLInputElement).value);
-      if (!isNaN(val)) {
-        state.debugFireballSize = Math.max(1, val);
-      } else {
-        state.debugFireballSize = undefined;
-      }
-    };
+    this.createNumericInput(
+      'FIREBALL SIZE',
+      'debug-fireball-size-input',
+      1,
+      1,
+      `Default (${GameConfig.fireball.sparkleSize})`,
+      state.debugFireballSize,
+      (val) => { state.debugFireballSize = val; },
+      content
+    );
 
     // TIE Fighter Size
-    this.createEl('div', 'mt-4 mb-2 border-b border-vector-green pb-1', content).textContent = 'TIE FIGHTER SIZE';
-    const tieFighterSizeInput = this.createEl('input', 'w-full bg-black text-vector-green border border-vector-green px-2 py-1', content) as HTMLInputElement;
-    tieFighterSizeInput.id = 'debug-tiefighter-size-input';
-    tieFighterSizeInput.setAttribute('aria-label', 'TIE Fighter Size');
-    tieFighterSizeInput.type = 'number';
-    tieFighterSizeInput.min = '0.1';
-    tieFighterSizeInput.step = '0.1';
-    tieFighterSizeInput.placeholder = `Default (${GameConfig.tieFighter.meshSize})`;
-    if (state.debugTieFighterSize !== undefined) {
-      tieFighterSizeInput.value = state.debugTieFighterSize.toString();
-    }
-    tieFighterSizeInput.onchange = (e) => {
-      const val = parseFloat((e.target as HTMLInputElement).value);
-      if (!isNaN(val)) {
-        state.debugTieFighterSize = Math.max(0.1, val);
-      } else {
-        state.debugTieFighterSize = undefined;
-      }
-    };
+    this.createNumericInput(
+      'TIE FIGHTER SIZE',
+      'debug-tiefighter-size-input',
+      0.1,
+      0.1,
+      `Default (${GameConfig.tieFighter.meshSize})`,
+      state.debugTieFighterSize,
+      (val) => { state.debugTieFighterSize = val; },
+      content
+    );
 
     // TIE Fighter Color
     this.createEl('div', 'mt-4 mb-2 border-b border-vector-green pb-1', content).textContent = 'TIE FIGHTER COLOR';
@@ -203,46 +164,70 @@ export class DebugUIManager {
     };
 
     // Surface Fireball Size
-    this.createEl('div', 'mt-4 mb-2 border-b border-vector-green pb-1', content).textContent = 'SURFACE FIREBALL SIZE';
-    const surfaceFireballSizeInput = this.createEl('input', 'w-full bg-black text-vector-green border border-vector-green px-2 py-1', content) as HTMLInputElement;
-    surfaceFireballSizeInput.id = 'debug-surface-fireball-size-input';
-    surfaceFireballSizeInput.setAttribute('aria-label', 'Surface Fireball Size');
-    surfaceFireballSizeInput.type = 'number';
-    surfaceFireballSizeInput.min = '1';
-    surfaceFireballSizeInput.step = '1';
-    surfaceFireballSizeInput.placeholder = `Default (${GameConfig.stages.surface.fireballSize})`;
-    if (state.debugSurfaceFireballSize !== undefined) {
-      surfaceFireballSizeInput.value = state.debugSurfaceFireballSize.toString();
-    }
-    surfaceFireballSizeInput.onchange = (e) => {
-      const val = parseFloat((e.target as HTMLInputElement).value);
-      if (!isNaN(val)) {
-        state.debugSurfaceFireballSize = Math.max(1, val);
-      } else {
-        state.debugSurfaceFireballSize = undefined;
-      }
-    };
+    this.createNumericInput(
+      'SURFACE FIREBALL SIZE',
+      'debug-surface-fireball-size-input',
+      1,
+      1,
+      `Default (${GameConfig.stages.surface.fireballSize})`,
+      state.debugSurfaceFireballSize,
+      (val) => { state.debugSurfaceFireballSize = val; },
+      content
+    );
 
     // Surface Fireball Speed
-    this.createEl('div', 'mt-4 mb-2 border-b border-vector-green pb-1', content).textContent = 'SURFACE FIREBALL SPEED';
-    const surfaceFireballSpeedInput = this.createEl('input', 'w-full bg-black text-vector-green border border-vector-green px-2 py-1', content) as HTMLInputElement;
-    surfaceFireballSpeedInput.id = 'debug-surface-fireball-speed-input';
-    surfaceFireballSpeedInput.setAttribute('aria-label', 'Surface Fireball Speed');
-    surfaceFireballSpeedInput.type = 'number';
-    surfaceFireballSpeedInput.min = '1';
-    surfaceFireballSpeedInput.step = '1';
-    surfaceFireballSpeedInput.placeholder = `Default (${GameConfig.stages.surface.fireballSpeed})`;
-    if (state.debugSurfaceFireballSpeed !== undefined) {
-      surfaceFireballSpeedInput.value = state.debugSurfaceFireballSpeed.toString();
+    this.createNumericInput(
+      'SURFACE FIREBALL SPEED',
+      'debug-surface-fireball-speed-input',
+      1,
+      1,
+      `Default (${GameConfig.stages.surface.fireballSpeed})`,
+      state.debugSurfaceFireballSpeed,
+      (val) => { state.debugSurfaceFireballSpeed = val; },
+      content
+    );
+  }
+
+  private createStatsSection(parent: HTMLElement) {
+    const statsTitle = this.createEl('div', 'mb-2 border-b border-vector-green pb-1', parent);
+    statsTitle.textContent = 'STATS';
+    const tfRow = this.createEl('div', 'flex justify-between', parent);
+    this.createEl('span', '', tfRow).textContent = 'TIE FIGHTERS:';
+    this.tieFighterCountValue = this.createEl('span', '', tfRow);
+    this.tieFighterCountValue.id = 'debug-tie-fighter-count';
+    this.tieFighterCountValue.textContent = '0';
+  }
+
+  private createNumericInput(
+    label: string,
+    id: string,
+    min: number,
+    step: number,
+    placeholder: string,
+    initialValue: number | undefined,
+    onValueChange: (val: number | undefined) => void,
+    parent: HTMLElement
+  ) {
+    this.createEl('div', 'mt-4 mb-2 border-b border-vector-green pb-1', parent).textContent = label;
+    const input = this.createEl('input', 'w-full bg-black text-vector-green border border-vector-green px-2 py-1', parent) as HTMLInputElement;
+    input.id = id;
+    input.setAttribute('aria-label', label);
+    input.type = 'number';
+    input.min = min.toString();
+    input.step = step.toString();
+    input.placeholder = placeholder;
+    if (initialValue !== undefined) {
+      input.value = initialValue.toString();
     }
-    surfaceFireballSpeedInput.onchange = (e) => {
+    input.onchange = (e) => {
       const val = parseFloat((e.target as HTMLInputElement).value);
       if (!isNaN(val)) {
-        state.debugSurfaceFireballSpeed = Math.max(1, val);
+        onValueChange(Math.max(min, val));
       } else {
-        state.debugSurfaceFireballSpeed = undefined;
+        onValueChange(undefined);
       }
     };
+    return input;
   }
 
   private createToggleButton(id: string, getText: () => string, onClick: () => void, parent: HTMLElement, isPressed?: () => boolean) {
@@ -296,8 +281,9 @@ export class DebugUIManager {
   }
 
   public update(state: GameState) {
-    if (this.stageButtons) {
+    if (this.stageButtons && state.stage !== this.lastStage) {
       this.updateStageButtons(state.stage);
+      this.lastStage = state.stage;
     }
 
     if (this.tieFighterCountValue && state.entityManager) {

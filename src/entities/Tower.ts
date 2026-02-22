@@ -35,11 +35,11 @@ export class Tower extends Entity implements Targetable {
     }
 
     public getFireballSize(context?: FireballDebugContext): number {
-      return context?.surfaceFireballSize ?? GameConfig.stages.surface.fireballSize ?? GameConfig.fireball.sparkleSize;
+      return context?.surfaceFireballSize ?? GameConfig.stages.surface.fireballSize;
     }
 
     public getFireballSpeed(context?: FireballDebugContext): number {
-      return context?.surfaceFireballSpeed ?? GameConfig.stages.surface.fireballSpeed ?? GameConfig.fireball.relativeSpeed;
+      return context?.surfaceFireballSpeed ?? GameConfig.stages.surface.fireballSpeed;
     }
 
     public explode(): void {

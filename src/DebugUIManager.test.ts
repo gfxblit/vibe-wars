@@ -1,5 +1,5 @@
 // @vitest-environment happy-dom
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { DebugUIManager } from './DebugUIManager';
 import { state } from './state';
 import { GameConfig } from './config';
@@ -13,6 +13,7 @@ describe('DebugUIManager', () => {
     state.debug = true;
     state.debugSurfaceFireballSize = undefined;
     state.debugSurfaceFireballSpeed = undefined;
+    state.stage = 'DOGFIGHT';
     
     // Mock entityManager
     state.entityManager = {
@@ -25,6 +26,29 @@ describe('DebugUIManager', () => {
   afterEach(() => {
     debugManager.destroy();
     document.body.innerHTML = '';
+    vi.restoreAllMocks();
+  });
+
+  it('should only update stage buttons when stage changes', () => {
+    const dogfightBtn = document.getElementById('stage-dogfight') as HTMLElement;
+    const addSpy = vi.spyOn(dogfightBtn.classList, 'add');
+    const removeSpy = vi.spyOn(dogfightBtn.classList, 'remove');
+
+    // First update: should update because lastStage is initially undefined or different
+    debugManager.update(state);
+    const initialAddCount = addSpy.mock.calls.length;
+    const initialRemoveCount = removeSpy.mock.calls.length;
+
+    // Second update: stage hasn't changed
+    debugManager.update(state);
+    expect(addSpy.mock.calls.length).toBe(initialAddCount);
+    expect(removeSpy.mock.calls.length).toBe(initialRemoveCount);
+
+    // Third update: stage changed
+    state.stage = 'SURFACE';
+    debugManager.update(state);
+    expect(addSpy.mock.calls.length).toBeGreaterThan(initialAddCount);
+    expect(removeSpy.mock.calls.length).toBeGreaterThan(initialRemoveCount);
   });
 
   it('should create debug panel', () => {
