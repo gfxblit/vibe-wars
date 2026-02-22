@@ -18,10 +18,17 @@ export class Surface extends Entity {
   private elapsedTime: number = 0;
   private collisionResult: CollisionResult = { floorHit: false, towerHit: null };
 
+  private currentVerticalLineHeight: number = 0;
+  private currentVerticalLineNoise: number = 0;
+
   constructor() {
     super();
     this.mesh = new THREE.Group();
     this.floor = new THREE.Group();
+    
+    this.currentVerticalLineHeight = state.debugSurfaceVerticalLineHeight ?? GameConfig.stages.surface.verticalLineHeight;
+    this.currentVerticalLineNoise = state.debugSurfaceVerticalLineNoise ?? GameConfig.stages.surface.verticalLineNoise;
+
     this.createFloor();
     this.mesh.add(this.floor);
     this.nextTowerSpawnTime = 0;
@@ -31,10 +38,13 @@ export class Surface extends Entity {
     const { gridSpacing: surfaceGridSpacing, color: surfaceColor, floorY: surfaceFloorY } = GameConfig.stages.surface;
     const { far } = GameConfig.camera;
 
+    const height = state.debugSurfaceVerticalLineHeight ?? GameConfig.stages.surface.verticalLineHeight;
+    const noise = state.debugSurfaceVerticalLineNoise ?? GameConfig.stages.surface.verticalLineNoise;
+    
+    this.currentVerticalLineHeight = height;
+    this.currentVerticalLineNoise = noise;
+
     // Grid size should be enough to cover the camera's far plane in all directions.
-    // We add a buffer of two grid spacings to ensure that even when the floor is 
-    // snapped and the player is at the edge of a grid square, the grid still 
-    // extends beyond the camera far plane.
     const halfSize = far + surfaceGridSpacing * 2;
     
     const material = new THREE.LineBasicMaterial({ 
@@ -45,21 +55,19 @@ export class Surface extends Entity {
     
     const points: THREE.Vector3[] = [];
     
-    // Longitudinal lines (along Z)
-    const zStart = halfSize;
-    const zEnd = -halfSize;
     const xStart = -halfSize;
     const xEnd = halfSize;
+    const zStart = halfSize;
+    const zEnd = -halfSize;
     
     for (let x = xStart; x <= xEnd; x += surfaceGridSpacing) {
-        points.push(new THREE.Vector3(x, 0, zStart));
-        points.push(new THREE.Vector3(x, 0, zEnd));
-    }
-    
-    // Latitudinal lines (along X)
-    for (let z = zStart; z >= zEnd; z -= surfaceGridSpacing) {
-        points.push(new THREE.Vector3(xStart, 0, z));
-        points.push(new THREE.Vector3(xEnd, 0, z));
+        for (let z = zStart; z >= zEnd; z -= surfaceGridSpacing) {
+            const px = x + (Math.random() - 0.5) * noise;
+            const pz = z + (Math.random() - 0.5) * noise;
+            
+            points.push(new THREE.Vector3(px, 0, pz));
+            points.push(new THREE.Vector3(px, height, pz));
+        }
     }
     
     const geometry = new THREE.BufferGeometry().setFromPoints(points);
@@ -67,6 +75,16 @@ export class Surface extends Entity {
     
     gridMesh.position.y = surfaceFloorY;
     
+    // Clear existing floor children if any
+    while (this.floor.children.length > 0) {
+        const child = this.floor.children[0] as THREE.LineSegments;
+        child.geometry.dispose();
+        if (child.material instanceof THREE.Material) {
+            child.material.dispose();
+        }
+        this.floor.remove(child);
+    }
+
     this.floor.add(gridMesh);
   }
 
@@ -74,6 +92,14 @@ export class Surface extends Entity {
     this.elapsedTime += deltaTime;
     const playerZ = playerPosition.z;
     const spacing = GameConfig.stages.surface.gridSpacing;
+
+    // Check for debug setting changes
+    const targetHeight = state.debugSurfaceVerticalLineHeight ?? GameConfig.stages.surface.verticalLineHeight;
+    const targetNoise = state.debugSurfaceVerticalLineNoise ?? GameConfig.stages.surface.verticalLineNoise;
+
+    if (targetHeight !== this.currentVerticalLineHeight || targetNoise !== this.currentVerticalLineNoise) {
+        this.createFloor();
+    }
 
     // Update floor position to follow player with snapping
     this.floor.position.x = Math.round(playerPosition.x / spacing) * spacing;

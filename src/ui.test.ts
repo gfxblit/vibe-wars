@@ -416,5 +416,47 @@ describe('UIManager', () => {
       input.dispatchEvent(new Event('change'));
       expect(state.debugFireballSize).toBeUndefined();
     });
+
+    it('should have SURFACE GRID HEIGHT input', () => {
+      const input = document.getElementById('debug-surface-height-input') as HTMLInputElement;
+      expect(input).not.toBeNull();
+      expect(input.type).toBe('number');
+
+      // Simulate input change
+      input.value = '10';
+      input.dispatchEvent(new Event('change'));
+      expect(state.debugSurfaceVerticalLineHeight).toBe(10);
+
+      // Test invalid input (min is 1)
+      input.value = '0';
+      input.dispatchEvent(new Event('change'));
+      expect(state.debugSurfaceVerticalLineHeight).toBe(1);
+
+      // Test clearing input
+      input.value = '';
+      input.dispatchEvent(new Event('change'));
+      expect(state.debugSurfaceVerticalLineHeight).toBeUndefined();
+    });
+
+    it('should have SURFACE GRID NOISE input', () => {
+      const input = document.getElementById('debug-surface-noise-input') as HTMLInputElement;
+      expect(input).not.toBeNull();
+      expect(input.type).toBe('number');
+
+      // Simulate input change
+      input.value = '30';
+      input.dispatchEvent(new Event('change'));
+      expect(state.debugSurfaceVerticalLineNoise).toBe(30);
+
+      // Test invalid input (min is 0)
+      input.value = '-1';
+      input.dispatchEvent(new Event('change'));
+      expect(state.debugSurfaceVerticalLineNoise).toBe(0);
+
+      // Test clearing input
+      input.value = '';
+      input.dispatchEvent(new Event('change'));
+      expect(state.debugSurfaceVerticalLineNoise).toBeUndefined();
+    });
   });
 });

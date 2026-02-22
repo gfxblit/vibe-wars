@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import * as THREE from 'three';
 import { Surface } from './Surface';
 import { GameConfig } from '../config';
+import { state } from '../state';
 
 describe('Surface Entity', () => {
   let surface: Surface;
@@ -12,6 +13,59 @@ describe('Surface Entity', () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
+  });
+
+  it('should create vertical line segments at grid intersections with jitter', () => {
+    const floor = (surface as any).floor as THREE.Group;
+    const gridMesh = floor.children[0] as THREE.LineSegments;
+    const geometry = gridMesh.geometry;
+    const positions = geometry.attributes.position.array;
+    const spacing = GameConfig.stages.surface.gridSpacing;
+
+    let hasNoise = false;
+
+    // Each segment has 2 points, each point has 3 components (x, y, z)
+    // So 6 components per segment.
+    for (let i = 0; i < positions.length; i += 6) {
+      const x1 = positions[i];
+      const y1 = positions[i + 1];
+      const z1 = positions[i + 2];
+      const x2 = positions[i + 3];
+      const y2 = positions[i + 4];
+      const z2 = positions[i + 5];
+
+      expect(x1).toBeCloseTo(x2);
+      expect(z1).toBeCloseTo(z2);
+      expect(Math.min(y1, y2)).toBe(0);
+      expect(Math.abs(y1 - y2)).toBe(GameConfig.stages.surface.verticalLineHeight);
+
+      if (x1 % spacing !== 0 || z1 % spacing !== 0) {
+        hasNoise = true;
+      }
+    }
+
+    expect(hasNoise).toBe(true);
+  });
+
+  it('should recreate floor when debug settings change', () => {
+    const floor = (surface as any).floor as THREE.Group;
+    const initialGridMesh = floor.children[0] as THREE.LineSegments;
+
+    // Change debug settings
+    state.debugSurfaceVerticalLineHeight = 10;
+    
+    // Update surface
+    surface.update(0.1, new THREE.Vector3(0, 0, 0));
+
+    const newGridMesh = floor.children[0] as THREE.LineSegments;
+    expect(newGridMesh).not.toBe(initialGridMesh);
+    
+    const positions = newGridMesh.geometry.attributes.position.array;
+    // Check height of first segment
+    expect(Math.abs(positions[1] - positions[4])).toBe(10);
+    
+    // Cleanup
+    state.debugSurfaceVerticalLineHeight = undefined;
   });
 
   it('should initialize with a mesh containing a floor', () => {

@@ -186,6 +186,30 @@ export class DebugUIManager {
       (val) => { state.debugSurfaceFireballSpeed = val; },
       content
     );
+
+    // Surface Vertical Line Height
+    this.createNumericInput(
+      'Surface Vertical Line Height',
+      'debug-surface-height-input',
+      1,
+      1,
+      `Default (${GameConfig.stages.surface.verticalLineHeight})`,
+      state.debugSurfaceVerticalLineHeight,
+      (val) => { state.debugSurfaceVerticalLineHeight = val; },
+      content
+    );
+
+    // Surface Vertical Line Noise
+    this.createNumericInput(
+      'Surface Vertical Line Noise',
+      'debug-surface-noise-input',
+      0,
+      1,
+      `Default (${GameConfig.stages.surface.verticalLineNoise})`,
+      state.debugSurfaceVerticalLineNoise,
+      (val) => { state.debugSurfaceVerticalLineNoise = val; },
+      content
+    );
   }
 
   private createStatsSection(parent: HTMLElement) {
