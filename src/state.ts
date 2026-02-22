@@ -120,8 +120,7 @@ export function initGame(worldScene: THREE.Scene, hudScene: THREE.Scene) {
 
   // Override stage if provided
   if (stageOverride) {
-    const validStages: GameStage[] = ['DOGFIGHT', 'SURFACE', 'TRENCH', 'EXPLOSION'];
-    if (validStages.includes(stageOverride as GameStage)) {
+    if ((GameConfig.core.stages as readonly string[]).includes(stageOverride)) {
       initialStage = stageOverride as GameStage;
     }
   }
@@ -150,10 +149,6 @@ export function initGame(worldScene: THREE.Scene, hudScene: THREE.Scene) {
     state.stageManager.destroy();
   }
   state.stageManager = new StageManager(worldScene);
-  // Ensure the stage manager is set to the correct stage if we loaded a different one
-  if (state.stage !== 'DOGFIGHT') {
-    state.stageManager.setStage(state.stage);
-  }
 
   if (state.entityManager) {
     state.entityManager.clear();

@@ -8,10 +8,13 @@ function deepFreeze<T extends object>(obj: T): T {
   return Object.freeze(obj);
 }
 
+const ALL_STAGES = ['DOGFIGHT', 'SURFACE', 'TRENCH', 'EXPLOSION'] as const;
+
 export const GameConfig = deepFreeze({
   core: {
     deltaTimeCap: 0.1,
     aimTolerance: 0.15,
+    stages: ALL_STAGES,
   },
   camera: {
     fov: 75,
@@ -118,7 +121,7 @@ export const GameConfig = deepFreeze({
   },
   progression: {
     wave1: ['DOGFIGHT', 'TRENCH', 'EXPLOSION'],
-    default: ['DOGFIGHT', 'SURFACE', 'TRENCH', 'EXPLOSION'],
+    default: ALL_STAGES,
   },
   tieFighter: {
     speed: 50,
