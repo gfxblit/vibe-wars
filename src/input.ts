@@ -8,6 +8,18 @@ export interface UserInput {
   isFiring: boolean;
 }
 
+// MouseEvent.button values
+const MOUSE_BUTTON_LEFT = 0;
+const MOUSE_BUTTON_MIDDLE = 1;
+const MOUSE_BUTTON_RIGHT = 2;
+
+// MouseEvent.buttons bitmask values
+const MOUSE_BIT_LEFT = 1;
+const MOUSE_BIT_RIGHT = 2;
+const MOUSE_BIT_MIDDLE = 4;
+const MOUSE_BITS_FIRE = MOUSE_BIT_LEFT | MOUSE_BIT_MIDDLE;
+const MOUSE_BITS_ALL = MOUSE_BIT_LEFT | MOUSE_BIT_RIGHT | MOUSE_BIT_MIDDLE;
+
 export class InputManager {
   private input: THREE.Vector2 = new THREE.Vector2(0, 0);
   private keyboardInput: THREE.Vector2 = new THREE.Vector2(0, 0);
@@ -52,21 +64,29 @@ export class InputManager {
       return;
     }
 
-    if (event.button === 2) { // Right click
+    if (event.button === MOUSE_BUTTON_RIGHT) {
       this.startDrag(event.clientX, event.clientY, null, false, false);
     } else {
-      this.mouseFiringButtons = event.buttons & (1 | 4);
+      // In some test environments, event.buttons might be 0. We fallback to single bit if buttons is 0.
+      let fallbackBit = 0;
+      if (event.button === MOUSE_BUTTON_LEFT) fallbackBit = MOUSE_BIT_LEFT;
+      else if (event.button === MOUSE_BUTTON_MIDDLE) fallbackBit = MOUSE_BIT_MIDDLE;
+      
+      const currentButtons = event.buttons || fallbackBit;
+      this.mouseFiringButtons = currentButtons & MOUSE_BITS_FIRE;
       this.updateFiringState();
       this.startDrag(event.clientX, event.clientY, null, target === this.fireButton, false);
     }
   };
 
   private handlePointerUp = (event: MouseEvent) => {
-    this.mouseFiringButtons = event.buttons & (1 | 4);
+    // In some test environments, event.buttons might be 0.
+    // If buttons is 0, we treat it as all buttons released.
+    this.mouseFiringButtons = event.buttons & MOUSE_BITS_FIRE;
     this.updateFiringState();
 
-    // Only stop dragging if no relevant buttons are left (1: left, 2: right, 4: middle)
-    if ((event.buttons & (1 | 2 | 4)) === 0) {
+    // Only stop dragging if no relevant buttons are left
+    if ((event.buttons & MOUSE_BITS_ALL) === 0) {
       this.isDragging = false;
     }
   };
