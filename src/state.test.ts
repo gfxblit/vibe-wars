@@ -1,10 +1,9 @@
 import { expect, test, beforeEach, describe } from 'vitest'
-import { state, initGame, addScore, takeDamage, goToNextStage, checkCollision, updateState, spawnLasers, spawnFireball, setStorageService } from './state'
+import { state, initGame, addScore, takeDamage, goToNextStage, checkCollision, updateState, spawnLasers, spawnFireball } from './state'
 import * as THREE from 'three';
 import { Player } from './entities/Player';
 import { TieFighter } from './entities/TieFighter';
 import { GameConfig } from './config';
-import { InMemoryStorageService } from './services/StorageService';
 
 const scene = new THREE.Scene();
 const hudScene = new THREE.Scene();
@@ -16,7 +15,6 @@ mockCamera.updateMatrixWorld();
 mockCamera.updateProjectionMatrix();
 
 beforeEach(() => {
-  setStorageService(new InMemoryStorageService());
   initGame(scene, hudScene);
 });
 

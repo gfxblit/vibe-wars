@@ -10,8 +10,6 @@ import { Fireball } from './entities/Fireball';
 import { GameConfig } from './config';
 import { EntityManager } from './entities/EntityManager';
 import { StageManager } from './StageManager';
-import { StorageService, LocalStorageService } from './services/StorageService';
-import { saveGameState, loadGameState } from './services/PersistenceService';
 
 export type GameStage = 'DOGFIGHT' | 'SURFACE' | 'TRENCH' | 'EXPLOSION';
 
@@ -84,53 +82,16 @@ export const state: GameState = {
   debugTieFighterColor: undefined,
 };
 
-let storageService: StorageService = new LocalStorageService();
-
-export function setStorageService(service: StorageService) {
-  storageService = service;
-}
-
-export function saveState() {
-  saveGameState(state, storageService);
-}
-
 export function initGame(worldScene: THREE.Scene, hudScene: THREE.Scene) {
   const urlParams = new URLSearchParams(window.location.search);
   state.debug = urlParams.get('debug') === 'true';
-  const shouldContinue = urlParams.get('continue') === 'true';
-  const stageOverride = urlParams.get('s') || urlParams.get('stage');
-
-  // Default values
-  let initialScore = 0;
-  let initialShields: number = GameConfig.player.maxShields;
-  let initialKills = 0;
-  let initialWave = 1;
-  let initialStage: GameStage = 'DOGFIGHT';
-
-  if (shouldContinue) {
-    const saved = loadGameState(storageService);
-    if (saved) {
-      initialScore = saved.score ?? initialScore;
-      initialShields = saved.shields ?? initialShields;
-      initialKills = saved.kills ?? initialKills;
-      initialWave = saved.wave ?? initialWave;
-      initialStage = saved.stage ?? initialStage;
-    }
-  }
-
-  // Override stage if provided
-  if (stageOverride) {
-    if ((GameConfig.core.stages as readonly string[]).includes(stageOverride)) {
-      initialStage = stageOverride as GameStage;
-    }
-  }
 
   // Reset core game values
-  state.score = initialScore;
-  state.shields = initialShields;
-  state.kills = initialKills;
-  state.wave = initialWave;
-  state.stage = initialStage;
+  state.score = 0;
+  state.shields = GameConfig.player.maxShields;
+  state.kills = 0;
+  state.wave = 1;
+  state.stage = 'DOGFIGHT';
   state.isGameOver = false;
   state.gunColorToggles = GameConfig.laser.offsets.map(() => false);
   state.canFireTorpedo = false;
@@ -256,7 +217,6 @@ export function takeDamage(amount: number = 1) {
 export function goToNextStage() {
   if (state.stageManager) {
     state.stageManager.goToNextStage();
-    saveState();
   }
 }
 
