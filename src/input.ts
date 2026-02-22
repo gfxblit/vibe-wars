@@ -65,6 +65,7 @@ export class InputManager {
     }
 
     if (event.button === MOUSE_BUTTON_RIGHT) {
+      if (this.isDragging) return;
       this.startDrag(event.clientX, event.clientY, null, false, false);
     } else {
       // In some test environments, event.buttons might be 0. We fallback to single bit if buttons is 0.
