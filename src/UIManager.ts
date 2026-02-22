@@ -220,6 +220,54 @@ export class UIManager {
         state.debugFireballSize = undefined;
       }
     };
+
+    // TIE Fighter Size
+    this.createEl('div', 'mt-4 mb-2 border-b border-vector-green pb-1', content).textContent = 'TIE FIGHTER SIZE';
+    const tieFighterSizeInput = this.createEl('input', 'w-full bg-black text-vector-green border border-vector-green px-2 py-1', content) as HTMLInputElement;
+    tieFighterSizeInput.id = 'debug-tiefighter-size-input';
+    tieFighterSizeInput.type = 'number';
+    tieFighterSizeInput.min = '0.1';
+    tieFighterSizeInput.step = '0.1';
+    tieFighterSizeInput.placeholder = `Default (${GameConfig.tieFighter.meshSize})`;
+    if (state.debugTieFighterSize !== undefined) {
+      tieFighterSizeInput.value = state.debugTieFighterSize.toString();
+    }
+    tieFighterSizeInput.onchange = (e) => {
+      const val = parseFloat((e.target as HTMLInputElement).value);
+      if (!isNaN(val)) {
+        state.debugTieFighterSize = Math.max(0.1, val);
+      } else {
+        state.debugTieFighterSize = undefined;
+      }
+    };
+
+    // TIE Fighter Color
+    this.createEl('div', 'mt-4 mb-2 border-b border-vector-green pb-1', content).textContent = 'TIE FIGHTER COLOR';
+    const tieFighterColorInput = this.createEl('input', 'w-full bg-black text-vector-green border border-vector-green px-2 py-1', content) as HTMLInputElement;
+    tieFighterColorInput.id = 'debug-tiefighter-color-input';
+    tieFighterColorInput.type = 'text';
+    tieFighterColorInput.placeholder = `Hex (e.g. 0xFF0000)`;
+    if (state.debugTieFighterColor !== undefined) {
+      tieFighterColorInput.value = '0x' + state.debugTieFighterColor.toString(16).toUpperCase();
+    }
+    tieFighterColorInput.onchange = (e) => {
+      const valStr = (e.target as HTMLInputElement).value.trim();
+      if (valStr) {
+          // Allow hex string starting with 0x or # or nothing
+          let cleanStr = valStr;
+          if (cleanStr.startsWith('0x')) cleanStr = cleanStr.substring(2);
+          else if (cleanStr.startsWith('#')) cleanStr = cleanStr.substring(1);
+          
+          const val = parseInt(cleanStr, 16);
+          if (!isNaN(val)) {
+              state.debugTieFighterColor = val;
+          } else {
+              state.debugTieFighterColor = undefined;
+          }
+      } else {
+          state.debugTieFighterColor = undefined;
+      }
+    };
   }
 
   private createToggleButton(id: string, getText: () => string, onClick: () => void, parent: HTMLElement, isPressed?: () => boolean) {

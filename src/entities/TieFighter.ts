@@ -2,7 +2,6 @@ import * as THREE from 'three';
 import { Entity, Targetable } from './Entity';
 import { GameConfig } from '../config';
 import { AIStrategy } from './AIStrategy';
-import { state } from '../state';
 
 export class TieFighter extends Entity implements Targetable {
   public readonly mesh: THREE.Group;
@@ -10,6 +9,7 @@ export class TieFighter extends Entity implements Targetable {
 
   public isExploded: boolean = false;
   private pieceVelocities: THREE.Vector3[] = [];
+  private baseSize: number;
 
   private static material: THREE.MeshBasicMaterial;
   private static bodyGeo: THREE.SphereGeometry;
@@ -26,12 +26,14 @@ export class TieFighter extends Entity implements Targetable {
     return this.mesh.position;
   }
 
-  constructor(strategy: AIStrategy) {
+  constructor(strategy: AIStrategy, initialSize: number = GameConfig.tieFighter.meshSize) {
     super();
     this.mesh = new THREE.Group();
     this.strategy = strategy;
+    this.baseSize = initialSize;
 
-    const size = GameConfig.tieFighter.meshSize;
+    // Use normalized size for geometry
+    const size = 1.0;
 
     if (!TieFighter.material) {
       TieFighter.material = new THREE.MeshBasicMaterial({
@@ -64,6 +66,8 @@ export class TieFighter extends Entity implements Targetable {
     rightWing.position.set(size * 0.8, 0, 0);
     rightWing.rotation.y = Math.PI / 2;
     this.mesh.add(rightWing);
+
+    this.mesh.scale.setScalar(this.baseSize);
   }
 
   public explode(): void {
@@ -82,7 +86,15 @@ export class TieFighter extends Entity implements Targetable {
     });
   }
 
-  public update(deltaTime: number, playerPosition: THREE.Vector3, playerQuaternion: THREE.Quaternion, playerSpeed: number): THREE.Vector3 | null {
+  public update(
+    deltaTime: number,
+    playerPosition: THREE.Vector3,
+    playerQuaternion: THREE.Quaternion,
+    playerSpeed: number,
+    isModeColoring: boolean = false,
+    overrideSize?: number,
+    overrideColor?: number
+  ): THREE.Vector3 | null {
     if (this.isExploded) {
       // Move pieces
       this.mesh.children.forEach((child, index) => {
@@ -95,18 +107,34 @@ export class TieFighter extends Entity implements Targetable {
       return null;
     }
 
+    // Apply size override
+    const targetSize = overrideSize ?? this.baseSize;
+    if (Math.abs(this.mesh.scale.x - targetSize) > 0.001) {
+      this.mesh.scale.setScalar(targetSize);
+    }
+
     this.fireCooldown -= deltaTime;
     this.strategy.update(deltaTime, this.mesh.position, this.mesh.quaternion, playerPosition, playerQuaternion, playerSpeed);
 
-    // Debug: Update color if strategy provides one and mode coloring is enabled
-    if (this.strategy.getColor) {
-      const color = this.strategy.getColor(state.isModeColoring);
-      this.mesh.children.forEach(child => {
-        if (child instanceof THREE.Mesh && child.material instanceof THREE.MeshBasicMaterial) {
-          child.material.color.setHex(color);
-        }
-      });
+    // Apply color: Override > Strategy > Default
+    let targetColor: number | undefined = overrideColor;
+
+    if (targetColor === undefined && this.strategy.getColor) {
+      targetColor = this.strategy.getColor(isModeColoring);
     }
+
+    // If still undefined, use default
+    if (targetColor === undefined) {
+      targetColor = GameConfig.tieFighter.meshColor;
+    }
+
+    this.mesh.children.forEach(child => {
+      if (child instanceof THREE.Mesh && child.material instanceof THREE.MeshBasicMaterial) {
+        if (child.material.color.getHex() !== targetColor) {
+          child.material.color.setHex(targetColor!);
+        }
+      }
+    });
 
     if (this.fireCooldown <= 0) {
       this.fireCooldown = GameConfig.fireball.fireRate;

@@ -43,6 +43,8 @@ export interface GameState {
   debugKillsThreshold?: number;
   debugTurretSize?: number;
   debugFireballSize?: number;
+  debugTieFighterSize?: number;
+  debugTieFighterColor?: number;
 }
 
 const initialWidth = typeof window !== 'undefined' ? window.innerWidth : 1024;
@@ -76,6 +78,8 @@ export const state: GameState = {
   debugKillsThreshold: undefined,
   debugTurretSize: undefined,
   debugFireballSize: undefined,
+  debugTieFighterSize: undefined,
+  debugTieFighterColor: undefined,
 };
 
 export function initGame(worldScene: THREE.Scene, hudScene: THREE.Scene) {
@@ -97,6 +101,8 @@ export function initGame(worldScene: THREE.Scene, hudScene: THREE.Scene) {
   state.debugKillsThreshold = undefined;
   state.debugTurretSize = undefined;
   state.debugFireballSize = undefined;
+  state.debugTieFighterSize = undefined;
+  state.debugTieFighterColor = undefined;
 
   state.player = new Player();
 

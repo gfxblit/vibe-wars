@@ -4,6 +4,7 @@ import { GameConfig } from './config'
 describe('GameConfig', () => {
   test('should have core settings', () => {
     expect(GameConfig.core.deltaTimeCap).toBe(0.1);
+    expect(GameConfig.core.stages).toEqual(['DOGFIGHT', 'SURFACE', 'TRENCH', 'EXPLOSION']);
   });
 
   test('should have camera settings', () => {
