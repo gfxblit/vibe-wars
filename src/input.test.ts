@@ -3,8 +3,27 @@ import { InputManager } from './input';
 import { state } from './state';
 
 function createMouseEvent(type: string, init: MouseEventInit = {}, target: EventTarget = document.body) {
+    // Automatically set buttons bitmask if button is provided
+    if (init.button !== undefined && init.buttons === undefined) {
+        if (type === 'mousedown') {
+            if (init.button === 0) init.buttons = 1;
+            else if (init.button === 1) init.buttons = 4;
+            else if (init.button === 2) init.buttons = 2;
+        } else if (type === 'mouseup') {
+            init.buttons = 0; // Default to no buttons remaining
+        }
+    } else if (init.buttons === undefined && type === 'mousedown') {
+        init.buttons = 1; // Default to Left button for mousedown
+    } else if (init.buttons === undefined && type === 'mouseup') {
+        init.buttons = 0; // Default to no buttons for mouseup
+    }
+    
     const event = new MouseEvent(type, init);
     Object.defineProperty(event, 'target', { value: target, configurable: true });
+    // JSDOM might not correctly initialize buttons via constructor, so we ensure it here
+    if (init.buttons !== undefined) {
+        Object.defineProperty(event, 'buttons', { value: init.buttons, configurable: true });
+    }
     return event;
 }
 
@@ -397,5 +416,183 @@ describe('InputManager', () => {
     expect(inputManager.getInput().x).toBe(-1);
 
     document.body.removeChild(canvas);
+  });
+
+  it('should continue tracking right drag after left click release (Issue 156)', () => {
+    // 1. Right-click and hold (button 2, buttons bitmask 2)
+    const rightDown = createMouseEvent('mousedown', { button: 2 });
+    Object.defineProperty(rightDown, 'buttons', { value: 2 });
+    listeners['mousedown'](rightDown);
+    
+    // 2. Move mouse to (0, 0) -> should be (-1, 1)
+    listeners['mousemove'](new MouseEvent('mousemove', { clientX: 0, clientY: 0 }));
+    inputManager.update(0);
+    expect(inputManager.getInput().x).toBe(-1);
+    expect(inputManager.getInput().y).toBe(1);
+    expect(inputManager.getInput().isFiring).toBe(false);
+
+    // 3. Left-click while right-click is still down (button 0, buttons bitmask 1 + 2 = 3)
+    const leftDown = createMouseEvent('mousedown', { button: 0 });
+    Object.defineProperty(leftDown, 'buttons', { value: 3 });
+    listeners['mousedown'](leftDown);
+    expect(inputManager.getInput().isFiring).toBe(true);
+    expect(inputManager.getInput().x).toBe(-1);
+
+    // 4. Release left-click (button 0, buttons bitmask remains 2)
+    const leftUp = createMouseEvent('mouseup', { button: 0 });
+    Object.defineProperty(leftUp, 'buttons', { value: 2 });
+    listeners['mouseup'](leftUp);
+    expect(inputManager.getInput().isFiring).toBe(false);
+
+    // We expect it to STAY at (-1, 1) because right button (2) is still down.
+    inputManager.update(0.1);
+    expect(inputManager.getInput().x).toBe(-1);
+    expect(inputManager.getInput().y).toBe(1);
+
+    // 5. Move mouse again while right-dragging
+    listeners['mousemove'](new MouseEvent('mousemove', { clientX: 1000, clientY: 1000 }));
+    inputManager.update(0);
+    expect(inputManager.getInput().x).toBe(1);
+    expect(inputManager.getInput().y).toBe(-1);
+
+    // 6. Release right-click (button 2, buttons bitmask becomes 0)
+    const rightUp = createMouseEvent('mouseup', { button: 2 });
+    Object.defineProperty(rightUp, 'buttons', { value: 0 });
+    listeners['mouseup'](rightUp);
+    
+    // Now it should decay
+    inputManager.update(0.1);
+    expect(Math.abs(inputManager.getInput().x)).toBeLessThan(1);
+  });
+
+  it('should ignore additional right-clicks if already dragging (Reviewer Feedback)', () => {
+    // 1. Right-click and hold at center
+    listeners['mousedown'](createMouseEvent('mousedown', { button: 2, clientX: 500, clientY: 500 }));
+    expect(inputManager.getInput().x).toBe(0);
+
+    // 2. Move to (0, 0)
+    listeners['mousemove'](new MouseEvent('mousemove', { clientX: 0, clientY: 0 }));
+    inputManager.update(0);
+    expect(inputManager.getInput().x).toBe(-1);
+
+    // 3. Right-click again at (1000, 1000) - should be ignored if we follow reviewer advice
+    // Wait, if it's NOT ignored, startDrag would update pointer input to (1, -1)
+    listeners['mousedown'](createMouseEvent('mousedown', { button: 2, clientX: 1000, clientY: 1000 }));
+    inputManager.update(0);
+    
+    // We expect it to remain at (-1, 1) because the second right-click was ignored
+    expect(inputManager.getInput().x).toBe(-1);
+    expect(inputManager.getInput().y).toBe(1);
+  });
+
+  it('should allow firing (left-click) while already right-dragging (Issue 156)', () => {
+    // 1. Right-click and hold
+    listeners['mousedown'](createMouseEvent('mousedown', { button: 2, clientX: 500, clientY: 500 }));
+    expect(inputManager.getInput().isFiring).toBe(false);
+
+    // 2. Left-click while right-dragging
+    const leftDown = createMouseEvent('mousedown', { button: 0 });
+    Object.defineProperty(leftDown, 'buttons', { value: 3 }); // Left (1) | Right (2)
+    listeners['mousedown'](leftDown);
+    
+    expect(inputManager.getInput().isFiring).toBe(true);
+
+    // 3. Move while both down
+    listeners['mousemove'](new MouseEvent('mousemove', { clientX: 0, clientY: 0 }));
+    inputManager.update(0);
+    expect(inputManager.getInput().x).toBe(-1);
+    expect(inputManager.getInput().y).toBe(1);
+    expect(inputManager.getInput().isFiring).toBe(true);
+
+    // 4. Release left-click
+    const leftUp = createMouseEvent('mouseup', { button: 0 });
+    Object.defineProperty(leftUp, 'buttons', { value: 2 }); // Only Right (2) remains
+    listeners['mouseup'](leftUp);
+    
+    expect(inputManager.getInput().isFiring).toBe(false);
+    expect(inputManager.getInput().x).toBe(-1); // Should STILL be at (-1, 1) because right button is down
+  });
+
+  it('should continue firing if middle click is still held after left click release', () => {
+    // 1. Left-click (button 0, buttons bitmask 1)
+    const leftDown = createMouseEvent('mousedown', { button: 0 });
+    Object.defineProperty(leftDown, 'buttons', { value: 1 });
+    listeners['mousedown'](leftDown);
+    expect(inputManager.getInput().isFiring).toBe(true);
+
+    // 2. Middle-click (button 1, buttons bitmask 1 | 4 = 5)
+    // Note: event.button for middle click is 1, but bitmask is 4.
+    const middleDown = createMouseEvent('mousedown', { button: 1 });
+    Object.defineProperty(middleDown, 'buttons', { value: 5 });
+    listeners['mousedown'](middleDown);
+    expect(inputManager.getInput().isFiring).toBe(true);
+
+    // 3. Release left-click (button 0, buttons bitmask becomes 4)
+    const leftUp = createMouseEvent('mouseup', { button: 0 });
+    Object.defineProperty(leftUp, 'buttons', { value: 4 });
+    listeners['mouseup'](leftUp);
+
+    // SHOULD still be firing because middle button is still down
+    expect(inputManager.getInput().isFiring).toBe(true);
+
+    // 4. Release middle-click (button 1, buttons bitmask becomes 0)
+    const middleUp = createMouseEvent('mouseup', { button: 1 });
+    Object.defineProperty(middleUp, 'buttons', { value: 0 });
+    listeners['mouseup'](middleUp);
+    expect(inputManager.getInput().isFiring).toBe(false);
+  });
+
+  it('should continue firing if Space is still held after left click release', () => {
+    // 1. Press Space
+    listeners['keydown'](new KeyboardEvent('keydown', { code: 'Space' }));
+    expect(inputManager.getInput().isFiring).toBe(true);
+
+    // 2. Left-click
+    const leftDown = createMouseEvent('mousedown', { button: 0 });
+    listeners['mousedown'](leftDown);
+    expect(inputManager.getInput().isFiring).toBe(true);
+
+    // 3. Release left-click
+    const leftUp = createMouseEvent('mouseup', { button: 0 });
+    listeners['mouseup'](leftUp);
+
+    // SHOULD still be firing because Space is still down
+    expect(inputManager.getInput().isFiring).toBe(true);
+
+    // 4. Release Space
+    listeners['keyup'](new KeyboardEvent('keyup', { code: 'Space' }));
+    expect(inputManager.getInput().isFiring).toBe(false);
+  });
+
+  it('should continue firing if middle click is still held after touch release', () => {
+    // 1. Touch fire button
+    const touchStart = new TouchEvent('touchstart', {
+      changedTouches: [new Touch({ identifier: 1, target: fireButton })],
+      bubbles: true,
+      cancelable: true
+    });
+    listeners['touchstart'](touchStart);
+    expect(inputManager.getInput().isFiring).toBe(true);
+
+    // 2. Middle-click
+    const middleDown = createMouseEvent('mousedown', { button: 1 });
+    listeners['mousedown'](middleDown);
+    expect(inputManager.getInput().isFiring).toBe(true);
+
+    // 3. Release touch
+    const touchEnd = new TouchEvent('touchend', {
+      changedTouches: [new Touch({ identifier: 1, target: fireButton })],
+      bubbles: true,
+      cancelable: true
+    });
+    listeners['touchend'](touchEnd);
+
+    // SHOULD still be firing because middle button is still down
+    expect(inputManager.getInput().isFiring).toBe(true);
+
+    // 4. Release middle-click
+    const middleUp = createMouseEvent('mouseup', { button: 1 });
+    listeners['mouseup'](middleUp);
+    expect(inputManager.getInput().isFiring).toBe(false);
   });
 });

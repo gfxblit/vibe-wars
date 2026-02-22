@@ -8,6 +8,18 @@ export interface UserInput {
   isFiring: boolean;
 }
 
+// MouseEvent.button values
+const MOUSE_BUTTON_LEFT = 0;
+const MOUSE_BUTTON_MIDDLE = 1;
+const MOUSE_BUTTON_RIGHT = 2;
+
+// MouseEvent.buttons bitmask values
+const MOUSE_BIT_LEFT = 1;
+const MOUSE_BIT_RIGHT = 2;
+const MOUSE_BIT_MIDDLE = 4;
+const MOUSE_BITS_FIRE = MOUSE_BIT_LEFT | MOUSE_BIT_MIDDLE;
+const MOUSE_BITS_ALL = MOUSE_BIT_LEFT | MOUSE_BIT_RIGHT | MOUSE_BIT_MIDDLE;
+
 export class InputManager {
   private input: THREE.Vector2 = new THREE.Vector2(0, 0);
   private keyboardInput: THREE.Vector2 = new THREE.Vector2(0, 0);
@@ -18,25 +30,31 @@ export class InputManager {
   private dragTouchId: number | null = null;
   private dragStartedOnFireButton: boolean = false;
   private isFiring: boolean = false;
+  private mouseFiringButtons: number = 0;
+  private activeTouchFires: Set<number> = new Set();
   private useRelativeInput: boolean = false;
   private pointerAnchor: THREE.Vector2 = new THREE.Vector2(0, 0);
   private fireButton: HTMLElement | null = null;
   
   private handleKeyDown = (event: KeyboardEvent) => {
-    if (event.code === 'Space') {
-      this.isFiring = true;
-    }
     this.keys.add(event.code);
+    if (event.code === 'Space') {
+      this.updateFiringState();
+    }
     this.updateKeyboardTarget();
   };
 
   private handleKeyUp = (event: KeyboardEvent) => {
-    if (event.code === 'Space') {
-      this.isFiring = false;
-    }
     this.keys.delete(event.code);
+    if (event.code === 'Space') {
+      this.updateFiringState();
+    }
     this.updateKeyboardTarget();
   };
+
+  private updateFiringState() {
+    this.isFiring = this.keys.has('Space') || this.mouseFiringButtons !== 0 || this.activeTouchFires.size > 0;
+  }
 
   private handleMouseDown = (event: MouseEvent) => {
     const target = event.target as HTMLElement;
@@ -46,20 +64,31 @@ export class InputManager {
       return;
     }
 
-    if (event.button === 2) { // Right click
+    if (event.button === MOUSE_BUTTON_RIGHT) {
+      if (this.isDragging) return;
       this.startDrag(event.clientX, event.clientY, null, false, false);
     } else {
-      this.isFiring = true;
+      // In some test environments, event.buttons might be 0. We fallback to single bit if buttons is 0.
+      let fallbackBit = 0;
+      if (event.button === MOUSE_BUTTON_LEFT) fallbackBit = MOUSE_BIT_LEFT;
+      else if (event.button === MOUSE_BUTTON_MIDDLE) fallbackBit = MOUSE_BIT_MIDDLE;
+      
+      const currentButtons = event.buttons || fallbackBit;
+      this.mouseFiringButtons = currentButtons & MOUSE_BITS_FIRE;
+      this.updateFiringState();
       this.startDrag(event.clientX, event.clientY, null, target === this.fireButton, false);
     }
   };
 
   private handlePointerUp = (event: MouseEvent) => {
-    if (event.button === 2) { // Right click
+    // In some test environments, event.buttons might be 0.
+    // If buttons is 0, we treat it as all buttons released.
+    this.mouseFiringButtons = event.buttons & MOUSE_BITS_FIRE;
+    this.updateFiringState();
+
+    // Only stop dragging if no relevant buttons are left
+    if ((event.buttons & MOUSE_BITS_ALL) === 0) {
       this.isDragging = false;
-    } else {
-      this.isDragging = false;
-      this.isFiring = false;
     }
   };
 
@@ -79,7 +108,8 @@ export class InputManager {
       const isFireButton = target === this.fireButton;
 
       if (isFireButton) {
-        this.isFiring = true;
+        this.activeTouchFires.add(touch.identifier);
+        this.updateFiringState();
         event.preventDefault();
       }
 
@@ -102,7 +132,8 @@ export class InputManager {
       const touch = event.changedTouches[i];
       
       if (touch.target === this.fireButton) {
-        this.isFiring = false;
+        this.activeTouchFires.delete(touch.identifier);
+        this.updateFiringState();
       }
 
       if (this.dragTouchId === touch.identifier) {
