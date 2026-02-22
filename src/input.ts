@@ -18,25 +18,31 @@ export class InputManager {
   private dragTouchId: number | null = null;
   private dragStartedOnFireButton: boolean = false;
   private isFiring: boolean = false;
+  private mouseFiringButtons: number = 0;
+  private activeTouchFires: Set<number> = new Set();
   private useRelativeInput: boolean = false;
   private pointerAnchor: THREE.Vector2 = new THREE.Vector2(0, 0);
   private fireButton: HTMLElement | null = null;
   
   private handleKeyDown = (event: KeyboardEvent) => {
-    if (event.code === 'Space') {
-      this.isFiring = true;
-    }
     this.keys.add(event.code);
+    if (event.code === 'Space') {
+      this.updateFiringState();
+    }
     this.updateKeyboardTarget();
   };
 
   private handleKeyUp = (event: KeyboardEvent) => {
-    if (event.code === 'Space') {
-      this.isFiring = false;
-    }
     this.keys.delete(event.code);
+    if (event.code === 'Space') {
+      this.updateFiringState();
+    }
     this.updateKeyboardTarget();
   };
+
+  private updateFiringState() {
+    this.isFiring = this.keys.has('Space') || this.mouseFiringButtons !== 0 || this.activeTouchFires.size > 0;
+  }
 
   private handleMouseDown = (event: MouseEvent) => {
     const target = event.target as HTMLElement;
@@ -49,18 +55,18 @@ export class InputManager {
     if (event.button === 2) { // Right click
       this.startDrag(event.clientX, event.clientY, null, false, false);
     } else {
-      this.isFiring = true;
+      this.mouseFiringButtons = event.buttons & (1 | 4);
+      this.updateFiringState();
       this.startDrag(event.clientX, event.clientY, null, target === this.fireButton, false);
     }
   };
 
   private handlePointerUp = (event: MouseEvent) => {
-    if (event.button !== 2) {
-      this.isFiring = false;
-    }
+    this.mouseFiringButtons = event.buttons & (1 | 4);
+    this.updateFiringState();
 
     // Only stop dragging if no relevant buttons are left (1: left, 2: right, 4: middle)
-    if ((event.buttons & 7) === 0) {
+    if ((event.buttons & (1 | 2 | 4)) === 0) {
       this.isDragging = false;
     }
   };
@@ -81,7 +87,8 @@ export class InputManager {
       const isFireButton = target === this.fireButton;
 
       if (isFireButton) {
-        this.isFiring = true;
+        this.activeTouchFires.add(touch.identifier);
+        this.updateFiringState();
         event.preventDefault();
       }
 
@@ -104,7 +111,8 @@ export class InputManager {
       const touch = event.changedTouches[i];
       
       if (touch.target === this.fireButton) {
-        this.isFiring = false;
+        this.activeTouchFires.delete(touch.identifier);
+        this.updateFiringState();
       }
 
       if (this.dragTouchId === touch.identifier) {

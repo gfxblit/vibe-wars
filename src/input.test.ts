@@ -3,8 +3,27 @@ import { InputManager } from './input';
 import { state } from './state';
 
 function createMouseEvent(type: string, init: MouseEventInit = {}, target: EventTarget = document.body) {
+    // Automatically set buttons bitmask if button is provided
+    if (init.button !== undefined && init.buttons === undefined) {
+        if (type === 'mousedown') {
+            if (init.button === 0) init.buttons = 1;
+            else if (init.button === 1) init.buttons = 4;
+            else if (init.button === 2) init.buttons = 2;
+        } else if (type === 'mouseup') {
+            init.buttons = 0; // Default to no buttons remaining
+        }
+    } else if (init.buttons === undefined && type === 'mousedown') {
+        init.buttons = 1; // Default to Left button for mousedown
+    } else if (init.buttons === undefined && type === 'mouseup') {
+        init.buttons = 0; // Default to no buttons for mouseup
+    }
+    
     const event = new MouseEvent(type, init);
     Object.defineProperty(event, 'target', { value: target, configurable: true });
+    // JSDOM might not correctly initialize buttons via constructor, so we ensure it here
+    if (init.buttons !== undefined) {
+        Object.defineProperty(event, 'buttons', { value: init.buttons, configurable: true });
+    }
     return event;
 }
 
@@ -444,5 +463,88 @@ describe('InputManager', () => {
     // Now it should decay
     inputManager.update(0.1);
     expect(Math.abs(inputManager.getInput().x)).toBeLessThan(1);
+  });
+
+  it('should continue firing if middle click is still held after left click release', () => {
+    // 1. Left-click (button 0, buttons bitmask 1)
+    const leftDown = createMouseEvent('mousedown', { button: 0 });
+    Object.defineProperty(leftDown, 'buttons', { value: 1 });
+    listeners['mousedown'](leftDown);
+    expect(inputManager.getInput().isFiring).toBe(true);
+
+    // 2. Middle-click (button 1, buttons bitmask 1 | 4 = 5)
+    // Note: event.button for middle click is 1, but bitmask is 4.
+    const middleDown = createMouseEvent('mousedown', { button: 1 });
+    Object.defineProperty(middleDown, 'buttons', { value: 5 });
+    listeners['mousedown'](middleDown);
+    expect(inputManager.getInput().isFiring).toBe(true);
+
+    // 3. Release left-click (button 0, buttons bitmask becomes 4)
+    const leftUp = createMouseEvent('mouseup', { button: 0 });
+    Object.defineProperty(leftUp, 'buttons', { value: 4 });
+    listeners['mouseup'](leftUp);
+
+    // SHOULD still be firing because middle button is still down
+    expect(inputManager.getInput().isFiring).toBe(true);
+
+    // 4. Release middle-click (button 1, buttons bitmask becomes 0)
+    const middleUp = createMouseEvent('mouseup', { button: 1 });
+    Object.defineProperty(middleUp, 'buttons', { value: 0 });
+    listeners['mouseup'](middleUp);
+    expect(inputManager.getInput().isFiring).toBe(false);
+  });
+
+  it('should continue firing if Space is still held after left click release', () => {
+    // 1. Press Space
+    listeners['keydown'](new KeyboardEvent('keydown', { code: 'Space' }));
+    expect(inputManager.getInput().isFiring).toBe(true);
+
+    // 2. Left-click
+    const leftDown = createMouseEvent('mousedown', { button: 0 });
+    listeners['mousedown'](leftDown);
+    expect(inputManager.getInput().isFiring).toBe(true);
+
+    // 3. Release left-click
+    const leftUp = createMouseEvent('mouseup', { button: 0 });
+    listeners['mouseup'](leftUp);
+
+    // SHOULD still be firing because Space is still down
+    expect(inputManager.getInput().isFiring).toBe(true);
+
+    // 4. Release Space
+    listeners['keyup'](new KeyboardEvent('keyup', { code: 'Space' }));
+    expect(inputManager.getInput().isFiring).toBe(false);
+  });
+
+  it('should continue firing if middle click is still held after touch release', () => {
+    // 1. Touch fire button
+    const touchStart = new TouchEvent('touchstart', {
+      changedTouches: [new Touch({ identifier: 1, target: fireButton })],
+      bubbles: true,
+      cancelable: true
+    });
+    listeners['touchstart'](touchStart);
+    expect(inputManager.getInput().isFiring).toBe(true);
+
+    // 2. Middle-click
+    const middleDown = createMouseEvent('mousedown', { button: 1 });
+    listeners['mousedown'](middleDown);
+    expect(inputManager.getInput().isFiring).toBe(true);
+
+    // 3. Release touch
+    const touchEnd = new TouchEvent('touchend', {
+      changedTouches: [new Touch({ identifier: 1, target: fireButton })],
+      bubbles: true,
+      cancelable: true
+    });
+    listeners['touchend'](touchEnd);
+
+    // SHOULD still be firing because middle button is still down
+    expect(inputManager.getInput().isFiring).toBe(true);
+
+    // 4. Release middle-click
+    const middleUp = createMouseEvent('mouseup', { button: 1 });
+    listeners['mouseup'](middleUp);
+    expect(inputManager.getInput().isFiring).toBe(false);
   });
 });
