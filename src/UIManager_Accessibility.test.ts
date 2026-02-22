@@ -76,4 +76,24 @@ describe('UIManager Accessibility', () => {
     chassisToggle?.click();
     expect(chassisToggle?.getAttribute('aria-pressed')).toBe('true');
   });
+
+  it('should have focus styles on interactive elements', () => {
+    // Check buttons created with BUTTON_CLASSES
+    const aiToggle = document.getElementById('ai-mode-toggle');
+    expect(aiToggle?.className).toContain('focus:outline-none');
+    expect(aiToggle?.className).toContain('focus:ring-2');
+    expect(aiToggle?.className).toContain('focus:ring-vector-green');
+
+    // Check minimize button
+    const minimizeBtn = document.getElementById('debug-minimize-toggle');
+    expect(minimizeBtn?.className).toContain('focus:outline-none');
+    expect(minimizeBtn?.className).toContain('focus:text-white');
+    expect(minimizeBtn?.className).toContain('focus:ring-1');
+
+    // Check inputs
+    const killsInput = document.getElementById('debug-kills-input');
+    expect(killsInput?.className).toContain('focus:outline-none');
+    expect(killsInput?.className).toContain('focus:ring-1');
+    expect(killsInput?.className).toContain('focus:ring-vector-green');
+  });
 });

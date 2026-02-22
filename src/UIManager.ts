@@ -4,7 +4,7 @@ import { GameConfig } from './config';
 type TimerHandle = number;
 
 export class UIManager {
-  private static readonly BUTTON_CLASSES = 'px-2 py-1 border border-vector-green hover:bg-vector-green hover:text-black transition-colors font-retro';
+  private static readonly BUTTON_CLASSES = 'px-2 py-1 border border-vector-green hover:bg-vector-green hover:text-black transition-colors font-retro focus:outline-none focus:ring-2 focus:ring-vector-green focus:ring-offset-2 focus:ring-offset-black';
 
   private hud: HTMLElement;
   private scoreValue!: HTMLElement;
@@ -88,7 +88,7 @@ export class UIManager {
     const title = this.createEl('div', '', header);
     title.textContent = 'DEBUG CONSOLE';
 
-    const toggleBtn = this.createEl('button', 'ml-4 hover:text-white transition-colors font-retro', header);
+    const toggleBtn = this.createEl('button', 'ml-4 hover:text-white transition-colors font-retro focus:outline-none focus:text-white focus:ring-1 focus:ring-white', header);
     toggleBtn.id = 'debug-minimize-toggle';
     toggleBtn.textContent = '[-]';
     toggleBtn.setAttribute('aria-label', 'Minimize Debug Console');
@@ -161,7 +161,7 @@ export class UIManager {
 
     // Kills Threshold
     this.createEl('div', 'mt-4 mb-2 border-b border-vector-green pb-1', content).textContent = 'KILLS TO ADVANCE';
-    const killsInput = this.createEl('input', 'w-full bg-black text-vector-green border border-vector-green px-2 py-1', content) as HTMLInputElement;
+    const killsInput = this.createEl('input', 'w-full bg-black text-vector-green border border-vector-green px-2 py-1 focus:outline-none focus:ring-1 focus:ring-vector-green', content) as HTMLInputElement;
     killsInput.id = 'debug-kills-input';
     killsInput.setAttribute('aria-label', 'Kills to Advance');
     killsInput.type = 'number';
@@ -181,7 +181,7 @@ export class UIManager {
 
     // Turret Size
     this.createEl('div', 'mt-4 mb-2 border-b border-vector-green pb-1', content).textContent = 'TURRET SIZE';
-    const turretSizeInput = this.createEl('input', 'w-full bg-black text-vector-green border border-vector-green px-2 py-1', content) as HTMLInputElement;
+    const turretSizeInput = this.createEl('input', 'w-full bg-black text-vector-green border border-vector-green px-2 py-1 focus:outline-none focus:ring-1 focus:ring-vector-green', content) as HTMLInputElement;
     turretSizeInput.id = 'debug-turret-size-input';
     turretSizeInput.setAttribute('aria-label', 'Turret Size');
     turretSizeInput.type = 'number';
@@ -202,7 +202,7 @@ export class UIManager {
 
     // Fireball Size
     this.createEl('div', 'mt-4 mb-2 border-b border-vector-green pb-1', content).textContent = 'FIREBALL SIZE';
-    const fireballSizeInput = this.createEl('input', 'w-full bg-black text-vector-green border border-vector-green px-2 py-1', content) as HTMLInputElement;
+    const fireballSizeInput = this.createEl('input', 'w-full bg-black text-vector-green border border-vector-green px-2 py-1 focus:outline-none focus:ring-1 focus:ring-vector-green', content) as HTMLInputElement;
     fireballSizeInput.id = 'debug-fireball-size-input';
     fireballSizeInput.setAttribute('aria-label', 'Fireball Size');
     fireballSizeInput.type = 'number';
@@ -223,7 +223,7 @@ export class UIManager {
 
     // TIE Fighter Size
     this.createEl('div', 'mt-4 mb-2 border-b border-vector-green pb-1', content).textContent = 'TIE FIGHTER SIZE';
-    const tieFighterSizeInput = this.createEl('input', 'w-full bg-black text-vector-green border border-vector-green px-2 py-1', content) as HTMLInputElement;
+    const tieFighterSizeInput = this.createEl('input', 'w-full bg-black text-vector-green border border-vector-green px-2 py-1 focus:outline-none focus:ring-1 focus:ring-vector-green', content) as HTMLInputElement;
     tieFighterSizeInput.id = 'debug-tiefighter-size-input';
     tieFighterSizeInput.type = 'number';
     tieFighterSizeInput.min = '0.1';
@@ -243,7 +243,7 @@ export class UIManager {
 
     // TIE Fighter Color
     this.createEl('div', 'mt-4 mb-2 border-b border-vector-green pb-1', content).textContent = 'TIE FIGHTER COLOR';
-    const tieFighterColorInput = this.createEl('input', 'w-full bg-black text-vector-green border border-vector-green px-2 py-1', content) as HTMLInputElement;
+    const tieFighterColorInput = this.createEl('input', 'w-full bg-black text-vector-green border border-vector-green px-2 py-1 focus:outline-none focus:ring-1 focus:ring-vector-green', content) as HTMLInputElement;
     tieFighterColorInput.id = 'debug-tiefighter-color-input';
     tieFighterColorInput.type = 'text';
     tieFighterColorInput.placeholder = `Hex (e.g. 0xFF0000)`;
