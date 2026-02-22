@@ -398,4 +398,51 @@ describe('InputManager', () => {
 
     document.body.removeChild(canvas);
   });
+
+  it('should continue tracking right drag after left click release (Issue 156)', () => {
+    // 1. Right-click and hold (button 2, buttons bitmask 2)
+    const rightDown = createMouseEvent('mousedown', { button: 2 });
+    Object.defineProperty(rightDown, 'buttons', { value: 2 });
+    listeners['mousedown'](rightDown);
+    
+    // 2. Move mouse to (0, 0) -> should be (-1, 1)
+    listeners['mousemove'](new MouseEvent('mousemove', { clientX: 0, clientY: 0 }));
+    inputManager.update(0);
+    expect(inputManager.getInput().x).toBe(-1);
+    expect(inputManager.getInput().y).toBe(1);
+    expect(inputManager.getInput().isFiring).toBe(false);
+
+    // 3. Left-click while right-click is still down (button 0, buttons bitmask 1 + 2 = 3)
+    const leftDown = createMouseEvent('mousedown', { button: 0 });
+    Object.defineProperty(leftDown, 'buttons', { value: 3 });
+    listeners['mousedown'](leftDown);
+    expect(inputManager.getInput().isFiring).toBe(true);
+    expect(inputManager.getInput().x).toBe(-1);
+
+    // 4. Release left-click (button 0, buttons bitmask remains 2)
+    const leftUp = createMouseEvent('mouseup', { button: 0 });
+    Object.defineProperty(leftUp, 'buttons', { value: 2 });
+    listeners['mouseup'](leftUp);
+    expect(inputManager.getInput().isFiring).toBe(false);
+
+    // We expect it to STAY at (-1, 1) because right button (2) is still down.
+    inputManager.update(0.1);
+    expect(inputManager.getInput().x).toBe(-1);
+    expect(inputManager.getInput().y).toBe(1);
+
+    // 5. Move mouse again while right-dragging
+    listeners['mousemove'](new MouseEvent('mousemove', { clientX: 1000, clientY: 1000 }));
+    inputManager.update(0);
+    expect(inputManager.getInput().x).toBe(1);
+    expect(inputManager.getInput().y).toBe(-1);
+
+    // 6. Release right-click (button 2, buttons bitmask becomes 0)
+    const rightUp = createMouseEvent('mouseup', { button: 2 });
+    Object.defineProperty(rightUp, 'buttons', { value: 0 });
+    listeners['mouseup'](rightUp);
+    
+    // Now it should decay
+    inputManager.update(0.1);
+    expect(Math.abs(inputManager.getInput().x)).toBeLessThan(1);
+  });
 });

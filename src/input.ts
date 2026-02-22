@@ -55,11 +55,13 @@ export class InputManager {
   };
 
   private handlePointerUp = (event: MouseEvent) => {
-    if (event.button === 2) { // Right click
-      this.isDragging = false;
-    } else {
-      this.isDragging = false;
+    if (event.button !== 2) {
       this.isFiring = false;
+    }
+
+    // Only stop dragging if no relevant buttons are left (1: left, 2: right, 4: middle)
+    if ((event.buttons & 7) === 0) {
+      this.isDragging = false;
     }
   };
 
