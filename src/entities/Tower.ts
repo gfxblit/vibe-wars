@@ -8,6 +8,9 @@ export class Tower extends Entity implements Targetable {
     private _isExploded: boolean = false;
     private topMesh!: THREE.Mesh;
     private fireCooldown: number = 0;
+    private pieceVelocities: THREE.Vector3[] = [];
+    private baseMaterial: THREE.MeshBasicMaterial;
+    private topMaterial: THREE.MeshBasicMaterial;
   
     // Targetable interface implementation
     public get isExploded(): boolean {
@@ -16,9 +19,6 @@ export class Tower extends Entity implements Targetable {
   
     public set isExploded(value: boolean) {
       this._isExploded = value;
-      if (this.topMesh) {
-        this.topMesh.visible = !value;
-      }
     }
 
     public get position(): THREE.Vector3 {
@@ -52,7 +52,20 @@ export class Tower extends Entity implements Targetable {
     }
 
     public explode(): void {
+      if (this.isExploded) return;
       this.isExploded = true;
+      this.baseMaterial.color.setHex(0xffa500);
+      this.topMaterial.color.setHex(0xffa500);
+
+      const velMag = GameConfig.stages.surface.towerExplosionVelocity;
+      this.mesh.children.forEach(() => {
+        const velocity = new THREE.Vector3(
+          (Math.random() - 0.5) * velMag,
+          (Math.random() + 0.5) * velMag, // Upward bias
+          (Math.random() - 0.5) * velMag
+        );
+        this.pieceVelocities.push(velocity);
+      });
     }
   
     constructor(position: THREE.Vector3) {
@@ -71,21 +84,21 @@ export class Tower extends Entity implements Targetable {
   
       // Base
       const baseGeo = new THREE.BoxGeometry(towerWidth, baseHeight, towerWidth);
-      const baseMaterial = new THREE.MeshBasicMaterial({ 
+      this.baseMaterial = new THREE.MeshBasicMaterial({ 
         color: towerColor,
         wireframe: true 
       });
-      const base = new THREE.Mesh(baseGeo, baseMaterial);
+      const base = new THREE.Mesh(baseGeo, this.baseMaterial);
       base.position.y = baseHeight / 2;
       this.mesh.add(base);
   
       // Top
       const topGeo = new THREE.BoxGeometry(towerWidth * 0.8, topHeight, towerWidth * 0.8);
-      const topMaterial = new THREE.MeshBasicMaterial({ 
+      this.topMaterial = new THREE.MeshBasicMaterial({ 
         color: towerTopColor,
         wireframe: true 
       });
-      this.topMesh = new THREE.Mesh(topGeo, topMaterial);
+      this.topMesh = new THREE.Mesh(topGeo, this.topMaterial);
       this.topMesh.position.y = baseHeight + topHeight / 2;
       this.mesh.add(this.topMesh);
   
@@ -95,7 +108,17 @@ export class Tower extends Entity implements Targetable {
     }
 
   update(deltaTime: number, playerPosition: THREE.Vector3, _playerQuaternion?: THREE.Quaternion, _playerSpeed?: number): THREE.Vector3 | null {
-    if (this.isExploded) return null;
+    if (this.isExploded) {
+      this.mesh.children.forEach((child, index) => {
+        const velocity = this.pieceVelocities[index];
+        if (velocity) {
+          child.position.addScaledVector(velocity, deltaTime);
+          child.rotation.x += deltaTime * 2;
+          child.rotation.y += deltaTime * 2;
+        }
+      });
+      return null;
+    }
 
     this.fireCooldown -= deltaTime;
     if (this.fireCooldown <= 0) {
@@ -122,10 +145,9 @@ export class Tower extends Entity implements Targetable {
     this.mesh.traverse(child => {
       if (child instanceof THREE.Mesh) {
         child.geometry.dispose();
-        if (child.material instanceof THREE.Material) {
-          child.material.dispose();
-        }
       }
     });
+    this.baseMaterial.dispose();
+    this.topMaterial.dispose();
   }
 }
