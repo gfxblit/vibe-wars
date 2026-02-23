@@ -57,6 +57,8 @@ export class Surface extends Entity {
     
     const material = new THREE.LineBasicMaterial({ 
         color: surfaceColor, 
+        opacity: 1.0,
+        transparent: false 
     });
     
     const points: THREE.Vector3[] = [];
@@ -65,10 +67,10 @@ export class Surface extends Entity {
     const xEnd = halfSize;
     const zStart = halfSize;
     const zEnd = -halfSize;
-
+    
     const floorX = this.floor.position.x;
     const floorZ = this.floor.position.z;
-    
+
     for (let x = xStart; x <= xEnd; x += surfaceGridSpacing) {
         for (let z = zStart; z >= zEnd; z -= surfaceGridSpacing) {
             // World grid indices
@@ -112,7 +114,7 @@ export class Surface extends Entity {
 
   public updateGridSettings(height: number, noise: number, density: number): void {
     if (this.currentVerticalLineHeight !== height || 
-        this.currentVerticalLineNoise !== noise ||
+        this.currentVerticalLineNoise !== noise || 
         this.currentVerticalLineDensity !== density) {
       this.currentVerticalLineHeight = height;
       this.currentVerticalLineNoise = noise;
@@ -121,7 +123,7 @@ export class Surface extends Entity {
     }
   }
 
-  public update(deltaTime: number, playerPosition: THREE.Vector3, entityManager?: EntityManager, spawnFireball?: (pos: THREE.Vector3, vel: THREE.Vector3) => void): void {
+  public update(deltaTime: number, playerPosition: THREE.Vector3, entityManager?: EntityManager): void {
     this.elapsedTime += deltaTime;
     const playerZ = playerPosition.z;
     const spacing = GameConfig.stages.surface.gridSpacing;
@@ -155,15 +157,10 @@ export class Surface extends Entity {
             continue;
         }
 
-        // Firing logic
-        if (!tower.isExploded && spawnFireball) {
-          const fireDir = tower.update(deltaTime, playerPosition);
-          if (fireDir) {
-            const vel = fireDir.multiplyScalar(GameConfig.fireball.relativeSpeed);
-            spawnFireball(tower.mesh.position.clone(), vel);
-          }
-        } else {
-             tower.update(deltaTime, playerPosition);
+        // Only update manually if NO entityManager is present.
+        // If entityManager is present, it will update the tower as an additional target.
+        if (!entityManager) {
+          tower.update(deltaTime, playerPosition);
         }
     }
   }
