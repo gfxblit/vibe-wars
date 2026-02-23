@@ -97,7 +97,7 @@ describe('SurfaceStage', () => {
     expect(goToNextStage).toHaveBeenCalled();
   });
 
-  it('should damage player if they hit the floor', () => {
+  it('should NOT damage player if they hit the floor', () => {
     stage = new SurfaceStage(scene, goToNextStage);
     const player = state.player as Player;
     
@@ -106,7 +106,7 @@ describe('SurfaceStage', () => {
     player.position.y = GameConfig.stages.surface.floorY - GameConfig.stages.surface.floorClampBuffer;
     
     stage.update(0.1, player, mockCamera);
-    expect(takeDamage).toHaveBeenCalledWith(GameConfig.stages.surface.collisionDamage);
+    expect(takeDamage).not.toHaveBeenCalled();
     // Should bump player up by the bounce amount
     expect(player.position.y).toBe(GameConfig.stages.surface.floorY + GameConfig.stages.surface.floorBounce);
   });
