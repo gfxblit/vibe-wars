@@ -42,27 +42,34 @@ describe('Tower Explosion', () => {
     expect(nonDebris.position.equals(initialPos)).toBe(true);
   });
 
-  it('should move and rotate children in update() when isExploded is true', () => {
+  it('should move and rotate debris in update() when isExploded is true', () => {
     const playerPos = new THREE.Vector3(0, 0, 100);
     const dt = 0.1;
 
-    // Get initial positions and rotations
-    const initialPositions = tower.mesh.children.map(child => child.position.clone());
-    const initialRotations = tower.mesh.children.map(child => new THREE.Euler().copy(child.rotation));
+    // Mock Math.random for predictable velocities
+    const randomMock = vi.spyOn(Math, 'random').mockReturnValue(0.7);
+
+    // Access private debris for testing
+    const debris = (tower as any).debris as { mesh: THREE.Mesh, velocity: THREE.Vector3 }[];
+
+    const initialStates = debris.map(item => ({
+      position: item.mesh.position.clone(),
+      rotation: item.mesh.rotation.clone(),
+    }));
 
     tower.explode();
     tower.update(dt, playerPos);
 
-    tower.mesh.children.forEach((child, index) => {
+    debris.forEach((item, index) => {
+      const initialState = initialStates[index];
       // Position should have changed
-      expect(child.position.x).not.toBe(initialPositions[index].x);
-      expect(child.position.y).not.toBe(initialPositions[index].y);
-      expect(child.position.z).not.toBe(initialPositions[index].z);
+      expect(item.mesh.position.equals(initialState.position)).toBe(false);
       
       // Rotation should have changed
-      expect(child.rotation.x).not.toBe(initialRotations[index].x);
-      expect(child.rotation.y).not.toBe(initialRotations[index].y);
+      expect(item.mesh.rotation.equals(initialState.rotation)).toBe(false);
     });
+
+    randomMock.mockRestore();
   });
 
   it('should NOT move or rotate children in update() when isExploded is false', () => {

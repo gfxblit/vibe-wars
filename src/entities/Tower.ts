@@ -18,7 +18,11 @@ export class Tower extends Entity implements Targetable {
     }
   
     public set isExploded(value: boolean) {
-      this._isExploded = value;
+      if (value) {
+        this.explode();
+      } else {
+        this._isExploded = value;
+      }
     }
 
     public get position(): THREE.Vector3 {
@@ -52,8 +56,8 @@ export class Tower extends Entity implements Targetable {
     }
 
     public explode(): void {
-      if (this.isExploded) return;
-      this.isExploded = true;
+      if (this._isExploded) return;
+      this._isExploded = true;
       const { towerExplosionColor, towerExplosionVelocity } = GameConfig.stages.surface;
       this.baseMaterial.color.setHex(towerExplosionColor);
       this.topMaterial.color.setHex(towerExplosionColor);
