@@ -58,7 +58,7 @@ export class Tower extends Entity implements Targetable {
       // Initialize random cooldown so they don't all fire at once
       this.fireCooldown = Math.random() * GameConfig.fireball.fireRate;
   
-      const { towerWidth, towerHeight, towerColor } = GameConfig.stages.surface;
+      const { towerWidth, towerHeight, towerColor, towerTopColor } = GameConfig.stages.surface;
   
       // Split into Base and Top
       const baseHeight = towerHeight * 0.7;
@@ -66,17 +66,21 @@ export class Tower extends Entity implements Targetable {
   
       // Base
       const baseGeo = new THREE.BoxGeometry(towerWidth, baseHeight, towerWidth);
-      const material = new THREE.MeshBasicMaterial({ 
+      const baseMaterial = new THREE.MeshBasicMaterial({ 
         color: towerColor,
         wireframe: true 
       });
-      const base = new THREE.Mesh(baseGeo, material);
+      const base = new THREE.Mesh(baseGeo, baseMaterial);
       base.position.y = baseHeight / 2;
       this.mesh.add(base);
   
       // Top
       const topGeo = new THREE.BoxGeometry(towerWidth * 0.8, topHeight, towerWidth * 0.8);
-      this.topMesh = new THREE.Mesh(topGeo, material);
+      const topMaterial = new THREE.MeshBasicMaterial({ 
+        color: towerTopColor,
+        wireframe: true 
+      });
+      this.topMesh = new THREE.Mesh(topGeo, topMaterial);
       this.topMesh.position.y = baseHeight + topHeight / 2;
       this.mesh.add(this.topMesh);
   
