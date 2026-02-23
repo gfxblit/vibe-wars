@@ -26,6 +26,11 @@ describe('SurfaceObstacleFactory', () => {
     expect(obstacle.position.equals(pos)).toBe(true);
     // Turret should be rotated to lie on the ground
     expect(obstacle.mesh.rotation.x).toBeCloseTo(-Math.PI / 2);
+
+    // Verify fireball config
+    const turret = obstacle as Turret;
+    expect(turret.getFireballSize()).toBe(GameConfig.stages.surface.fireballSize);
+    expect(turret.getFireballSpeed()).toBe(GameConfig.stages.surface.fireballSpeed);
   });
 
   it('should create a random obstacle based on probability', () => {

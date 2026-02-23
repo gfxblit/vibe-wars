@@ -10,6 +10,7 @@ export class Turret extends Entity implements Targetable {
   public isExploded: boolean = false;
   private pieceVelocities: THREE.Vector3[] = [];
   private fireballSize: number;
+  private fireballSpeed: number;
   private material: THREE.MeshBasicMaterial;
 
   private readonly scratchVector3: THREE.Vector3 = new THREE.Vector3();
@@ -31,11 +32,17 @@ export class Turret extends Entity implements Targetable {
     return this.collisionBox.intersectsBox(playerBox);
   }
 
-  constructor(position: THREE.Vector3, size: number = GameConfig.turret.meshSize, fireballSize: number = GameConfig.fireball.sparkleSize) {
+  constructor(
+    position: THREE.Vector3, 
+    size: number = GameConfig.turret.meshSize, 
+    fireballSize: number = GameConfig.fireball.sparkleSize,
+    fireballSpeed: number = GameConfig.fireball.relativeSpeed
+  ) {
     super();
     this.mesh = new THREE.Group();
     this.mesh.position.copy(position);
     this.fireballSize = fireballSize;
+    this.fireballSpeed = fireballSpeed;
 
     this.material = new THREE.MeshBasicMaterial({
       color: GameConfig.turret.meshColor,
@@ -137,9 +144,8 @@ export class Turret extends Entity implements Targetable {
   }
 
   public getFireballSpeed(_context?: FireballDebugContext): number {
-    const baseSpeed = GameConfig.fireball.relativeSpeed;
     const multiplier = GameConfig.getDifficultyMultiplier(state.wave);
-    return GameConfig.getScaledSpeed(baseSpeed, multiplier);
+    return GameConfig.getScaledSpeed(this.fireballSpeed, multiplier);
   }
 
   public dispose(): void {

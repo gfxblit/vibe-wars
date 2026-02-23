@@ -120,6 +120,16 @@ describe('Turret Entity', () => {
     expect(turret.getFireballSize()).toBeGreaterThan(0);
   });
 
+  it('should allow configuring fireball size and speed', () => {
+    const customSize = 50.0;
+    const customFireballSize = 100.0;
+    const customFireballSpeed = 500.0;
+    const t = new Turret(initialPosition, customSize, customFireballSize, customFireballSpeed);
+    
+    expect(t.getFireballSize()).toBe(customFireballSize);
+    expect(t.getFireballSpeed()).toBe(customFireballSpeed);
+  });
+
   it('should dispose resources correctly', () => {
     const materialDisposeSpy = vi.spyOn((turret as any).material, 'dispose');
     

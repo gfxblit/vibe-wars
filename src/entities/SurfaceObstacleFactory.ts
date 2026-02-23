@@ -10,8 +10,8 @@ export class SurfaceObstacleFactory {
   }
 
   public createTurret(position: THREE.Vector3): SurfaceObstacle {
-    const turretSize = GameConfig.stages.surface.turretSize;
-    const turret = new Turret(position, turretSize);
+    const { turretSize, fireballSize, fireballSpeed } = GameConfig.stages.surface;
+    const turret = new Turret(position, turretSize, fireballSize, fireballSpeed);
     // Rotate turret to lie flat on the ground
     turret.mesh.rotation.x = -Math.PI / 2;
     return turret;
