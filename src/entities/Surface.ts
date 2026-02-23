@@ -2,7 +2,6 @@ import * as THREE from 'three';
 import { Entity } from './Entity';
 import { GameConfig } from '../config';
 import { Tower } from './Tower';
-import { state } from '../state';
 import { EntityManager } from './EntityManager';
 
 export interface CollisionResult {
@@ -18,48 +17,81 @@ export class Surface extends Entity {
   private elapsedTime: number = 0;
   private collisionResult: CollisionResult = { floorHit: false, towerHit: null };
 
-  constructor() {
+  private currentVerticalLineHeight: number = 0;
+  private currentVerticalLineNoise: number = 0;
+  private currentVerticalLineDensity: number = 0;
+
+  constructor(
+    verticalLineHeight: number = GameConfig.stages.surface.verticalLineHeight,
+    verticalLineNoise: number = GameConfig.stages.surface.verticalLineNoise,
+    verticalLineDensity: number = GameConfig.stages.surface.verticalLineDensity
+  ) {
     super();
     this.mesh = new THREE.Group();
     this.floor = new THREE.Group();
+    
+    this.currentVerticalLineHeight = verticalLineHeight;
+    this.currentVerticalLineNoise = verticalLineNoise;
+    this.currentVerticalLineDensity = verticalLineDensity;
+
     this.createFloor();
     this.mesh.add(this.floor);
     this.nextTowerSpawnTime = 0;
+  }
+
+  private pseudoRandom(x: number, z: number): number {
+    const angle = Math.sin(x * 12.9898 + z * 78.233) * 43758.5453;
+    return angle - Math.floor(angle);
   }
 
   private createFloor(): void {
     const { gridSpacing: surfaceGridSpacing, color: surfaceColor, floorY: surfaceFloorY } = GameConfig.stages.surface;
     const { far } = GameConfig.camera;
 
+    const height = this.currentVerticalLineHeight;
+    const noise = this.currentVerticalLineNoise;
+    const density = this.currentVerticalLineDensity;
+    
     // Grid size should be enough to cover the camera's far plane in all directions.
-    // We add a buffer of two grid spacings to ensure that even when the floor is 
-    // snapped and the player is at the edge of a grid square, the grid still 
-    // extends beyond the camera far plane.
     const halfSize = far + surfaceGridSpacing * 2;
     
     const material = new THREE.LineBasicMaterial({ 
         color: surfaceColor, 
-        opacity: 0.5,
-        transparent: true 
+        opacity: 1.0,
+        transparent: false 
     });
     
     const points: THREE.Vector3[] = [];
     
-    // Longitudinal lines (along Z)
-    const zStart = halfSize;
-    const zEnd = -halfSize;
     const xStart = -halfSize;
     const xEnd = halfSize;
+    const zStart = halfSize;
+    const zEnd = -halfSize;
     
+    const floorX = this.floor.position.x;
+    const floorZ = this.floor.position.z;
+
     for (let x = xStart; x <= xEnd; x += surfaceGridSpacing) {
-        points.push(new THREE.Vector3(x, 0, zStart));
-        points.push(new THREE.Vector3(x, 0, zEnd));
-    }
-    
-    // Latitudinal lines (along X)
-    for (let z = zStart; z >= zEnd; z -= surfaceGridSpacing) {
-        points.push(new THREE.Vector3(xStart, 0, z));
-        points.push(new THREE.Vector3(xEnd, 0, z));
+        for (let z = zStart; z >= zEnd; z -= surfaceGridSpacing) {
+            // World grid indices
+            const gx = Math.round((floorX + x) / surfaceGridSpacing);
+            const gz = Math.round((floorZ + z) / surfaceGridSpacing);
+
+            // Density check (deterministic)
+            if (this.pseudoRandom(gx + 1234, gz + 5678) > density) {
+                continue;
+            }
+
+            // Jitter (deterministic based on world position)
+            const jx = (this.pseudoRandom(gx, gz) - 0.5) * noise;
+            const jz = (this.pseudoRandom(gx + 999, gz + 999) - 0.5) * noise;
+            
+            const px = x + jx;
+            const pz = z + jz;
+            
+            points.push(new THREE.Vector3(px, 0, pz));
+            points.push(new THREE.Vector3(px, height, pz));
+        }
     }
     
     const geometry = new THREE.BufferGeometry().setFromPoints(points);
@@ -67,7 +99,28 @@ export class Surface extends Entity {
     
     gridMesh.position.y = surfaceFloorY;
     
+    // Clear existing floor children
+    while (this.floor.children.length > 0) {
+        const child = this.floor.children[0] as THREE.LineSegments;
+        child.geometry.dispose();
+        if (child.material instanceof THREE.Material) {
+            child.material.dispose();
+        }
+        this.floor.remove(child);
+    }
+
     this.floor.add(gridMesh);
+  }
+
+  public updateGridSettings(height: number, noise: number, density: number): void {
+    if (this.currentVerticalLineHeight !== height || 
+        this.currentVerticalLineNoise !== noise || 
+        this.currentVerticalLineDensity !== density) {
+      this.currentVerticalLineHeight = height;
+      this.currentVerticalLineNoise = noise;
+      this.currentVerticalLineDensity = density;
+      this.createFloor();
+    }
   }
 
   public update(deltaTime: number, playerPosition: THREE.Vector3, entityManager?: EntityManager): void {
@@ -76,8 +129,14 @@ export class Surface extends Entity {
     const spacing = GameConfig.stages.surface.gridSpacing;
 
     // Update floor position to follow player with snapping
-    this.floor.position.x = Math.round(playerPosition.x / spacing) * spacing;
-    this.floor.position.z = Math.round(playerPosition.z / spacing) * spacing;
+    const newFloorX = Math.round(playerPosition.x / spacing) * spacing;
+    const newFloorZ = Math.round(playerPosition.z / spacing) * spacing;
+
+    if (newFloorX !== this.floor.position.x || newFloorZ !== this.floor.position.z) {
+        this.floor.position.x = newFloorX;
+        this.floor.position.z = newFloorZ;
+        this.createFloor(); // Regenerate with new world-aligned jitter/density
+    }
     
     // Spawn Towers
     if (this.elapsedTime >= this.nextTowerSpawnTime) {
@@ -97,6 +156,12 @@ export class Surface extends Entity {
             this.removeTower(i, entityManager);
             continue;
         }
+
+        // Only update manually if NO entityManager is present.
+        // If entityManager is present, it will update the tower as an additional target.
+        if (!entityManager) {
+          tower.update(deltaTime, playerPosition);
+        }
     }
   }
 
@@ -112,18 +177,16 @@ export class Surface extends Entity {
      this.towers.push(tower);
      this.mesh.add(tower.mesh);
 
-     const manager = entityManager || state.entityManager;
-     if (manager) {
-       manager.addTarget(tower);
+     if (entityManager) {
+       entityManager.addTarget(tower);
      }
   }
 
   private removeTower(index: number, entityManager?: EntityManager): void {
       const tower = this.towers[index];
       if (tower) {
-        const manager = entityManager || state.entityManager;
-        if (manager) {
-          manager.removeTarget(tower);
+        if (entityManager) {
+          entityManager.removeTarget(tower);
         }
         this.mesh.remove(tower.mesh);
         tower.dispose();

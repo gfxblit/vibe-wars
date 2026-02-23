@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { UIManager } from './UIManager';
 import { GameState, state } from './state';
 import { GameConfig } from './config';
+import { SurfaceStage } from './stages/SurfaceStage';
 
 describe('UIManager', () => {
   let uiManager: UIManager;
@@ -416,5 +417,83 @@ describe('UIManager', () => {
       input.dispatchEvent(new Event('change'));
       expect(state.debugFireballSize).toBeUndefined();
     });
-  });
-});
+
+    it('should have SURFACE GRID HEIGHT input', () => {
+      const input = document.getElementById('debug-surface-height-input') as HTMLInputElement;
+      expect(input).not.toBeNull();
+      expect(input.type).toBe('number');
+
+      // Simulate input change
+      input.value = '10';
+      input.dispatchEvent(new Event('change'));
+      expect(state.debugSurfaceVerticalLineHeight).toBe(10);
+
+      // Test invalid input (min is 1)
+      input.value = '0';
+      input.dispatchEvent(new Event('change'));
+      expect(state.debugSurfaceVerticalLineHeight).toBe(1);
+
+      // Test clearing input
+      input.value = '';
+      input.dispatchEvent(new Event('change'));
+      expect(state.debugSurfaceVerticalLineHeight).toBeUndefined();
+    });
+
+    it('should have SURFACE GRID NOISE input', () => {
+      const input = document.getElementById('debug-surface-noise-input') as HTMLInputElement;
+      expect(input).not.toBeNull();
+      expect(input.type).toBe('number');
+
+      // Simulate input change
+      input.value = '30';
+      input.dispatchEvent(new Event('change'));
+      expect(state.debugSurfaceVerticalLineNoise).toBe(30);
+
+      // Test invalid input (min is 0)
+      input.value = '-1';
+      input.dispatchEvent(new Event('change'));
+      expect(state.debugSurfaceVerticalLineNoise).toBe(0);
+
+      // Test clearing input
+            input.value = '';
+            input.dispatchEvent(new Event('change'));
+            expect(state.debugSurfaceVerticalLineNoise).toBeUndefined();
+          });
+      
+          it('should notify Surface instance when grid settings change in UI', () => {
+              const mockUpdateGridSettings = vi.fn();
+              const mockSurface = {
+                  updateGridSettings: mockUpdateGridSettings
+              };
+              const mockStage = {
+                  surface: mockSurface
+              };
+              
+              state.stageManager = {
+                  getStage: vi.fn().mockReturnValue(mockStage)
+              } as any;
+      
+              // Note: we need to handle the instanceof check if we use a real class mock
+              // or just mock the whole thing.
+              // In UIManager.ts: if (currentStage instanceof SurfaceStage)
+              
+              // Let's use a real-ish object for the instance check
+              Object.setPrototypeOf(mockStage, SurfaceStage.prototype);
+      
+              const heightInput = document.getElementById('debug-surface-height-input') as HTMLInputElement;
+              heightInput.value = '15';
+              heightInput.dispatchEvent(new Event('change'));
+      
+              expect(mockUpdateGridSettings).toHaveBeenCalledWith(15, GameConfig.stages.surface.verticalLineNoise, GameConfig.stages.surface.verticalLineDensity);
+      
+              mockUpdateGridSettings.mockClear();
+      
+              const noiseInput = document.getElementById('debug-surface-noise-input') as HTMLInputElement;
+              noiseInput.value = '10';
+              noiseInput.dispatchEvent(new Event('change'));
+      
+              expect(mockUpdateGridSettings).toHaveBeenCalledWith(15, 10, GameConfig.stages.surface.verticalLineDensity);
+          });
+        });
+      });
+      
