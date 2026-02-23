@@ -228,6 +228,16 @@ describe('Surface Entity', () => {
     expect(halfLength).toBeGreaterThanOrEqual(far + spacing * 2);
   });
 
+  it('should use the correct color and full opacity for the grid material', () => {
+    const floor = (surface as any).floor as THREE.Group;
+    const gridMesh = floor.children[0] as THREE.LineSegments;
+    const material = gridMesh.material as THREE.LineBasicMaterial;
+    
+    expect(material.color.getHex()).toBe(GameConfig.stages.surface.color);
+    expect(material.opacity).toBe(1.0);
+    expect(material.transparent).toBe(false);
+  });
+
   it('should dispose resources correctly', () => {
     // Spawn some towers first
     surface.update(0.1, new THREE.Vector3(0, 0, 0));

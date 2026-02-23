@@ -48,8 +48,6 @@ export class Surface extends Entity {
     
     const material = new THREE.LineBasicMaterial({ 
         color: surfaceColor, 
-        opacity: 0.5,
-        transparent: true 
     });
     
     const points: THREE.Vector3[] = [];
