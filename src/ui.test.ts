@@ -418,6 +418,90 @@ describe('UIManager', () => {
       expect(state.debugFireballSize).toBeUndefined();
     });
 
+    it('should have TIE FIGHTER SIZE input', () => {
+      const input = document.getElementById('debug-tiefighter-size-input') as HTMLInputElement;
+      expect(input).not.toBeNull();
+      expect(input.type).toBe('number');
+
+      // Simulate input change
+      input.value = '5.5';
+      input.dispatchEvent(new Event('change'));
+      expect(state.debugTieFighterSize).toBe(5.5);
+
+      // Test invalid input (min is 0.1)
+      input.value = '0';
+      input.dispatchEvent(new Event('change'));
+      expect(state.debugTieFighterSize).toBe(0.1);
+
+      // Test clearing input
+      input.value = '';
+      input.dispatchEvent(new Event('change'));
+      expect(state.debugTieFighterSize).toBeUndefined();
+    });
+
+    it('should have TIE FIGHTER COLOR input', () => {
+      const input = document.getElementById('debug-tiefighter-color-input') as HTMLInputElement;
+      expect(input).not.toBeNull();
+      expect(input.type).toBe('text');
+
+      // Simulate input change (hex string starting with 0x)
+      input.value = '0xFF0000';
+      input.dispatchEvent(new Event('change'));
+      expect(state.debugTieFighterColor).toBe(0xFF0000);
+
+      // Simulate input change (hex string starting with #)
+      input.value = '#00FF00';
+      input.dispatchEvent(new Event('change'));
+      expect(state.debugTieFighterColor).toBe(0x00FF00);
+
+      // Simulate input change (hex string without prefix)
+      input.value = '0000FF';
+      input.dispatchEvent(new Event('change'));
+      expect(state.debugTieFighterColor).toBe(0x0000FF);
+
+      // Test invalid input
+      input.value = 'invalid';
+      input.dispatchEvent(new Event('change'));
+      expect(state.debugTieFighterColor).toBeUndefined();
+
+      // Test clearing input
+      input.value = '';
+      input.dispatchEvent(new Event('change'));
+      expect(state.debugTieFighterColor).toBeUndefined();
+    });
+
+    it('should have SURFACE FIREBALL SIZE input', () => {
+      const input = document.getElementById('debug-surface-fireball-size-input') as HTMLInputElement;
+      expect(input).not.toBeNull();
+      expect(input.type).toBe('number');
+
+      // Simulate input change
+      input.value = '15';
+      input.dispatchEvent(new Event('change'));
+      expect(state.debugSurfaceFireballSize).toBe(15);
+
+      // Test clearing input
+      input.value = '';
+      input.dispatchEvent(new Event('change'));
+      expect(state.debugSurfaceFireballSize).toBeUndefined();
+    });
+
+    it('should have SURFACE FIREBALL SPEED input', () => {
+      const input = document.getElementById('debug-surface-fireball-speed-input') as HTMLInputElement;
+      expect(input).not.toBeNull();
+      expect(input.type).toBe('number');
+
+      // Simulate input change
+      input.value = '20';
+      input.dispatchEvent(new Event('change'));
+      expect(state.debugSurfaceFireballSpeed).toBe(20);
+
+      // Test clearing input
+      input.value = '';
+      input.dispatchEvent(new Event('change'));
+      expect(state.debugSurfaceFireballSpeed).toBeUndefined();
+    });
+
     it('should have SURFACE GRID HEIGHT input', () => {
       const input = document.getElementById('debug-surface-height-input') as HTMLInputElement;
       expect(input).not.toBeNull();
@@ -455,45 +539,40 @@ describe('UIManager', () => {
       expect(state.debugSurfaceVerticalLineNoise).toBe(0);
 
       // Test clearing input
-            input.value = '';
-            input.dispatchEvent(new Event('change'));
-            expect(state.debugSurfaceVerticalLineNoise).toBeUndefined();
-          });
+      input.value = '';
+      input.dispatchEvent(new Event('change'));
+      expect(state.debugSurfaceVerticalLineNoise).toBeUndefined();
+    });
+
+    it('should notify Surface instance when grid settings change in UI', () => {
+      const mockUpdateGridSettings = vi.fn();
+      const mockSurface = {
+        updateGridSettings: mockUpdateGridSettings
+      };
+      const mockStage = {
+        surface: mockSurface
+      };
       
-          it('should notify Surface instance when grid settings change in UI', () => {
-              const mockUpdateGridSettings = vi.fn();
-              const mockSurface = {
-                  updateGridSettings: mockUpdateGridSettings
-              };
-              const mockStage = {
-                  surface: mockSurface
-              };
-              
-              state.stageManager = {
-                  getStage: vi.fn().mockReturnValue(mockStage)
-              } as any;
-      
-              // Note: we need to handle the instanceof check if we use a real class mock
-              // or just mock the whole thing.
-              // In UIManager.ts: if (currentStage instanceof SurfaceStage)
-              
-              // Let's use a real-ish object for the instance check
-              Object.setPrototypeOf(mockStage, SurfaceStage.prototype);
-      
-              const heightInput = document.getElementById('debug-surface-height-input') as HTMLInputElement;
-              heightInput.value = '15';
-              heightInput.dispatchEvent(new Event('change'));
-      
-              expect(mockUpdateGridSettings).toHaveBeenCalledWith(15, GameConfig.stages.surface.verticalLineNoise, GameConfig.stages.surface.verticalLineDensity);
-      
-              mockUpdateGridSettings.mockClear();
-      
-              const noiseInput = document.getElementById('debug-surface-noise-input') as HTMLInputElement;
-              noiseInput.value = '10';
-              noiseInput.dispatchEvent(new Event('change'));
-      
-              expect(mockUpdateGridSettings).toHaveBeenCalledWith(15, 10, GameConfig.stages.surface.verticalLineDensity);
-          });
-        });
-      });
-      
+      state.stageManager = {
+        getStage: vi.fn().mockReturnValue(mockStage)
+      } as any;
+
+      // In UIManager.ts: if (currentStage instanceof SurfaceStage)
+      Object.setPrototypeOf(mockStage, SurfaceStage.prototype);
+
+      const heightInput = document.getElementById('debug-surface-height-input') as HTMLInputElement;
+      heightInput.value = '15';
+      heightInput.dispatchEvent(new Event('change'));
+
+      expect(mockUpdateGridSettings).toHaveBeenCalledWith(15, GameConfig.stages.surface.verticalLineNoise, GameConfig.stages.surface.verticalLineDensity);
+
+      mockUpdateGridSettings.mockClear();
+
+      const noiseInput = document.getElementById('debug-surface-noise-input') as HTMLInputElement;
+      noiseInput.value = '10';
+      noiseInput.dispatchEvent(new Event('change'));
+
+      expect(mockUpdateGridSettings).toHaveBeenCalledWith(15, 10, GameConfig.stages.surface.verticalLineDensity);
+    });
+  });
+});
