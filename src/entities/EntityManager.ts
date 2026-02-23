@@ -135,8 +135,28 @@ export class EntityManager {
     for (let i = this.torpedoes.length - 1; i >= 0; i--) {
       const torpedo = this.torpedoes[i];
       torpedo.update(deltaTime);
+      
       if (torpedo.isExpired()) {
         this.removeTorpedo(i);
+        continue;
+      }
+
+      // Check collision with additional targets (like turrets)
+      if (!torpedo.isExploded) {
+        for (const target of this.additionalTargets) {
+          if (!target.isExploded) {
+            const worldPos = target.getWorldPosition(this.scratchFireballPos);
+            const dist = torpedo.position.distanceTo(worldPos);
+            // Using a threshold for torpedo-target collision
+            if (dist < 20) { // Same size as exhaust port hit detection roughly
+              target.explode();
+              torpedo.explode();
+              state.score += target.getScore();
+              state.kills++;
+              break; 
+            }
+          }
+        }
       }
     }
 

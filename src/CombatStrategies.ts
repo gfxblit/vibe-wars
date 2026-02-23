@@ -4,6 +4,7 @@ import { UserInput } from './input';
 import { state, spawnLasers, addScore, addKill, spawnTorpedo } from './state';
 import { checkAim } from './collision';
 import { Targetable } from './entities/Entity';
+import { GameConfig } from './config';
 
 abstract class BaseCombatStrategy implements CombatStrategy {
   protected fireCooldown: number = 0;
@@ -108,6 +109,21 @@ abstract class BaseCombatStrategy implements CombatStrategy {
       }
     });
   }
+
+  protected launchTorpedo(input: UserInput, camera: THREE.Camera) {
+    if (!state.player) return;
+
+    const position = state.player.position.clone();
+    const targetPoint = new THREE.Vector3(input.x, input.y, 0.5);
+    targetPoint.unproject(camera);
+    
+    camera.getWorldPosition(this.tempVector3);
+    const direction = new THREE.Vector3().subVectors(targetPoint, this.tempVector3).normalize();
+    const stageSpeed = state.stageManager?.getStage()?.speed ?? this.config.baseForwardSpeed;
+    const velocity = direction.multiplyScalar(stageSpeed * this.config.torpedoSpeedMultiplier);
+
+    spawnTorpedo(position, velocity);
+  }
 }
 
 export class DogfightCombatStrategy extends BaseCombatStrategy {
@@ -121,12 +137,40 @@ export class DogfightCombatStrategy extends BaseCombatStrategy {
 }
 
 export class SurfaceCombatStrategy extends BaseCombatStrategy {
+  private wasFiring: boolean = false;
+
   constructor(config: CombatStrategyConfig) {
     super(config);
   }
 
   protected checkHits(input: UserInput, camera: THREE.Camera) {
     this.checkTargets(input, camera);
+  }
+
+  protected updateSpecial(_deltaTime: number, input: UserInput, camera: THREE.Camera): void {
+    if (state.stage === 'SURFACE' && state.entityManager) {
+      let aimedAtTarget = false;
+      
+      for (const target of state.entityManager.getTargets()) {
+        const worldPos = target.getWorldPosition(this.tempVector3);
+        if (!target.isExploded && checkAim(worldPos, input, camera)) {
+          const dist = worldPos.distanceTo(state.player!.position);
+          if (dist < GameConfig.torpedo.range) {
+            aimedAtTarget = true;
+            break;
+          }
+        }
+      }
+
+      state.canFireTorpedo = aimedAtTarget;
+      
+      // Allow firing torpedo at any target in SURFACE stage
+      if (input.isFiring && !this.wasFiring && state.canFireTorpedo) {
+        this.launchTorpedo(input, camera);
+      }
+
+      this.wasFiring = input.isFiring;
+    }
   }
 }
 
@@ -153,20 +197,5 @@ export class TrenchCombatStrategy extends BaseCombatStrategy {
 
       this.wasFiring = input.isFiring;
     }
-  }
-
-  private launchTorpedo(input: UserInput, camera: THREE.Camera) {
-    if (!state.player) return;
-
-    const position = state.player.position.clone();
-    const targetPoint = new THREE.Vector3(input.x, input.y, 0.5);
-    targetPoint.unproject(camera);
-    
-    camera.getWorldPosition(this.tempVector3);
-    const direction = new THREE.Vector3().subVectors(targetPoint, this.tempVector3).normalize();
-    const stageSpeed = state.stageManager?.getStage()?.speed ?? this.config.baseForwardSpeed;
-    const velocity = direction.multiplyScalar(stageSpeed * this.config.torpedoSpeedMultiplier);
-
-    spawnTorpedo(position, velocity);
   }
 }
