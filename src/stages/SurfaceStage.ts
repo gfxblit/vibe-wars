@@ -60,21 +60,16 @@ export class SurfaceStage extends Stage {
 
     const playerBox = this.playerBox.setFromObject(player.mesh);
     
-    const { floorHit, towerHit, turretHit } = this.surface.checkCollisions(playerBox, player.position);
+    const { floorHit, obstacleHit } = this.surface.checkCollisions(playerBox, player.position);
 
     if (floorHit) { 
         // Bounce player up to avoid instant death loop or getting stuck
         player.position.y = GameConfig.stages.surface.floorY + GameConfig.stages.surface.floorBounce;
     }
 
-    if (towerHit) {
+    if (obstacleHit) {
         takeDamage(GameConfig.stages.surface.collisionDamage);
-        towerHit.explode(); // Mark as hit so we don't hit it again immediately
-    }
-
-    if (turretHit) {
-      takeDamage(GameConfig.stages.surface.collisionDamage);
-      turretHit.explode();
+        obstacleHit.explode();
     }
     
     // Check End Condition
@@ -86,6 +81,7 @@ export class SurfaceStage extends Stage {
   public cleanup(): void {
     if (state.entityManager) {
       this.surface.getTowers().forEach(t => state.entityManager!.removeTarget(t));
+      this.surface.getTurrets().forEach(t => state.entityManager!.removeTarget(t));
     }
     this.scene.remove(this.surface.mesh);
     this.surface.dispose();

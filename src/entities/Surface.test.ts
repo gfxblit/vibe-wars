@@ -151,8 +151,8 @@ describe('Surface Entity', () => {
       const playerBox = new THREE.Box3().setFromObject(tower.mesh); // Overlap exactly
       const position = new THREE.Vector3(0, 0, 0);
       
-      const { towerHit } = surface.checkCollisions(playerBox, position);
-      expect(towerHit).toBe(tower);
+      const { obstacleHit } = surface.checkCollisions(playerBox, position);
+      expect(obstacleHit).toBe(tower);
   });
 
   it('should spawn towers relative to the player X position', () => {
@@ -313,8 +313,8 @@ describe('Surface Entity', () => {
     const playerBox = new THREE.Box3().setFromObject(turret.mesh);
     const position = new THREE.Vector3(0, 0, 0);
     
-    const { turretHit } = surface.checkCollisions(playerBox, position);
-    expect(turretHit).toBe(turret);
+    const { obstacleHit } = surface.checkCollisions(playerBox, position);
+    expect(obstacleHit).toBe(turret);
   });
 
   it('should scale tower spawn interval with wave count', () => {

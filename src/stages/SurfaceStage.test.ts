@@ -149,15 +149,12 @@ describe('SurfaceStage', () => {
   });
 
   it('should damage player if they hit a tower', () => {
-    const mockTower = { 
-      isExploded: false,
-      explode: vi.fn()
-    };
+    const mockTower = { explode: vi.fn(), isExploded: false };
     const mockSurface = {
       mesh: new THREE.Group(),
       update: vi.fn().mockReturnValue({ spawned: [], removed: [] }),
       updateGridSettings: vi.fn(),
-      checkCollisions: vi.fn().mockReturnValue({ floorHit: false, towerHit: mockTower }),
+      checkCollisions: vi.fn().mockReturnValue({ floorHit: false, obstacleHit: mockTower }),
       getTowers: vi.fn().mockReturnValue([mockTower]),
       dispose: vi.fn()
     } as unknown as Surface;
@@ -176,7 +173,8 @@ describe('SurfaceStage', () => {
     const mockSurface = {
       mesh: new THREE.Group(),
       update: vi.fn(),
-      checkCollisions: vi.fn().mockReturnValue({ floorHit: false, towerHit: null, turretHit: mockTurret }),
+      updateGridSettings: vi.fn(),
+      checkCollisions: vi.fn().mockReturnValue({ floorHit: false, obstacleHit: mockTurret }),
       getTowers: vi.fn().mockReturnValue([]),
       dispose: vi.fn()
     } as unknown as Surface;
