@@ -114,7 +114,7 @@ describe('Turret Entity', () => {
     const playerForward = new THREE.Vector3(0, 0, -1);
     const playerSpeed = 100;
     const velocity = turret.getVelocity(playerForward, playerSpeed);
-    expect(velocity.z).toBe(-100);
+    expect(velocity.z).toBe(0);
     
     expect(turret.getFireballSize()).toBeGreaterThan(0);
   });

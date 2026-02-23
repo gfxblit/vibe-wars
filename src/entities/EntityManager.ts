@@ -5,7 +5,7 @@ import { GameConfig } from '../config';
 import { Fireball } from './Fireball';
 import { Laser } from './Laser';
 import { Torpedo } from './Torpedo';
-import { Targetable } from './Entity';
+import { Targetable, FireballDebugContext } from './Entity';
 import { state } from '../state';
 
 export class EntityManager {
@@ -171,12 +171,19 @@ export class EntityManager {
       this.scratchPlayerVelocity.copy(this.scratchPlayerForward).multiplyScalar(playerSpeed);
     }
 
-    this.scratchRelativeVelocity.copy(fireDirection).multiplyScalar(GameConfig.fireball.relativeSpeed);
+    const debugContext: FireballDebugContext = {
+      surfaceFireballSize: state.debugSurfaceFireballSize,
+      surfaceFireballSpeed: state.debugSurfaceFireballSpeed,
+    };
+
+    const relativeSpeed = target.getFireballSpeed ? target.getFireballSpeed(debugContext) : GameConfig.fireball.relativeSpeed;
+    const size = target.getFireballSize ? target.getFireballSize(debugContext) : undefined;
+
+    this.scratchRelativeVelocity.copy(fireDirection).multiplyScalar(relativeSpeed);
     this.scratchTotalVelocity.copy(this.scratchPlayerVelocity).add(this.scratchRelativeVelocity);
 
     target.getWorldPosition(this.scratchFireballPos);
     
-    const size = target.getFireballSize ? target.getFireballSize() : undefined;
     this.spawnFireball(this.scratchFireballPos, this.scratchTotalVelocity, size);
   }
 

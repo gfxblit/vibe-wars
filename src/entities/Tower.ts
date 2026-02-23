@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Entity, Targetable } from './Entity';
+import { Entity, Targetable, FireballDebugContext } from './Entity';
 import { GameConfig } from '../config';
 
 export class Tower extends Entity implements Targetable {
@@ -32,6 +32,18 @@ export class Tower extends Entity implements Targetable {
 
     public getScore(): number {
       return GameConfig.stages.surface.towerPoints;
+    }
+
+    public getFireballSize(context?: FireballDebugContext): number {
+      return context?.surfaceFireballSize ?? GameConfig.stages.surface.fireballSize;
+    }
+
+    public getFireballSpeed(context?: FireballDebugContext): number {
+      return context?.surfaceFireballSpeed ?? GameConfig.stages.surface.fireballSpeed;
+    }
+
+    public getVelocity(_playerForward: THREE.Vector3, _playerSpeed: number): THREE.Vector3 {
+      return new THREE.Vector3(0, 0, 0);
     }
 
     public explode(): void {

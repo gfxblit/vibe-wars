@@ -49,27 +49,24 @@ describe('Turret Fireball Movement', () => {
     const initialZ = fireball.position.z;
     expect(initialZ).toBe(-500);
     
-    // With velocity inheritance, fireball velocity should be:
-    // playerVelocity + (direction * relativeSpeed)
-    // playerVelocity is (0, 0, -500)
+    // Static turrets no longer inherit player velocity.
     // direction is (0, 0, 1) (towards player at Z=0 from turret at Z=-500)
     // relativeSpeed is 40
-    // Total velocity: (0, 0, -460)
-    expect(fireball.velocity.z).toBeCloseTo(-playerSpeed + GameConfig.fireball.relativeSpeed);
+    // Total velocity: (0, 0, 40)
+    expect(fireball.velocity.z).toBeCloseTo(GameConfig.fireball.relativeSpeed);
 
     // Update fireball for 0.1s
     fireball.update(0.1);
     
-    // In world space, it moved further away from Z=0 because |-460| > 0
-    // But relative to the player's frame (moving at -500), it moved TOWARDS the player.
-    expect(fireball.position.z).toBeLessThan(initialZ); // -546 < -500
+    // It moved towards Z=0
+    expect(fireball.position.z).toBeGreaterThan(initialZ); // -496 > -500
     
     // Closing speed check:
     // Initial distance: 500
     // After 0.1s:
     // Player would be at -50 (if updated)
-    // Fireball is at -546
-    // Relative distance: |-50 - (-546)| = 496. 496 < 500.
+    // Fireball is at -496
+    // Relative distance: |-50 - (-496)| = 446. 446 < 500.
     const playerZAfterUpdate = -playerSpeed * 0.1;
     const relativeDistance = Math.abs(playerZAfterUpdate - fireball.position.z);
     expect(relativeDistance).toBeLessThan(500);
