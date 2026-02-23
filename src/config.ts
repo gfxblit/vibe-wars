@@ -64,6 +64,7 @@ export const GameConfig = deepFreeze({
       color: 0x00ff00,
       verticalLineHeight: 5,
       verticalLineNoise: 20,
+      verticalLineDensity: 0.1,
       floorY: -50,
       floorBounce: 2,
       floorClampBuffer: 10,

@@ -49,6 +49,7 @@ export interface GameState {
   debugSurfaceFireballSpeed?: number;
   debugSurfaceVerticalLineHeight?: number;
   debugSurfaceVerticalLineNoise?: number;
+  debugSurfaceVerticalLineDensity?: number;
 }
 
 const initialWidth = typeof window !== 'undefined' ? window.innerWidth : 1024;
@@ -88,6 +89,7 @@ export const state: GameState = {
   debugSurfaceFireballSpeed: undefined,
   debugSurfaceVerticalLineHeight: undefined,
   debugSurfaceVerticalLineNoise: undefined,
+  debugSurfaceVerticalLineDensity: undefined,
 };
 
 export function initGame(worldScene: THREE.Scene, hudScene: THREE.Scene) {
@@ -115,6 +117,7 @@ export function initGame(worldScene: THREE.Scene, hudScene: THREE.Scene) {
   state.debugSurfaceFireballSpeed = undefined;
   state.debugSurfaceVerticalLineHeight = undefined;
   state.debugSurfaceVerticalLineNoise = undefined;
+  state.debugSurfaceVerticalLineDensity = undefined;
 
   state.player = new Player();
 

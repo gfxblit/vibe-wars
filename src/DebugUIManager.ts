@@ -3,7 +3,7 @@ import { GameConfig } from './config';
 import { SurfaceStage } from './stages/SurfaceStage';
 
 export class DebugUIManager {
-  private static readonly BUTTON_CLASSES = 'px-2 py-1 border border-vector-green hover:bg-vector-green hover:text-black transition-colors font-retro';
+  private static readonly BUTTON_CLASSES = 'px-2 py-1 border border-vector-green hover:bg-vector-green hover:text-black transition-colors font-retro text-[9px]';
 
   private debugPanel?: HTMLElement;
   private tieFighterCountValue?: HTMLElement;
@@ -15,10 +15,10 @@ export class DebugUIManager {
   }
 
   private createDebugPanel() {
-    this.debugPanel = this.createEl('div', 'fixed bottom-4 left-4 pointer-events-auto bg-black bg-opacity-70 border border-vector-green p-4 flex flex-col space-y-2 text-vector-green font-retro font-bold text-xs z-20', document.body);
+    this.debugPanel = this.createEl('div', 'fixed bottom-4 left-4 pointer-events-auto bg-black bg-opacity-70 border border-vector-green p-3 flex flex-col space-y-2 text-vector-green font-retro font-bold text-[10px] z-20 w-48', document.body);
     this.debugPanel.id = 'debug-panel';
 
-    const header = this.createEl('div', 'flex justify-between items-center mb-2 border-b border-vector-green pb-1', this.debugPanel);
+    const header = this.createEl('div', 'flex justify-between items-center mb-1 border-b border-vector-green pb-1', this.debugPanel);
     const title = this.createEl('div', '', header);
     title.textContent = 'DEBUG CONSOLE';
 
@@ -28,7 +28,7 @@ export class DebugUIManager {
     toggleBtn.setAttribute('aria-label', 'Minimize Debug Console');
     toggleBtn.setAttribute('aria-expanded', 'true');
 
-    const content = this.createEl('div', 'flex flex-col space-y-2', this.debugPanel);
+    const content = this.createEl('div', 'flex flex-col space-y-2 max-h-[60vh] overflow-y-auto pr-1 custom-scrollbar', this.debugPanel);
     content.id = 'debug-panel-content';
 
     toggleBtn.onclick = () => {
@@ -38,8 +38,7 @@ export class DebugUIManager {
       toggleBtn.setAttribute('aria-expanded', isMinimized ? 'false' : 'true');
       this.debugPanel?.classList.toggle('debug-minimized', isMinimized);
       
-      // Clean up header when minimized
-      header.classList.toggle('mb-2', !isMinimized);
+      header.classList.toggle('mb-1', !isMinimized);
       header.classList.toggle('border-b', !isMinimized);
       header.classList.toggle('pb-1', !isMinimized);
     };
@@ -72,17 +71,17 @@ export class DebugUIManager {
     );
 
     // Stage Switcher
-    this.createEl('div', 'mt-4 mb-2 border-b border-vector-green pb-1', content).textContent = 'STAGE SWITCHER';
-    const stageRow = this.createEl('div', 'flex space-x-2', content);
+    this.createEl('div', 'mt-2 mb-1 border-b border-vector-green pb-0.5 opacity-70', content).textContent = 'STAGE SWITCHER';
+    const stageRow = this.createEl('div', 'grid grid-cols-3 gap-1', content);
     this.stageButtons = new Map();
 
-    const dogfightBtn = this.createActionButton('stage-dogfight', 'DOGFIGHT', () => { setStage('DOGFIGHT'); }, stageRow);
+    const dogfightBtn = this.createActionButton('stage-dogfight', 'DOG', () => { setStage('DOGFIGHT'); }, stageRow);
     this.stageButtons.set('DOGFIGHT', dogfightBtn);
 
-    const surfaceBtn = this.createActionButton('stage-surface', 'SURFACE', () => { setStage('SURFACE'); }, stageRow);
+    const surfaceBtn = this.createActionButton('stage-surface', 'SURF', () => { setStage('SURFACE'); }, stageRow);
     this.stageButtons.set('SURFACE', surfaceBtn);
 
-    const trenchBtn = this.createActionButton('stage-trench', 'TRENCH', () => { setStage('TRENCH'); }, stageRow);
+    const trenchBtn = this.createActionButton('stage-trench', 'TRNCH', () => { setStage('TRENCH'); }, stageRow);
     this.stageButtons.set('TRENCH', trenchBtn);
 
     this.updateStageButtons(state.stage);
@@ -217,6 +216,21 @@ export class DebugUIManager {
       },
       content
     );
+
+    // Surface Vertical Line Density
+    this.createNumericInput(
+      'Surface Vertical Line Density',
+      'debug-surface-density-input',
+      0,
+      0.1,
+      `Default (${GameConfig.stages.surface.verticalLineDensity})`,
+      state.debugSurfaceVerticalLineDensity,
+      (val) => { 
+        state.debugSurfaceVerticalLineDensity = val;
+        this.notifySurfaceGridSettings();
+      },
+      content
+    );
   }
 
   private notifySurfaceGridSettings() {
@@ -224,7 +238,8 @@ export class DebugUIManager {
     if (currentStage instanceof SurfaceStage) {
       currentStage.surface.updateGridSettings(
         state.debugSurfaceVerticalLineHeight ?? GameConfig.stages.surface.verticalLineHeight,
-        state.debugSurfaceVerticalLineNoise ?? GameConfig.stages.surface.verticalLineNoise
+        state.debugSurfaceVerticalLineNoise ?? GameConfig.stages.surface.verticalLineNoise,
+        state.debugSurfaceVerticalLineDensity ?? GameConfig.stages.surface.verticalLineDensity
       );
     }
   }

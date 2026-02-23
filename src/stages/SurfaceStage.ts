@@ -27,7 +27,8 @@ export class SurfaceStage extends Stage {
     
     this.surface = surface || new Surface(
       state.debugSurfaceVerticalLineHeight ?? GameConfig.stages.surface.verticalLineHeight,
-      state.debugSurfaceVerticalLineNoise ?? GameConfig.stages.surface.verticalLineNoise
+      state.debugSurfaceVerticalLineNoise ?? GameConfig.stages.surface.verticalLineNoise,
+      state.debugSurfaceVerticalLineDensity ?? GameConfig.stages.surface.verticalLineDensity
     );
     this.scene.add(this.surface.mesh);
   }
@@ -52,7 +53,11 @@ export class SurfaceStage extends Stage {
     player.position.x = THREE.MathUtils.clamp(player.position.x, -halfWidth, halfWidth);
     player.position.y = THREE.MathUtils.clamp(player.position.y, GameConfig.stages.surface.floorY - GameConfig.stages.surface.floorClampBuffer, GameConfig.stages.surface.maxHeight);
     
-    this.surface.update(deltaTime, player.position, state.entityManager || undefined);
+    this.surface.update(deltaTime, player.position, state.entityManager || undefined, (pos, vel) => {
+        if (state.entityManager) {
+            state.entityManager.spawnFireball(pos, vel);
+        }
+    });
 
     const playerBox = this.playerBox.setFromObject(player.mesh);
     

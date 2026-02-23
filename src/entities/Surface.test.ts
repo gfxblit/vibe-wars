@@ -52,7 +52,7 @@ describe('Surface Entity', () => {
     const initialGridMesh = floor.children[0] as THREE.LineSegments;
 
     // Call updateGridSettings
-    surface.updateGridSettings(10, 5);
+    surface.updateGridSettings(10, 5, 1.0);
 
     const newGridMesh = floor.children[0] as THREE.LineSegments;
     expect(newGridMesh).not.toBe(initialGridMesh);
@@ -236,6 +236,66 @@ describe('Surface Entity', () => {
     expect(material.color.getHex()).toBe(GameConfig.stages.surface.color);
     expect(material.opacity).toBe(1.0);
     expect(material.transparent).toBe(false);
+  });
+
+  it('should have deterministic positions for the same world coordinates', () => {
+    const spacing = GameConfig.stages.surface.gridSpacing;
+    
+    // Create first surface and get jittered positions at (0,0)
+    const surface1 = new Surface(5, 20, 1.0);
+    surface1.update(0.1, new THREE.Vector3(0, 0, 0));
+    const floor1 = (surface1 as any).floor as THREE.Group;
+    const pos1 = (floor1.children[0] as THREE.LineSegments).geometry.attributes.position.array;
+    
+    // Find a specific line near local (0,0)
+    let localIndex = -1;
+    for (let i = 0; i < pos1.length; i += 6) {
+      if (Math.abs(pos1[i]) < spacing / 2 && Math.abs(pos1[i+2]) < spacing / 2) {
+        localIndex = i;
+        break;
+      }
+    }
+    expect(localIndex).toBeGreaterThanOrEqual(0);
+    const worldX1 = pos1[localIndex] + floor1.position.x;
+    const worldZ1 = pos1[localIndex+2] + floor1.position.z;
+
+    // Create second surface and snap it so (0,0) is at a different local position
+    const surface2 = new Surface(5, 20, 1.0);
+    // Snap floor so that local (spacing, 0) corresponds to world (spacing, 0)
+    // Actually, local (0,0) + floor.position(spacing, 0) = world(spacing, 0)
+    surface2.update(0.1, new THREE.Vector3(spacing, 0, 0)); 
+    const floor2 = (surface2 as any).floor as THREE.Group;
+    const pos2 = (floor2.children[0] as THREE.LineSegments).geometry.attributes.position.array;
+
+    // Find the line that corresponds to the same world position (spacing, 0)
+    // Wait, let's just check if worldX1, worldZ1 remains consistent.
+    // In surface1, floor.pos = (0,0). Line at worldX1, worldZ1.
+    // In surface2, floor.pos = (100,0). The line at worldX1, worldZ1 should now be at local (worldX1 - 100, worldZ1).
+    let foundMatch = false;
+    for (let i = 0; i < pos2.length; i += 6) {
+      const wx = pos2[i] + floor2.position.x;
+      const wz = pos2[i+2] + floor2.position.z;
+      if (Math.abs(wx - worldX1) < 0.01 && Math.abs(wz - worldZ1) < 0.01) {
+        foundMatch = true;
+        break;
+      }
+    }
+    expect(foundMatch).toBe(true);
+  });
+
+  it('should respect the density parameter', () => {
+    const surfaceHigh = new Surface(5, 20, 1.0);
+    const floorHigh = (surfaceHigh as any).floor as THREE.Group;
+    const countHigh = (floorHigh.children[0] as THREE.LineSegments).geometry.attributes.position.count;
+
+    const surfaceLow = new Surface(5, 20, 0.1);
+    const floorLow = (surfaceLow as any).floor as THREE.Group;
+    const countLow = (floorLow.children[0] as THREE.LineSegments).geometry.attributes.position.count;
+
+    expect(countLow).toBeLessThan(countHigh);
+    // Should be roughly 10%
+    expect(countLow).toBeLessThan(countHigh * 0.2);
+    expect(countLow).toBeGreaterThan(0);
   });
 
   it('should dispose resources correctly', () => {

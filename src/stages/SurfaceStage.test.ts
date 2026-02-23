@@ -141,6 +141,7 @@ describe('SurfaceStage', () => {
     const mockSurface = {
       mesh: new THREE.Group(),
       update: vi.fn(),
+      updateGridSettings: vi.fn(),
       checkCollisions: vi.fn().mockReturnValue({ floorHit: false, towerHit: mockTower }),
       getTowers: vi.fn().mockReturnValue([mockTower]),
       dispose: vi.fn()

@@ -484,7 +484,7 @@ describe('UIManager', () => {
               heightInput.value = '15';
               heightInput.dispatchEvent(new Event('change'));
       
-              expect(mockUpdateGridSettings).toHaveBeenCalledWith(15, GameConfig.stages.surface.verticalLineNoise);
+              expect(mockUpdateGridSettings).toHaveBeenCalledWith(15, GameConfig.stages.surface.verticalLineNoise, GameConfig.stages.surface.verticalLineDensity);
       
               mockUpdateGridSettings.mockClear();
       
@@ -492,7 +492,7 @@ describe('UIManager', () => {
               noiseInput.value = '10';
               noiseInput.dispatchEvent(new Event('change'));
       
-              expect(mockUpdateGridSettings).toHaveBeenCalledWith(15, 10);
+              expect(mockUpdateGridSettings).toHaveBeenCalledWith(15, 10, GameConfig.stages.surface.verticalLineDensity);
           });
         });
       });
