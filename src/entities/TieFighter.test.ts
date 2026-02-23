@@ -5,6 +5,8 @@ import { GameConfig } from '../config'
 import { DumbAIStrategy } from './DumbAIStrategy'
 import { SmartAIStrategy } from './SmartAIStrategy'
 
+import { state } from '../state'
+
 describe('TieFighter', () => {
   let tieFighter: TieFighter;
   let playerPosition: THREE.Vector3;
@@ -154,4 +156,31 @@ describe('TieFighter', () => {
       expect(mat.dispose).toHaveBeenCalled();
     });
   })
+
+  test('fire rate should scale with wave count', () => {
+    // Wave 1: base fireRate (2.0s)
+    state.wave = 1;
+    let tf = new TieFighter(new DumbAIStrategy());
+    // Force cooldown to known value
+    (tf as any).fireCooldown = 2.0;
+
+    let fire = tf.update(1.9, playerPosition, playerQuaternion, GameConfig.player.baseForwardSpeed);
+    expect(fire).toBeNull();
+    fire = tf.update(0.2, playerPosition, playerQuaternion, GameConfig.player.baseForwardSpeed);
+    expect(fire).not.toBeNull();
+    // Cooldown should reset to 2.0 / 1.0 = 2.0
+    expect((tf as any).fireCooldown).toBeCloseTo(2.0);
+
+    // Wave 10: multiplier 2.8, fireRate 2.0 / 2.8 ~= 0.714s
+    state.wave = 10;
+    tf = new TieFighter(new DumbAIStrategy());
+    (tf as any).fireCooldown = 0.714;
+    
+    fire = tf.update(0.7, playerPosition, playerQuaternion, GameConfig.player.baseForwardSpeed);
+    expect(fire).toBeNull();
+    fire = tf.update(0.05, playerPosition, playerQuaternion, GameConfig.player.baseForwardSpeed);
+    expect(fire).not.toBeNull();
+    // Cooldown should reset to 2.0 / 2.8 ~= 0.714
+    expect((tf as any).fireCooldown).toBeCloseTo(0.714, 2);
+  });
 })

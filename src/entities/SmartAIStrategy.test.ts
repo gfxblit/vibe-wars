@@ -4,6 +4,8 @@ import { SmartAIStrategy } from './SmartAIStrategy'
 import { GameConfig } from '../config'
 import { RandomGenerator } from './AIStrategy'
 
+import { state } from '../state'
+
 describe('SmartAIStrategy', () => {
   let strategy: SmartAIStrategy;
   let entityPosition: THREE.Vector3;
@@ -142,8 +144,32 @@ describe('SmartAIStrategy', () => {
     
     // Should be in ESCAPE stage and moving according to escapeFarZ
     // We can't easily check the private escapeDirection, but we can check movement.
-    const zBefore = entityPosition.z;
-    strategy.update(0.1, entityPosition, entityQuaternion, playerPosition, playerQuaternion, GameConfig.player.baseForwardSpeed);
-    expect(entityPosition.z).toBeLessThan(zBefore);
-  })
-})
+        const zBefore = entityPosition.z;
+        strategy.update(0.1, entityPosition, entityQuaternion, playerPosition, playerQuaternion, GameConfig.player.baseForwardSpeed);
+        expect(entityPosition.z).toBeLessThan(zBefore);
+      })
+    
+        test('speed should scale with wave count', () => {
+          // Wave 1: base speed (180). relativeSpeed = 180 - 100 = 80
+      
+        state.wave = 1;
+        let strategyW1 = new SmartAIStrategy(mockRng);
+        strategyW1.update(0, entityPosition, entityQuaternion, playerPosition, playerQuaternion, GameConfig.player.baseForwardSpeed);
+        const z1 = entityPosition.z;
+        strategyW1.update(0.1, entityPosition, entityQuaternion, playerPosition, playerQuaternion, GameConfig.player.baseForwardSpeed);
+        const dz1 = z1 - entityPosition.z; // should be 80 * 0.1 = 8
+    
+        // Wave 10: multiplier 2.8. speed = 180 * 2.8 = 504. relativeSpeed = 504 - 100 = 404
+        state.wave = 10;
+        let strategyW10 = new SmartAIStrategy(mockRng);
+        strategyW10.update(0, entityPosition, entityQuaternion, playerPosition, playerQuaternion, GameConfig.player.baseForwardSpeed);
+        const z10 = entityPosition.z;
+        strategyW10.update(0.1, entityPosition, entityQuaternion, playerPosition, playerQuaternion, GameConfig.player.baseForwardSpeed);
+        const dz10 = z10 - entityPosition.z; // should be 404 * 0.1 = 40.4
+    
+        expect(dz10).toBeGreaterThan(dz1 * 2.0);
+        expect(dz1).toBeCloseTo(8, 0.1);
+        expect(dz10).toBeCloseTo(40.4, 0.1);
+      });
+    })
+    

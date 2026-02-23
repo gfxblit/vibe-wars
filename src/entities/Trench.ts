@@ -6,10 +6,18 @@ import { Turret } from './Turret';
 export class Trench extends Entity {
   public mesh: THREE.Group;
   private turrets: Turret[] = [];
+  private wave: number;
+  private currentCatwalkSpacing: number;
+  private currentTurretSpacing: number;
 
-  constructor(turretSize: number = GameConfig.stages.trench.turretSize, turretFireballSize: number = GameConfig.stages.trench.fireballSize) {
+  constructor(wave: number = 1, turretSize: number = GameConfig.stages.trench.turretSize, turretFireballSize: number = GameConfig.stages.trench.fireballSize) {
     super();
     this.mesh = new THREE.Group();
+    this.wave = wave;
+
+    const multiplier = GameConfig.getDifficultyMultiplier(this.wave);
+    this.currentCatwalkSpacing = GameConfig.getScaledInterval(GameConfig.stages.trench.catwalkSpacing, multiplier);
+    this.currentTurretSpacing = GameConfig.getScaledInterval(GameConfig.turret.spacing, multiplier);
 
     const { width: trenchWidth, height: trenchHeight, length: trenchLength } = GameConfig.stages.trench;
     const halfWidth = trenchWidth / 2;
@@ -83,18 +91,25 @@ export class Trench extends Entity {
     const { catwalkStartZ, catwalkEndZ } = GameConfig.stages.trench;
     // Corresponds to loop: for (let z = start; z > end; z -= spacing)
     // So z must be <= start and > end
-    return z <= catwalkStartZ && z > catwalkEndZ;
+    if (z > catwalkStartZ || z <= catwalkEndZ) return false;
+    
+    // Check if it's a valid spacing step from start
+    const step = Math.round((catwalkStartZ - z) / this.currentCatwalkSpacing);
+    const expectedZ = catwalkStartZ - step * this.currentCatwalkSpacing;
+    return Math.abs(z - expectedZ) < 0.1;
   }
 
   private getCatwalkY(z: number): number {
-    const { catwalkSpacing, catwalkYOffset } = GameConfig.stages.trench;
+    const { catwalkStartZ, catwalkYOffset } = GameConfig.stages.trench;
     // Alternating height: some high, some low
-    return (Math.abs(z) % (catwalkSpacing * 2) === 0) ? catwalkYOffset : -catwalkYOffset;
+    // Use index-based calculation to ensure consistent pattern regardless of spacing
+    const index = Math.round(Math.abs(catwalkStartZ - z) / this.currentCatwalkSpacing);
+    return (index % 2 === 0) ? catwalkYOffset : -catwalkYOffset;
   }
 
   private addObstacles(turretSize: number, turretFireballSize: number) {
     // Add catwalks using configuration
-    const { catwalkStartZ, catwalkEndZ, catwalkSpacing, catwalkDepth, width: trenchWidth, exhaustPortZOffset, height: trenchHeight, catwalkColor } = GameConfig.stages.trench;
+    const { catwalkStartZ, catwalkEndZ, catwalkDepth, width: trenchWidth, exhaustPortZOffset, height: trenchHeight, catwalkColor } = GameConfig.stages.trench;
 
     const boxGeometry = new THREE.BoxGeometry(trenchWidth, 10, catwalkDepth);
     const edgesGeometry = new THREE.EdgesGeometry(boxGeometry);
@@ -102,7 +117,7 @@ export class Trench extends Entity {
       color: catwalkColor,
     });
 
-    for (let z = catwalkStartZ; z > catwalkEndZ; z -= catwalkSpacing) {
+    for (let z = catwalkStartZ; z > catwalkEndZ; z -= this.currentCatwalkSpacing) {
       const catwalk = new THREE.LineSegments(edgesGeometry, material);
       catwalk.name = 'catwalk';
       const y = this.getCatwalkY(z);
@@ -111,16 +126,15 @@ export class Trench extends Entity {
     }
 
     // Add Turrets along the walls
-    const { spacing: turretSpacing } = GameConfig.turret;
     const halfWidth = trenchWidth / 2;
 
-    for (let z = catwalkStartZ; z > catwalkEndZ; z -= turretSpacing) {
+    for (let z = catwalkStartZ; z > catwalkEndZ; z -= this.currentTurretSpacing) {
       // Alternate sides
-      const isLeft = Math.floor(Math.abs(z) / turretSpacing) % 2 === 0;
+      const isLeft = Math.floor(Math.abs(z) / this.currentTurretSpacing) % 2 === 0;
       const x = isLeft ? -halfWidth : halfWidth;
       // Deterministic height within trench walls based on z
       // This creates a pattern player can learn (e.g. high, low, middle)
-      const y = (((Math.abs(z) / turretSpacing) % 3) - 1) * trenchHeight * 0.25;
+      const y = (((Math.abs(z) / this.currentTurretSpacing) % 3) - 1) * trenchHeight * 0.25;
       
       const turret = new Turret(new THREE.Vector3(x, y, z), turretSize, turretFireballSize);
       // Rotate turret so its base is against the wall
@@ -157,7 +171,6 @@ export class Trench extends Entity {
     const {
       catwalkStartZ,
       catwalkEndZ,
-      catwalkSpacing,
       catwalkCollisionThreshold,
       catwalkHeightThreshold
     } = GameConfig.stages.trench;
@@ -172,7 +185,8 @@ export class Trench extends Entity {
     }
 
     // Find the nearest possible catwalk Z
-    const catwalkZ = Math.round(pZ / catwalkSpacing) * catwalkSpacing;
+    const step = Math.round((catwalkStartZ - pZ) / this.currentCatwalkSpacing);
+    const catwalkZ = catwalkStartZ - step * this.currentCatwalkSpacing;
 
     // Verify this Z corresponds to an actual generated catwalk
     if (!this.isValidCatwalkZ(catwalkZ)) {

@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { AIStrategy, RandomGenerator } from './AIStrategy';
 import { GameConfig } from '../config';
+import { state } from '../state';
 
 export class SmartAIStrategy implements AIStrategy {
   private elapsedTime: number = 0;
@@ -62,7 +63,9 @@ export class SmartAIStrategy implements AIStrategy {
     }
 
     this.prevWorldPos.copy(entityPosition);
-    const relativeSpeed = cfg.speed - playerSpeed;
+    const multiplier = GameConfig.getDifficultyMultiplier(state.wave);
+    const scaledSpeed = GameConfig.getScaledSpeed(cfg.speed, multiplier);
+    const relativeSpeed = scaledSpeed - playerSpeed;
 
     // Stage transitions and Z-Movement logic
     let speedFactor = 1.0;

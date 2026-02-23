@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { Turret } from './Turret';
+import { state } from '../state';
 
 describe('Turret Entity', () => {
   let turret: Turret;
@@ -135,5 +136,33 @@ describe('Turret Entity', () => {
 
     expect(materialDisposeSpy).toHaveBeenCalled();
     geoSpies.forEach(spy => expect(spy).toHaveBeenCalled());
+  });
+
+  it('should scale fire rate and fireball speed with wave count', () => {
+    // Wave 1: base fireRate (3.0s), fireballSpeed (relativeSpeed: 40)
+    state.wave = 1;
+    turret = new Turret(initialPosition);
+    (turret as any).fireCooldown = 3.0;
+
+    let fire = turret.update(2.9, new THREE.Vector3(0, 0, 0), new THREE.Quaternion(), 100);
+    expect(fire).toBeNull();
+    fire = turret.update(0.2, new THREE.Vector3(0, 0, 0), new THREE.Quaternion(), 100);
+    expect(fire).not.toBeNull();
+    // Cooldown should reset to 3.0 / 1.0 = 3.0
+    expect((turret as any).fireCooldown).toBeCloseTo(3.0);
+    expect(turret.getFireballSpeed()).toBe(40);
+
+    // Wave 10: multiplier 2.8, fireRate 3.0 / 2.8 ~= 1.071s, fireballSpeed 40 * 2.8 = 112
+    state.wave = 10;
+    turret = new Turret(initialPosition);
+    const scaledRate = 3.0 / 2.8;
+    (turret as any).fireCooldown = scaledRate;
+
+    fire = turret.update(scaledRate - 0.1, new THREE.Vector3(0, 0, 0), new THREE.Quaternion(), 100);
+    expect(fire).toBeNull();
+    fire = turret.update(0.2, new THREE.Vector3(0, 0, 0), new THREE.Quaternion(), 100);
+    expect(fire).not.toBeNull();
+    expect((turret as any).fireCooldown).toBeCloseTo(scaledRate, 2);
+    expect(turret.getFireballSpeed()).toBe(112);
   });
 });

@@ -6,7 +6,7 @@ describe('Trench Visuals', () => {
   let trench: Trench;
 
   beforeEach(() => {
-    trench = new Trench();
+    trench = new Trench(1);
   });
 
   it('catwalks should be clean rectangular outlines (no diagonals)', () => {

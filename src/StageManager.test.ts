@@ -121,7 +121,7 @@ describe('StageManager', () => {
     stageManager.reset();
     const initialShields = state.shields;
 
-    player.position.set(0, -20, -500);
+    player.position.set(0, 20, -500);
     stageManager.update(0.1, player, mockCamera);
     expect(state.shields).toBe(initialShields - 1);
 
@@ -129,7 +129,7 @@ describe('StageManager', () => {
     expect(state.shields).toBe(initialShields - 1);
 
     const currentShields = state.shields;
-    player.position.set(0, 20, -1000);
+    player.position.set(0, -20, -1000);
     stageManager.update(0.1, player, mockCamera);
     expect(state.shields).toBe(currentShields - 1);
   });
@@ -139,11 +139,11 @@ describe('StageManager', () => {
     stageManager.reset();
     const initialShields = state.shields;
 
-    player.position.set(0, 20, -500);
+    player.position.set(0, -20, -500);
     stageManager.update(0.1, player, mockCamera);
     expect(state.shields).toBe(initialShields);
 
-    player.position.set(0, -20, -1000);
+    player.position.set(0, 20, -1000);
     stageManager.update(0.1, player, mockCamera);
     expect(state.shields).toBe(initialShields);
   });
@@ -201,7 +201,7 @@ describe('StageManager', () => {
     stageManager.reset();
     
     const torpedo = state.entityManager!.spawnTorpedo(
-      new THREE.Vector3(0, -20, -500),
+      new THREE.Vector3(0, 20, -500),
       new THREE.Vector3(0, 0, 0)
     );
     

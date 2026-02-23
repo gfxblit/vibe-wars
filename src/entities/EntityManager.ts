@@ -143,7 +143,9 @@ export class EntityManager {
     // 5. Spawn new TIE fighters
     if (this.spawningEnabled) {
       this.spawnTimer += deltaTime;
-      if (this.spawnTimer >= GameConfig.tieFighter.spawnInterval) {
+      const multiplier = GameConfig.getDifficultyMultiplier(state.wave);
+      const interval = GameConfig.getScaledInterval(GameConfig.tieFighter.spawnInterval, multiplier);
+      if (this.spawnTimer >= interval) {
         this.spawnTieFighter(isSmartAI);
         this.spawnTimer = 0;
       }

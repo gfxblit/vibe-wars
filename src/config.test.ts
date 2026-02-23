@@ -129,4 +129,33 @@ describe('GameConfig', () => {
     // @ts-expect-error - GameConfig should be immutable
     expect(() => { GameConfig.core.deltaTimeCap = 0.2; }).toThrow();
   });
+
+  describe('difficulty scaling', () => {
+    const { getDifficultyMultiplier, getScaledInterval, getScaledSpeed } = GameConfig as any;
+
+    test('getDifficultyMultiplier should scale linearly and cap at Wave 10', () => {
+      // Wave 1: 1.0 + (1-1)*0.2 = 1.0
+      expect(getDifficultyMultiplier(1)).toBe(1.0);
+      // Wave 2: 1.0 + (2-1)*0.2 = 1.2
+      expect(getDifficultyMultiplier(2)).toBe(1.2);
+      // Wave 5: 1.0 + (5-1)*0.2 = 1.8
+      expect(getDifficultyMultiplier(5)).toBe(1.8);
+      // Wave 10: 1.0 + (10-1)*0.2 = 2.8
+      expect(getDifficultyMultiplier(10)).toBe(2.8);
+      // Wave 11: capped at 2.8
+      expect(getDifficultyMultiplier(11)).toBe(2.8);
+    });
+
+    test('getScaledInterval should decrease intervals as multiplier increases', () => {
+      const base = 100;
+      expect(getScaledInterval(base, 1.0)).toBe(100);
+      expect(getScaledInterval(base, 2.0)).toBe(50);
+    });
+
+    test('getScaledSpeed should increase speeds as multiplier increases', () => {
+      const base = 100;
+      expect(getScaledSpeed(base, 1.0)).toBe(100);
+      expect(getScaledSpeed(base, 2.0)).toBe(200);
+    });
+  });
 });
