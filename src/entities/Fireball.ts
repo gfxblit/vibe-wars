@@ -36,6 +36,7 @@ export class Fireball extends Entity {
         color: color,
         transparent: true,
         blending: THREE.AdditiveBlending,
+        depthWrite: false,
         rotation: Math.random() * Math.PI * 2, // Random initial 2D orientation
       });
 
