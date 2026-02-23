@@ -89,7 +89,7 @@ export class DebugUIManager {
 
     // Kills Threshold
     this.createNumericInput(
-      'KILLS TO ADVANCE',
+      'Kills to Advance',
       'debug-kills-input',
       0,
       1,
@@ -101,7 +101,7 @@ export class DebugUIManager {
 
     // Turret Size
     this.createNumericInput(
-      'TURRET SIZE',
+      'Turret Size',
       'debug-turret-size-input',
       1,
       1,
@@ -113,7 +113,7 @@ export class DebugUIManager {
 
     // Fireball Size
     this.createNumericInput(
-      'FIREBALL SIZE',
+      'Fireball Size',
       'debug-fireball-size-input',
       1,
       1,
@@ -125,7 +125,7 @@ export class DebugUIManager {
 
     // TIE Fighter Size
     this.createNumericInput(
-      'TIE FIGHTER SIZE',
+      'TIE Fighter Size',
       'debug-tiefighter-size-input',
       0.1,
       0.1,
@@ -136,7 +136,7 @@ export class DebugUIManager {
     );
 
     // TIE Fighter Color
-    this.createEl('div', 'mt-4 mb-2 border-b border-vector-green pb-1', content).textContent = 'TIE FIGHTER COLOR';
+    this.createEl('div', 'mt-4 mb-2 border-b border-vector-green pb-1', content).textContent = 'TIE Fighter Color';
     const tieFighterColorInput = this.createEl('input', 'w-full bg-black text-vector-green border border-vector-green px-2 py-1', content) as HTMLInputElement;
     tieFighterColorInput.id = 'debug-tiefighter-color-input';
     tieFighterColorInput.setAttribute('aria-label', 'TIE Fighter Color');
@@ -165,7 +165,7 @@ export class DebugUIManager {
 
     // Surface Fireball Size
     this.createNumericInput(
-      'SURFACE FIREBALL SIZE',
+      'Surface Fireball Size',
       'debug-surface-fireball-size-input',
       1,
       1,
@@ -177,7 +177,7 @@ export class DebugUIManager {
 
     // Surface Fireball Speed
     this.createNumericInput(
-      'SURFACE FIREBALL SPEED',
+      'Surface Fireball Speed',
       'debug-surface-fireball-speed-input',
       1,
       1,
