@@ -9,7 +9,7 @@ import { Surface } from '../entities/Surface';
 export class SurfaceStage extends Stage {
   public override get speed() { return GameConfig.player.forwardSpeeds.SURFACE; }
   private elapsedTime: number = 0;
-  private surface: Surface;
+  public readonly surface: Surface;
   private playerBox: THREE.Box3 = new THREE.Box3();
 
   constructor(private scene: THREE.Scene, private onComplete: () => void, surface?: Surface) {
@@ -25,7 +25,10 @@ export class SurfaceStage extends Stage {
     player.position.set(0, 0, 0);
     player.mesh.quaternion.set(0, 0, 0, 1);
     
-    this.surface = surface || new Surface();
+    this.surface = surface || new Surface(
+      state.debugSurfaceVerticalLineHeight ?? GameConfig.stages.surface.verticalLineHeight,
+      state.debugSurfaceVerticalLineNoise ?? GameConfig.stages.surface.verticalLineNoise
+    );
     this.scene.add(this.surface.mesh);
   }
 

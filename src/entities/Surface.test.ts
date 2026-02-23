@@ -47,15 +47,12 @@ describe('Surface Entity', () => {
     expect(hasNoise).toBe(true);
   });
 
-  it('should recreate floor when debug settings change', () => {
+  it('should recreate floor when updateGridSettings is called', () => {
     const floor = (surface as any).floor as THREE.Group;
     const initialGridMesh = floor.children[0] as THREE.LineSegments;
 
-    // Change debug settings
-    state.debugSurfaceVerticalLineHeight = 10;
-    
-    // Update surface
-    surface.update(0.1, new THREE.Vector3(0, 0, 0));
+    // Call updateGridSettings
+    surface.updateGridSettings(10, 5);
 
     const newGridMesh = floor.children[0] as THREE.LineSegments;
     expect(newGridMesh).not.toBe(initialGridMesh);
@@ -63,8 +60,43 @@ describe('Surface Entity', () => {
     const positions = newGridMesh.geometry.attributes.position.array;
     // Check height of first segment
     expect(Math.abs(positions[1] - positions[4])).toBe(10);
+  });
+
+  it('should not use global state for initial height and noise if provided to constructor', () => {
+    state.debugSurfaceVerticalLineHeight = 100;
     
-    // Cleanup
+    const customHeight = 20;
+    const customNoise = 5;
+    const surface = new Surface(customHeight, customNoise);
+    
+    const floor = (surface as any).floor as THREE.Group;
+    const gridMesh = floor.children[0] as THREE.LineSegments;
+    const positions = gridMesh.geometry.attributes.position.array;
+    
+    expect(Math.abs(positions[1] - positions[4])).toBe(customHeight);
+    
+    state.debugSurfaceVerticalLineHeight = undefined;
+  });
+
+  it('should have a public updateGridSettings method', () => {
+    expect(typeof surface.updateGridSettings).toBe('function');
+  });
+
+  it('should NOT recreate floor in update even if state changes', () => {
+    const customSurface = new Surface(10, 0);
+    const floor = (customSurface as any).floor as THREE.Group;
+    const initialGridMesh = floor.children[0] as THREE.LineSegments;
+    
+    state.debugSurfaceVerticalLineHeight = 50;
+    
+    customSurface.update(0.1, new THREE.Vector3(0, 0, 0));
+    
+    const currentGridMesh = floor.children[0] as THREE.LineSegments;
+    expect(currentGridMesh).toBe(initialGridMesh);
+    
+    const positions = currentGridMesh.geometry.attributes.position.array;
+    expect(Math.abs(positions[1] - positions[4])).toBe(10);
+    
     state.debugSurfaceVerticalLineHeight = undefined;
   });
 

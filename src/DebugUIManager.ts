@@ -1,5 +1,6 @@
 import { GameState, state, setStage } from './state';
 import { GameConfig } from './config';
+import { SurfaceStage } from './stages/SurfaceStage';
 
 export class DebugUIManager {
   private static readonly BUTTON_CLASSES = 'px-2 py-1 border border-vector-green hover:bg-vector-green hover:text-black transition-colors font-retro';
@@ -195,7 +196,10 @@ export class DebugUIManager {
       1,
       `Default (${GameConfig.stages.surface.verticalLineHeight})`,
       state.debugSurfaceVerticalLineHeight,
-      (val) => { state.debugSurfaceVerticalLineHeight = val; },
+      (val) => { 
+        state.debugSurfaceVerticalLineHeight = val;
+        this.notifySurfaceGridSettings();
+      },
       content
     );
 
@@ -207,9 +211,22 @@ export class DebugUIManager {
       1,
       `Default (${GameConfig.stages.surface.verticalLineNoise})`,
       state.debugSurfaceVerticalLineNoise,
-      (val) => { state.debugSurfaceVerticalLineNoise = val; },
+      (val) => { 
+        state.debugSurfaceVerticalLineNoise = val;
+        this.notifySurfaceGridSettings();
+      },
       content
     );
+  }
+
+  private notifySurfaceGridSettings() {
+    const currentStage = state.stageManager?.getStage();
+    if (currentStage instanceof SurfaceStage) {
+      currentStage.surface.updateGridSettings(
+        state.debugSurfaceVerticalLineHeight ?? GameConfig.stages.surface.verticalLineHeight,
+        state.debugSurfaceVerticalLineNoise ?? GameConfig.stages.surface.verticalLineNoise
+      );
+    }
   }
 
   private createStatsSection(parent: HTMLElement) {

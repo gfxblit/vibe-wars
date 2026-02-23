@@ -2,7 +2,6 @@ import * as THREE from 'three';
 import { Entity } from './Entity';
 import { GameConfig } from '../config';
 import { Tower } from './Tower';
-import { state } from '../state';
 import { EntityManager } from './EntityManager';
 
 export interface CollisionResult {
@@ -21,13 +20,16 @@ export class Surface extends Entity {
   private currentVerticalLineHeight: number = 0;
   private currentVerticalLineNoise: number = 0;
 
-  constructor() {
+  constructor(
+    verticalLineHeight: number = GameConfig.stages.surface.verticalLineHeight,
+    verticalLineNoise: number = GameConfig.stages.surface.verticalLineNoise
+  ) {
     super();
     this.mesh = new THREE.Group();
     this.floor = new THREE.Group();
     
-    this.currentVerticalLineHeight = state.debugSurfaceVerticalLineHeight ?? GameConfig.stages.surface.verticalLineHeight;
-    this.currentVerticalLineNoise = state.debugSurfaceVerticalLineNoise ?? GameConfig.stages.surface.verticalLineNoise;
+    this.currentVerticalLineHeight = verticalLineHeight;
+    this.currentVerticalLineNoise = verticalLineNoise;
 
     this.createFloor();
     this.mesh.add(this.floor);
@@ -38,12 +40,9 @@ export class Surface extends Entity {
     const { gridSpacing: surfaceGridSpacing, color: surfaceColor, floorY: surfaceFloorY } = GameConfig.stages.surface;
     const { far } = GameConfig.camera;
 
-    const height = state.debugSurfaceVerticalLineHeight ?? GameConfig.stages.surface.verticalLineHeight;
-    const noise = state.debugSurfaceVerticalLineNoise ?? GameConfig.stages.surface.verticalLineNoise;
+    const height = this.currentVerticalLineHeight;
+    const noise = this.currentVerticalLineNoise;
     
-    this.currentVerticalLineHeight = height;
-    this.currentVerticalLineNoise = noise;
-
     // Grid size should be enough to cover the camera's far plane in all directions.
     const halfSize = far + surfaceGridSpacing * 2;
     
@@ -88,18 +87,18 @@ export class Surface extends Entity {
     this.floor.add(gridMesh);
   }
 
-  public update(deltaTime: number, playerPosition: THREE.Vector3, entityManager?: EntityManager): void {
+  public updateGridSettings(height: number, noise: number): void {
+    if (this.currentVerticalLineHeight !== height || this.currentVerticalLineNoise !== noise) {
+      this.currentVerticalLineHeight = height;
+      this.currentVerticalLineNoise = noise;
+      this.createFloor();
+    }
+  }
+
+  public update(deltaTime: number, playerPosition: THREE.Vector3, entityManager?: EntityManager, spawnFireball?: (pos: THREE.Vector3, vel: THREE.Vector3) => void): void {
     this.elapsedTime += deltaTime;
     const playerZ = playerPosition.z;
     const spacing = GameConfig.stages.surface.gridSpacing;
-
-    // Check for debug setting changes
-    const targetHeight = state.debugSurfaceVerticalLineHeight ?? GameConfig.stages.surface.verticalLineHeight;
-    const targetNoise = state.debugSurfaceVerticalLineNoise ?? GameConfig.stages.surface.verticalLineNoise;
-
-    if (targetHeight !== this.currentVerticalLineHeight || targetNoise !== this.currentVerticalLineNoise) {
-        this.createFloor();
-    }
 
     // Update floor position to follow player with snapping
     this.floor.position.x = Math.round(playerPosition.x / spacing) * spacing;
@@ -123,6 +122,17 @@ export class Surface extends Entity {
             this.removeTower(i, entityManager);
             continue;
         }
+
+        // Firing logic
+        if (!tower.isExploded && spawnFireball) {
+          const fireDir = tower.update(deltaTime, playerPosition);
+          if (fireDir) {
+            const vel = fireDir.multiplyScalar(GameConfig.fireball.relativeSpeed);
+            spawnFireball(tower.mesh.position.clone(), vel);
+          }
+        } else {
+             tower.update(deltaTime, playerPosition);
+        }
     }
   }
 
@@ -138,18 +148,16 @@ export class Surface extends Entity {
      this.towers.push(tower);
      this.mesh.add(tower.mesh);
 
-     const manager = entityManager || state.entityManager;
-     if (manager) {
-       manager.addTarget(tower);
+     if (entityManager) {
+       entityManager.addTarget(tower);
      }
   }
 
   private removeTower(index: number, entityManager?: EntityManager): void {
       const tower = this.towers[index];
       if (tower) {
-        const manager = entityManager || state.entityManager;
-        if (manager) {
-          manager.removeTarget(tower);
+        if (entityManager) {
+          entityManager.removeTarget(tower);
         }
         this.mesh.remove(tower.mesh);
         tower.dispose();
