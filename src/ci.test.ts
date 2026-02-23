@@ -36,8 +36,8 @@ describe('CI/CD Workflow', () => {
       expect(content).toContain('pnpm install');
     });
 
-    it('should exclude dist-new from deletion in production deploy', () => {
-      expect(content).toContain("-not -name 'dist-new'");
+    it('should use runner temporary directory for build artifact', () => {
+      expect(content).toContain('${{ runner.temp }}/dist');
     });
 
     it('should not specify pnpm version in workflow if packageManager is defined in package.json', () => {
