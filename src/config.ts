@@ -85,6 +85,8 @@ export const GameConfig = deepFreeze({
       fireballSize: 40.0,
       fireballSpeed: 400.0,
       towerExplosionVelocity: 20.0,
+      towerExplosionColor: 0xffa500,
+      towerDebrisRotationSpeed: 2.0,
     },
     trench: {
       transitionDistance: 100,

@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import * as THREE from 'three';
 import { Tower } from './Tower';
+import { GameConfig } from '../config';
 
 describe('Tower Explosion', () => {
   let tower: Tower;
@@ -16,15 +17,29 @@ describe('Tower Explosion', () => {
     expect(tower.isExploded).toBe(true);
   });
 
-  it('should change material color to orange (0xffa500) when exploded', () => {
+  it('should change material color to config value when exploded', () => {
     tower.explode();
     
     tower.mesh.traverse((child) => {
       if (child instanceof THREE.Mesh) {
         const material = child.material as THREE.MeshBasicMaterial;
-        expect(material.color.getHex()).toBe(0xffa500);
+        expect(material.color.getHex()).toBe(GameConfig.stages.surface.towerExplosionColor);
       }
     });
+  });
+
+  it('should only explode intended debris, not all children', () => {
+    // Add a "non-debris" child, like a debug helper or nested mesh
+    const nonDebris = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1));
+    nonDebris.name = 'non-debris';
+    const initialPos = nonDebris.position.clone();
+    tower.mesh.add(nonDebris);
+
+    tower.explode();
+    tower.update(0.1, new THREE.Vector3(0, 0, 100));
+
+    // The non-debris child should NOT have moved (because it wasn't part of the initial debris)
+    expect(nonDebris.position.equals(initialPos)).toBe(true);
   });
 
   it('should move and rotate children in update() when isExploded is true', () => {
@@ -90,6 +105,18 @@ describe('Tower Explosion', () => {
     const worldPos = tower.getWorldPosition(target);
     expect(worldPos.equals(position)).toBe(true);
     expect(target.equals(position)).toBe(true);
+  });
+
+  it('should return direction vector when fireCooldown expires', () => {
+    // Tower constructor initializes fireCooldown to Math.random() * GameConfig.fireball.fireRate
+    // Let's force it by calling update with a large delta
+    const playerPos = new THREE.Vector3(0, 0, 100);
+    const result = tower.update(GameConfig.fireball.fireRate + 1, playerPos);
+    
+    expect(result).not.toBeNull();
+    expect(result instanceof THREE.Vector3).toBe(true);
+    // Direction should be (0, 0, 1) if player is at (0, 0, 100) and tower at (0, 0, 0)
+    expect(result?.z).toBeGreaterThan(0.9);
   });
 
   it('should return correct score', () => {

@@ -8,7 +8,7 @@ export class Tower extends Entity implements Targetable {
     private _isExploded: boolean = false;
     private topMesh!: THREE.Mesh;
     private fireCooldown: number = 0;
-    private pieceVelocities: THREE.Vector3[] = [];
+    private debris: { mesh: THREE.Mesh, velocity: THREE.Vector3 }[] = [];
     private baseMaterial: THREE.MeshBasicMaterial;
     private topMaterial: THREE.MeshBasicMaterial;
   
@@ -54,17 +54,16 @@ export class Tower extends Entity implements Targetable {
     public explode(): void {
       if (this.isExploded) return;
       this.isExploded = true;
-      this.baseMaterial.color.setHex(0xffa500);
-      this.topMaterial.color.setHex(0xffa500);
+      const { towerExplosionColor, towerExplosionVelocity } = GameConfig.stages.surface;
+      this.baseMaterial.color.setHex(towerExplosionColor);
+      this.topMaterial.color.setHex(towerExplosionColor);
 
-      const velMag = GameConfig.stages.surface.towerExplosionVelocity;
-      this.mesh.children.forEach(() => {
-        const velocity = new THREE.Vector3(
-          (Math.random() - 0.5) * velMag,
-          (Math.random() + 0.5) * velMag, // Upward bias
-          (Math.random() - 0.5) * velMag
+      this.debris.forEach((item) => {
+        item.velocity.set(
+          (Math.random() - 0.5) * towerExplosionVelocity,
+          (Math.random() + 0.5) * towerExplosionVelocity, // Upward bias
+          (Math.random() - 0.5) * towerExplosionVelocity
         );
-        this.pieceVelocities.push(velocity);
       });
     }
   
@@ -91,6 +90,7 @@ export class Tower extends Entity implements Targetable {
       const base = new THREE.Mesh(baseGeo, this.baseMaterial);
       base.position.y = baseHeight / 2;
       this.mesh.add(base);
+      this.debris.push({ mesh: base, velocity: new THREE.Vector3() });
   
       // Top
       const topGeo = new THREE.BoxGeometry(towerWidth * 0.8, topHeight, towerWidth * 0.8);
@@ -101,6 +101,7 @@ export class Tower extends Entity implements Targetable {
       this.topMesh = new THREE.Mesh(topGeo, this.topMaterial);
       this.topMesh.position.y = baseHeight + topHeight / 2;
       this.mesh.add(this.topMesh);
+      this.debris.push({ mesh: this.topMesh, velocity: new THREE.Vector3() });
   
       // Initial collision box calculation
       this.collisionBox = new THREE.Box3();
@@ -109,13 +110,11 @@ export class Tower extends Entity implements Targetable {
 
   update(deltaTime: number, playerPosition: THREE.Vector3, _playerQuaternion?: THREE.Quaternion, _playerSpeed?: number): THREE.Vector3 | null {
     if (this.isExploded) {
-      this.mesh.children.forEach((child, index) => {
-        const velocity = this.pieceVelocities[index];
-        if (velocity) {
-          child.position.addScaledVector(velocity, deltaTime);
-          child.rotation.x += deltaTime * 2;
-          child.rotation.y += deltaTime * 2;
-        }
+      const { towerDebrisRotationSpeed } = GameConfig.stages.surface;
+      this.debris.forEach((item) => {
+        item.mesh.position.addScaledVector(item.velocity, deltaTime);
+        item.mesh.rotation.x += deltaTime * towerDebrisRotationSpeed;
+        item.mesh.rotation.y += deltaTime * towerDebrisRotationSpeed;
       });
       return null;
     }
