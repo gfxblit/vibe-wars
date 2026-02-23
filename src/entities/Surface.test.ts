@@ -9,8 +9,6 @@ describe('Surface Entity', () => {
 
   beforeEach(() => {
     surface = new Surface();
-    // Default to tower spawning (random >= 0.3)
-    vi.spyOn(Math, 'random').mockReturnValue(0.9);
   });
 
   afterEach(() => {
@@ -104,75 +102,7 @@ describe('Surface Entity', () => {
 
   it('should initialize with a mesh containing a floor', () => {
     expect(surface.mesh).toBeDefined();
-    // floor is added to mesh. 
-    // We can check if it has children (floor + maybe towers if spawned immediately? No, towers spawn in update)
-    // Floor is a Group containing GridHelper (LineSegments)
     expect(surface.mesh.children.length).toBeGreaterThan(0);
-  });
-
-  it('should spawn towers over time', () => {
-    const initialTowers = surface.getTowers().length;
-    expect(initialTowers).toBe(0);
-
-    // Update with enough time to trigger spawn
-    const { spawned } = surface.update(0.1, new THREE.Vector3(0, 0, 0)); // playerZ = 0
-    
-    expect(spawned.length).toBeGreaterThan(0);
-    expect(surface.getTowers().length).toBeGreaterThan(0);
-  });
-
-  it('should remove distant towers', () => {
-    // Force spawn a tower
-    surface.update(0.1, new THREE.Vector3(0, 0, 0));
-    const towers = surface.getTowers();
-    const tower = towers[0];
-    
-    // Move player far ahead (negative Z)
-    const playerZ = -2000;
-    const { removed } = surface.update(0.1, new THREE.Vector3(0, 0, playerZ));
-    
-    expect(removed).toContain(tower);
-    expect(surface.getTowers()).not.toContain(tower);
-  });
-
-  it('should detect floor collision', () => {
-    const playerBox = new THREE.Box3();
-    const position = new THREE.Vector3(0, GameConfig.stages.surface.floorY - 5, 0);
-    
-    const { floorHit } = surface.checkCollisions(playerBox, position);
-    expect(floorHit).toBe(true);
-  });
-  
-  it('should detect tower collision', () => {
-      // Force spawn
-      const { spawned } = surface.update(0.1, new THREE.Vector3(0, 0, 0));
-      const tower = spawned[0];
-      
-      const playerBox = new THREE.Box3().setFromObject(tower.mesh); // Overlap exactly
-      const position = new THREE.Vector3(0, 0, 0);
-      
-      const { obstacleHit } = surface.checkCollisions(playerBox, position);
-      expect(obstacleHit).toBe(tower);
-  });
-
-  it('should spawn towers relative to the player X position', () => {
-    const playerX = 5000;
-    const playerPos = new THREE.Vector3(playerX, 0, 0);
-    
-    // Force spawn
-    surface.update(0.1, playerPos);
-    
-    const towers = surface.getTowers();
-    expect(towers.length).toBeGreaterThan(0);
-    
-    const tower = towers[0];
-    const { width: surfaceWidth } = GameConfig.stages.surface;
-    
-    // Tower X should be within range of playerX
-    // Implementation uses relative positioning based on playerX
-    // Towers spawn within range: playerX +/- (surfaceWidth/2 - margin)
-    expect(tower.mesh.position.x).toBeGreaterThan(playerX - surfaceWidth / 2);
-    expect(tower.mesh.position.x).toBeLessThan(playerX + surfaceWidth / 2);
   });
 
   it('should have the floor follow the player with snapping', () => {
@@ -274,10 +204,6 @@ describe('Surface Entity', () => {
   });
 
   it('should dispose resources correctly', () => {
-    // Spawn some towers first
-    surface.update(0.1, new THREE.Vector3(0, 0, 0));
-    expect(surface.getTowers().length).toBeGreaterThan(0);
-    
     const floor = (surface as any).floor as THREE.Group;
     const gridMesh = floor.children[0] as THREE.LineSegments;
     const geometryDisposeSpy = vi.spyOn(gridMesh.geometry, 'dispose');
@@ -287,34 +213,12 @@ describe('Surface Entity', () => {
     
     expect(geometryDisposeSpy).toHaveBeenCalled();
     expect(materialDisposeSpy).toHaveBeenCalled();
-    expect(surface.getTowers().length).toBe(0);
-    expect(surface.getTurrets().length).toBe(0);
   });
 
-  it('should spawn turrets occasionally', () => {
-    // We already have Math.random mocked in beforeEach, but let's override it to ensure a turret spawns
-    vi.mocked(Math.random).mockReturnValue(0.1); 
-    
-    surface.update(0.1, new THREE.Vector3(0, 0, 0));
-    
-    const turrets = surface.getTurrets();
-    expect(turrets.length).toBe(1);
-    expect(turrets[0].mesh.rotation.x).toBeCloseTo(-Math.PI / 2);
-  });
-
-  it('should detect turret collision', () => {
-    // Override Math.random mock to ensure a turret spawns
-    vi.mocked(Math.random).mockReturnValue(0.1); 
-    
-    surface.update(0.1, new THREE.Vector3(0, 0, 0));
-    const turrets = surface.getTurrets();
-    const turret = turrets[0];
-    
-    const playerBox = new THREE.Box3().setFromObject(turret.mesh);
-    const position = new THREE.Vector3(0, 0, 0);
-    
-    const { obstacleHit } = surface.checkCollisions(playerBox, position);
-    expect(obstacleHit).toBe(turret);
+  it('should detect floor collision', () => {
+    const position = new THREE.Vector3(0, GameConfig.stages.surface.floorY - 5, 0);
+    const floorHit = surface.checkFloorCollision(position);
+    expect(floorHit).toBe(true);
   });
 
   it('should scale tower spawn interval with wave count', () => {

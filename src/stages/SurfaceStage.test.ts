@@ -4,7 +4,6 @@ import { SurfaceStage } from './SurfaceStage';
 import { GameConfig } from '../config';
 import { state } from '../state';
 import { Player } from '../entities/Player';
-import { Surface } from '../entities/Surface';
 
 // Mock dependencies
 vi.mock('../state', () => ({
@@ -43,13 +42,20 @@ describe('SurfaceStage', () => {
     mockCamera = new THREE.PerspectiveCamera();
     
     // Setup a proper player mock with real THREE objects
+    const playerMesh = new THREE.Group();
+    // Add a dummy mesh so it has dimensions for setFromObject
+    const geometry = new THREE.BoxGeometry(10, 10, 10); // larger for easier collision
+    const material = new THREE.MeshBasicMaterial();
+    const mesh = new THREE.Mesh(geometry, material);
+    playerMesh.add(mesh);
+
     state.player = {
       position: new THREE.Vector3(0, 0, 0),
-      mesh: new THREE.Group(),
+      mesh: playerMesh,
       update: vi.fn(),
     } as unknown as Player;
     
-    // Ensure quaternion is set (Group has it, but just to be safe if tests check it)
+    // Ensure quaternion is set
     state.player.mesh.quaternion.set(0, 0, 0, 1);
   });
 
@@ -104,7 +110,6 @@ describe('SurfaceStage', () => {
     const player = state.player as Player;
     
     // Position player below floor threshold
-    // Floor Y is -50 (default in config). Collision is < -50 + buffer
     player.position.y = GameConfig.stages.surface.floorY - GameConfig.stages.surface.floorClampBuffer;
     
     stage.update(0.1, player, mockCamera);
@@ -149,42 +154,53 @@ describe('SurfaceStage', () => {
   });
 
   it('should damage player if they hit a tower', () => {
-    const mockTower = { explode: vi.fn(), isExploded: false };
-    const mockSurface = {
-      mesh: new THREE.Group(),
-      update: vi.fn().mockReturnValue({ spawned: [], removed: [] }),
-      updateGridSettings: vi.fn(),
-      checkCollisions: vi.fn().mockReturnValue({ floorHit: false, obstacleHit: mockTower }),
-      getTowers: vi.fn().mockReturnValue([mockTower]),
-      dispose: vi.fn()
-    } as unknown as Surface;
-
-    stage = new SurfaceStage(scene, vi.fn(), mockSurface);
+    stage = new SurfaceStage(scene, vi.fn());
     const player = state.player as Player;
+    
+    // Force spawn a tower
+    stage.update(0.1, player, mockCamera);
+    const towers = stage.getTowers();
+    expect(towers.length).toBeGreaterThan(0);
+    const tower = towers[0];
+    
+    // Position player on tower
+    player.position.copy(tower.position);
+    player.mesh.position.copy(tower.position);
+    player.mesh.updateWorldMatrix(true, true);
+    
+    // Mock explosion to verify it was called
+    const explodeSpy = vi.spyOn(tower, 'explode');
     
     stage.update(0.1, player, mockCamera);
     
     expect(takeDamage).toHaveBeenCalledWith(GameConfig.stages.surface.collisionDamage);
-    expect(mockTower.explode).toHaveBeenCalled();
+    expect(explodeSpy).toHaveBeenCalled();
   });
 
   it('should damage player if they hit a turret', () => {
-    const mockTurret = { explode: vi.fn(), isExploded: false };
-    const mockSurface = {
-      mesh: new THREE.Group(),
-      update: vi.fn(),
-      updateGridSettings: vi.fn(),
-      checkCollisions: vi.fn().mockReturnValue({ floorHit: false, obstacleHit: mockTurret }),
-      getTowers: vi.fn().mockReturnValue([]),
-      dispose: vi.fn()
-    } as unknown as Surface;
-
-    stage = new SurfaceStage(scene, vi.fn(), mockSurface);
+    // Force turret spawn
+    vi.mocked(Math.random).mockReturnValue(GameConfig.stages.surface.turretSpawnProbability - 0.01);
+    
+    stage = new SurfaceStage(scene, vi.fn());
     const player = state.player as Player;
+    
+    // Force spawn
+    stage.update(0.1, player, mockCamera);
+    const obstacles = (stage as any).spawner.getObstacles();
+    const turrets = obstacles.filter((o: any) => o.constructor.name === 'Turret');
+    expect(turrets.length).toBeGreaterThan(0);
+    const turret = turrets[0];
+    
+    // Position player on turret
+    player.position.copy(turret.position);
+    player.mesh.position.copy(turret.position);
+    player.mesh.updateWorldMatrix(true, true);
+    
+    const explodeSpy = vi.spyOn(turret, 'explode');
     
     stage.update(0.1, player, mockCamera);
     
     expect(takeDamage).toHaveBeenCalledWith(GameConfig.stages.surface.collisionDamage);
-    expect(mockTurret.explode).toHaveBeenCalled();
+    expect(explodeSpy).toHaveBeenCalled();
   });
 });
