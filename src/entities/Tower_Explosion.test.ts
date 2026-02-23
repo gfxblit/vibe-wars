@@ -49,24 +49,25 @@ describe('Tower Explosion', () => {
     // Mock Math.random for predictable velocities
     const randomMock = vi.spyOn(Math, 'random').mockReturnValue(0.7);
 
-    // Access private debris for testing
-    const debris = (tower as any).debris as { mesh: THREE.Mesh, velocity: THREE.Vector3 }[];
+    // Identify debris by name (we'll add this to Tower.ts)
+    const debris = tower.mesh.children.filter(child => child.name === 'debris');
+    expect(debris.length).toBeGreaterThan(0);
 
-    const initialStates = debris.map(item => ({
-      position: item.mesh.position.clone(),
-      rotation: item.mesh.rotation.clone(),
+    const initialStates = debris.map(child => ({
+      position: child.position.clone(),
+      rotation: child.rotation.clone(),
     }));
 
     tower.explode();
     tower.update(dt, playerPos);
 
-    debris.forEach((item, index) => {
+    debris.forEach((child, index) => {
       const initialState = initialStates[index];
       // Position should have changed
-      expect(item.mesh.position.equals(initialState.position)).toBe(false);
+      expect(child.position.equals(initialState.position)).toBe(false);
       
       // Rotation should have changed
-      expect(item.mesh.rotation.equals(initialState.rotation)).toBe(false);
+      expect(child.rotation.equals(initialState.rotation)).toBe(false);
     });
 
     randomMock.mockRestore();

@@ -92,6 +92,7 @@ export class Tower extends Entity implements Targetable {
         wireframe: true 
       });
       const base = new THREE.Mesh(baseGeo, this.baseMaterial);
+      base.name = 'debris';
       base.position.y = baseHeight / 2;
       this.mesh.add(base);
       this.debris.push({ mesh: base, velocity: new THREE.Vector3() });
@@ -103,6 +104,7 @@ export class Tower extends Entity implements Targetable {
         wireframe: true 
       });
       this.topMesh = new THREE.Mesh(topGeo, this.topMaterial);
+      this.topMesh.name = 'debris';
       this.topMesh.position.y = baseHeight + topHeight / 2;
       this.mesh.add(this.topMesh);
       this.debris.push({ mesh: this.topMesh, velocity: new THREE.Vector3() });
