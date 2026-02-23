@@ -60,7 +60,6 @@ export class SurfaceStage extends Stage {
     const { floorHit, towerHit } = this.surface.checkCollisions(playerBox, player.position);
 
     if (floorHit) { 
-        takeDamage(GameConfig.stages.surface.collisionDamage);
         // Bounce player up to avoid instant death loop or getting stuck
         player.position.y = GameConfig.stages.surface.floorY + GameConfig.stages.surface.floorBounce;
     }
