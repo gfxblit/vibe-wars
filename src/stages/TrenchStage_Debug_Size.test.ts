@@ -38,7 +38,7 @@ describe('TrenchStage Size Debug Integration', () => {
     
     // Check fireball size via EntityManager
     const fireball = state.entityManager!.spawnFireball(new THREE.Vector3(), new THREE.Vector3());
-    const sparkle = fireball.mesh.children[0] as THREE.Sprite;
+    const sparkle = fireball.mesh.children[0].children[0] as THREE.Sprite;
     expect(sparkle.scale.x).toBeCloseTo(GameConfig.fireball.sparkleSize);
   });
 
@@ -59,7 +59,7 @@ describe('TrenchStage Size Debug Integration', () => {
     new TrenchStage(scene, onComplete, onReset);
     
     const fireball = state.entityManager!.spawnFireball(new THREE.Vector3(), new THREE.Vector3());
-    const sparkle = fireball.mesh.children[0] as THREE.Sprite;
+    const sparkle = fireball.mesh.children[0].children[0] as THREE.Sprite;
     expect(sparkle.scale.x).toBeCloseTo(13.0);
   });
 });

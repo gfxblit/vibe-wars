@@ -53,15 +53,28 @@ describe('Fireball', () => {
     const dt = 1.0;
     fireball.explode();
 
-    // Capture initial positions of sparkles relative to the group
-    const initialSparklePositions = fireball.mesh.children.map(c => c.position.clone());
+    // The visual group is the first child of the mesh
+    const visualGroup = fireball.mesh.children[0];
+    expect(visualGroup).toBeInstanceOf(THREE.Group);
+
+    // Capture initial positions of sparkles relative to the visual group
+    const initialSparklePositions = visualGroup.children.map(c => c.position.clone());
 
     fireball.update(dt);
 
-    fireball.mesh.children.forEach((child, i) => {
+    visualGroup.children.forEach((child, i) => {
       const initialPos = initialSparklePositions[i];
       // The child should have moved away from the origin (0,0,0) of the group
       expect(child.position.length()).toBeGreaterThan(initialPos.length());
+    });
+  });
+
+  it('should have depthWrite set to false for sparkles to fix black background', () => {
+    const visualGroup = fireball.mesh.children[0];
+    visualGroup.children.forEach(child => {
+      if (child instanceof THREE.Sprite) {
+        expect(child.material.depthWrite).toBe(false);
+      }
     });
   });
 

@@ -38,7 +38,7 @@ describe('Turret and Fireball Size Debug', () => {
     const hudScene = new THREE.Scene();
     const entityManager = new EntityManager(worldScene, hudScene);
     const fireball = entityManager.spawnFireball(position, velocity);
-    const sparkle = fireball.mesh.children[0] as THREE.Sprite;
+    const sparkle = fireball.mesh.children[0].children[0] as THREE.Sprite;
     const size = GameConfig.fireball.sparkleSize;
     expect(sparkle.scale.x).toBeCloseTo(size);
   });
@@ -49,7 +49,7 @@ describe('Turret and Fireball Size Debug', () => {
     const hudScene = new THREE.Scene();
     const entityManager = new EntityManager(worldScene, hudScene);
     const fireball = entityManager.spawnFireball(position, velocity, fireballSize);
-    const sparkle = fireball.mesh.children[0] as THREE.Sprite;
+    const sparkle = fireball.mesh.children[0].children[0] as THREE.Sprite;
     expect(sparkle.scale.x).toBeCloseTo(fireballSize);
   });
 
@@ -74,7 +74,7 @@ describe('Turret and Fireball Size Debug', () => {
     
     const fireballs = entityManager.getFireballs();
     expect(fireballs.length).toBe(1);
-    const sparkle = fireballs[0].mesh.children[0] as THREE.Sprite;
+    const sparkle = fireballs[0].mesh.children[0].children[0] as THREE.Sprite;
     expect(sparkle.scale.x).toBeCloseTo(fireballSize);
   });
 
@@ -97,7 +97,7 @@ describe('Turret and Fireball Size Debug', () => {
     
     const fireballs = entityManager.getFireballs();
     expect(fireballs.length).toBe(1);
-    const sparkle = fireballs[0].mesh.children[0] as THREE.Sprite;
+    const sparkle = fireballs[0].mesh.children[0].children[0] as THREE.Sprite;
     expect(sparkle.scale.x).toBeCloseTo(state.debugFireballSize);
   });
 
@@ -118,7 +118,7 @@ describe('Turret and Fireball Size Debug', () => {
     
     const fireballs = entityManager.getFireballs();
     expect(fireballs.length).toBeGreaterThan(0);
-    const sparkle = fireballs[0].mesh.children[0] as THREE.Sprite;
+    const sparkle = fireballs[0].mesh.children[0].children[0] as THREE.Sprite;
     expect(sparkle.scale.x).toBeCloseTo(state.debugFireballSize);
   });
 
