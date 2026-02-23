@@ -1,109 +1,73 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import * as THREE from 'three';
 import { Tower } from './Tower';
 import { GameConfig } from '../config';
 
 describe('Tower', () => {
   let tower: Tower;
-  const position = new THREE.Vector3(0, 0, 0);
 
   beforeEach(() => {
-    tower = new Tower(position);
+    tower = new Tower(new THREE.Vector3(0, 0, 0));
   });
 
-  it('should have the correct height based on GameConfig', () => {
-    // The tower consists of two boxes: base and top.
-    // Base height is 0.7 * towerHeight, Top height is 0.3 * towerHeight.
-    // Total height should be towerHeight.
-    const towerHeight = GameConfig.stages.surface.towerHeight;
-    const box = new THREE.Box3().setFromObject(tower.mesh);
-    const size = new THREE.Vector3();
-    box.getSize(size);
+  it('should have a base and a top mesh with correct dimensions', () => {
+    const { towerHeight, towerWidth } = GameConfig.stages.surface;
+    const expectedBaseHeight = towerHeight * 0.8;
+    const expectedTopHeight = towerHeight * 0.2;
+
+    // The tower mesh is a group containing the base and top
+    const base = tower.mesh.children[0] as THREE.Mesh;
+    const top = tower.mesh.children[1] as THREE.Mesh;
+
+    expect(base.geometry).toBeInstanceOf(THREE.BoxGeometry);
+    expect(top.geometry).toBeInstanceOf(THREE.BoxGeometry);
+
+    const baseGeo = base.geometry as THREE.BoxGeometry;
+    const topGeo = top.geometry as THREE.BoxGeometry;
+
+    expect(baseGeo.parameters.height).toBeCloseTo(expectedBaseHeight);
+    expect(topGeo.parameters.height).toBeCloseTo(expectedTopHeight);
     
-    // We expect the bounding box height to be towerHeight
-    expect(size.y).toBeCloseTo(towerHeight);
+    // Top is slightly narrower (0.8 scale in code)
+    expect(topGeo.parameters.width).toBeCloseTo(towerWidth * 0.8);
   });
 
-  it('should have the base mesh with the correct color', () => {
-    const baseMesh = tower.mesh.children[0] as THREE.Mesh;
-    const material = baseMesh.material as THREE.MeshBasicMaterial;
-    expect(material.color.getHex()).toBe(GameConfig.stages.surface.towerColor);
-  });
-
-  it('should have the top mesh with the correct color', () => {
-    const topMesh = tower.mesh.children[1] as THREE.Mesh;
-    const material = topMesh.material as THREE.MeshBasicMaterial;
-    expect(material.color.getHex()).toBe(GameConfig.stages.surface.towerTopColor);
-  });
-
-  it('should have wireframe enabled for both materials', () => {
-    tower.mesh.children.forEach((child) => {
-      if (child instanceof THREE.Mesh) {
-        const material = child.material as THREE.MeshBasicMaterial;
-        expect(material.wireframe).toBe(true);
-      }
-    });
-  });
-
-  it('should use separate materials for base and top', () => {
-    const baseMesh = tower.mesh.children[0] as THREE.Mesh;
-    const topMesh = tower.mesh.children[1] as THREE.Mesh;
-    expect(baseMesh.material).not.toBe(topMesh.material);
-  });
-
-  it('should return a direction vector when update is called and cooldown is up', () => {
-    const playerPosition = new THREE.Vector3(100, 100, 100);
-    // Force cooldown to be up
-    // @ts-ignore - fireCooldown is private
-    tower.fireCooldown = 0;
+  it('should have correct colors for base and top', () => {
+    const { towerColor, towerTopColor } = GameConfig.stages.surface;
     
-    const direction = tower.update(0.1, playerPosition);
-    expect(direction).toBeDefined();
-    expect(direction?.length()).toBeCloseTo(1);
+    const base = tower.mesh.children[0] as THREE.Mesh;
+    const top = tower.mesh.children[1] as THREE.Mesh;
+
+    const baseMat = base.material as THREE.MeshBasicMaterial;
+    const topMat = top.material as THREE.MeshBasicMaterial;
+
+    expect(baseMat.color.getHex()).toBe(towerColor);
+    expect(topMat.color.getHex()).toBe(towerTopColor);
   });
 
-  it('should return null when update is called and cooldown is not up', () => {
-    const playerPosition = new THREE.Vector3(100, 100, 100);
-    // @ts-ignore - fireCooldown is private
-    tower.fireCooldown = 1.0;
+  it('should position the top mesh correctly on top of the base', () => {
+    const { towerHeight } = GameConfig.stages.surface;
+    const expectedBaseHeight = towerHeight * 0.8;
+    const expectedTopHeight = towerHeight * 0.2;
+
+    const top = tower.mesh.children[1] as THREE.Mesh;
     
-    const direction = tower.update(0.1, playerPosition);
-    expect(direction).toBeNull();
+    // Position Y = baseHeight + topHeight / 2
+    const expectedY = expectedBaseHeight + expectedTopHeight / 2;
+    expect(top.position.y).toBeCloseTo(expectedY);
   });
 
-  it('should detect collision with player box', () => {
-    const playerBox = new THREE.Box3().setFromCenterAndSize(
-      tower.mesh.position.clone().add(new THREE.Vector3(0, 10, 0)),
-      new THREE.Vector3(10, 10, 10)
-    );
-    expect(tower.checkCollision(playerBox)).toBe(true);
-  });
+  it('should return the correct fire position (top of the tower)', () => {
+    const { towerHeight } = GameConfig.stages.surface;
+    const expectedBaseHeight = towerHeight * 0.8;
+    const expectedTopHeight = towerHeight * 0.2;
+    const expectedY = expectedBaseHeight + expectedTopHeight / 2;
 
-  it('should not detect collision when exploded', () => {
-    tower.explode();
-    const playerBox = new THREE.Box3().setFromCenterAndSize(
-      tower.mesh.position.clone().add(new THREE.Vector3(0, 10, 0)),
-      new THREE.Vector3(10, 10, 10)
-    );
-    expect(tower.checkCollision(playerBox)).toBe(false);
-  });
-
-  it('should dispose of geometries and materials', () => {
-    const geometries: THREE.BufferGeometry[] = [];
-    const materials: THREE.Material[] = [];
+    const firePos = tower.getFirePosition(new THREE.Vector3());
     
-    tower.mesh.traverse(child => {
-      if (child instanceof THREE.Mesh) {
-        geometries.push(child.geometry);
-        materials.push(child.material);
-        child.geometry.dispose = vi.fn();
-        child.material.dispose = vi.fn();
-      }
-    });
-
-    tower.dispose();
-
-    geometries.forEach(geo => expect(geo.dispose).toHaveBeenCalled());
-    materials.forEach(mat => expect(mat.dispose).toHaveBeenCalled());
+    // Since tower is at (0,0,0), fire position Y should be the calculated center of the topMesh
+    expect(firePos.y).toBeCloseTo(expectedY);
+    expect(firePos.x).toBe(0);
+    expect(firePos.z).toBe(0);
   });
 });

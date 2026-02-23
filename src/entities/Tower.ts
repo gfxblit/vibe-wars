@@ -30,6 +30,11 @@ export class Tower extends Entity implements Targetable {
       return this.mesh.getWorldPosition(target);
     }
 
+    public getFirePosition(target: THREE.Vector3): THREE.Vector3 {
+      this.topMesh.updateWorldMatrix(true, false);
+      return this.topMesh.getWorldPosition(target);
+    }
+
     public getScore(): number {
       return GameConfig.stages.surface.towerPoints;
     }
@@ -60,9 +65,9 @@ export class Tower extends Entity implements Targetable {
   
       const { towerWidth, towerHeight, towerColor, towerTopColor } = GameConfig.stages.surface;
   
-      // Split into Base and Top
-      const baseHeight = towerHeight * 0.7;
-      const topHeight = towerHeight * 0.3;
+      // Split into Base and Top (80/20)
+      const baseHeight = towerHeight * 0.8;
+      const topHeight = towerHeight * 0.2;
   
       // Base
       const baseGeo = new THREE.BoxGeometry(towerWidth, baseHeight, towerWidth);
@@ -95,8 +100,9 @@ export class Tower extends Entity implements Targetable {
     this.fireCooldown -= deltaTime;
     if (this.fireCooldown <= 0) {
       this.fireCooldown = GameConfig.fireball.fireRate;
-      // Aim at player
-      return new THREE.Vector3().subVectors(playerPosition, this.mesh.position).normalize();
+      // Aim at player from the top of the tower
+      const firePos = this.getFirePosition(new THREE.Vector3());
+      return new THREE.Vector3().subVectors(playerPosition, firePos).normalize();
     }
     return null;
   }
