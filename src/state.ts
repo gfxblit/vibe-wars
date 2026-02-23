@@ -26,6 +26,7 @@ export interface GameState {
   kills: number;
   wave: number;
   stage: GameStage;
+  isGameStarted: boolean;
   isGameOver: boolean;
   player: Player | null;
   entityManager: EntityManager | null;
@@ -61,6 +62,7 @@ export const state: GameState = {
   kills: 0,
   wave: 1,
   stage: 'DOGFIGHT',
+  isGameStarted: false,
   isGameOver: false,
   player: null,
   entityManager: null,
@@ -102,6 +104,7 @@ export function initGame(worldScene: THREE.Scene, hudScene: THREE.Scene) {
   state.kills = 0;
   state.wave = 1;
   state.stage = 'DOGFIGHT';
+  state.isGameStarted = false;
   state.isGameOver = false;
   state.gunColorToggles = GameConfig.laser.offsets.map(() => false);
   state.canFireTorpedo = false;

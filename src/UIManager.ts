@@ -19,6 +19,7 @@ export class UIManager {
   private gameOver!: HTMLElement;
   private damageOverlay!: HTMLElement;
   private restartButton!: HTMLButtonElement;
+  private startScreen!: HTMLElement;
   private lastShields: number;
   private lastIsGameOver: boolean = false;
   private lastStage: string = '';
@@ -66,6 +67,7 @@ export class UIManager {
     this.torpedoReadyValue.textContent = 'TORPEDO READY';
 
     this.createGameOverOverlay();
+    this.createStartScreen();
 
     // Damage overlay should be on top of other HUD elements for maximum impact
     this.damageOverlay = this.createEl('div', 'fixed inset-0 bg-vector-red opacity-0 pointer-events-none z-50', this.hud);
@@ -134,6 +136,31 @@ export class UIManager {
     restartBtn.setAttribute('aria-label', 'Restart Game');
     restartBtn.onclick = () => window.location.reload();
     this.restartButton = restartBtn as HTMLButtonElement;
+  }
+
+  private createStartScreen() {
+    this.startScreen = this.createEl('div', 'fixed inset-0 flex flex-col items-center justify-center bg-black bg-opacity-90 z-50 pointer-events-auto', this.hud);
+    this.startScreen.id = 'start-screen';
+
+    const title = this.createEl('div', 'text-vector-yellow text-8xl font-retro mb-4 text-center', this.startScreen);
+    title.textContent = 'VIBE WARS';
+
+    const subtitle = this.createEl('div', 'text-vector-red text-4xl font-retro mb-12 text-center', this.startScreen);
+    subtitle.textContent = 'A NEW HOPE';
+
+    const instructions = this.createEl('div', 'text-vector-green text-xl font-retro mb-12 text-center max-w-2xl leading-relaxed', this.startScreen);
+    instructions.innerHTML = 'PILOT THE X-WING<br>MOUSE/TOUCH TO AIM & TURN<br>CLICK/TAP TO FIRE';
+
+    const startBtn = this.createEl('button', 'px-12 py-4 border-2 border-vector-green text-vector-green hover:bg-vector-green hover:text-black font-retro text-3xl transition-colors focus:outline-none focus:ring-2 focus:ring-vector-green focus:ring-offset-2 focus:ring-offset-black cursor-pointer', this.startScreen);
+    startBtn.textContent = 'START MISSION';
+    startBtn.setAttribute('aria-label', 'Start Game');
+    startBtn.onclick = () => {
+      state.isGameStarted = true;
+      this.startScreen.classList.add('hidden');
+    };
+
+    // Auto-focus the start button for accessibility
+    setTimeout(() => startBtn.focus(), 100);
   }
 
   destroy() {
@@ -262,6 +289,12 @@ export class UIManager {
       this.gameOver.classList.remove('animate-fade-in');
     }
     this.lastIsGameOver = state.isGameOver;
+
+    if (state.isGameStarted) {
+      this.startScreen.classList.add('hidden');
+    } else {
+      this.startScreen.classList.remove('hidden');
+    }
 
     if (state.isApproachingDeathStar) {
       this.instructionValue.textContent = 'APPROACH DEATH STAR';
