@@ -13,6 +13,7 @@ export class Turret extends Entity implements Targetable {
   private material: THREE.MeshBasicMaterial;
 
   private readonly scratchVector3: THREE.Vector3 = new THREE.Vector3();
+  private collisionBox: THREE.Box3 = new THREE.Box3();
 
   public getWorldPosition(target: THREE.Vector3): THREE.Vector3 {
     this.mesh.updateWorldMatrix(true, false);
@@ -21,6 +22,13 @@ export class Turret extends Entity implements Targetable {
 
   public get position(): THREE.Vector3 {
     return this.mesh.position;
+  }
+
+  public checkCollision(playerBox: THREE.Box3): boolean {
+    if (this.isExploded) return false;
+    // Update collision box from mesh
+    this.collisionBox.setFromObject(this.mesh);
+    return this.collisionBox.intersectsBox(playerBox);
   }
 
   constructor(position: THREE.Vector3, size: number = GameConfig.turret.meshSize, fireballSize: number = GameConfig.fireball.sparkleSize) {

@@ -2,25 +2,28 @@ import * as THREE from 'three';
 import { Entity } from './Entity';
 import { GameConfig } from '../config';
 import { Tower } from './Tower';
+import { Turret } from './Turret';
 import { state } from '../state';
 
 export interface CollisionResult {
   floorHit: boolean;
   towerHit: Tower | null;
+  turretHit: Turret | null;
 }
 
 export interface SurfaceUpdateResult {
-  spawned: Tower[];
-  removed: Tower[];
+  spawned: (Tower | Turret)[];
+  removed: (Tower | Turret)[];
 }
 
 export class Surface extends Entity {
   public mesh: THREE.Group;
   private towers: Tower[] = [];
+  private turrets: Turret[] = [];
   private floor: THREE.Group;
   private nextTowerSpawnTime: number = 0;
   private elapsedTime: number = 0;
-  private collisionResult: CollisionResult = { floorHit: false, towerHit: null };
+  private collisionResult: CollisionResult = { floorHit: false, towerHit: null, turretHit: null };
 
   private currentVerticalLineHeight: number = 0;
   private currentVerticalLineNoise: number = 0;
@@ -148,10 +151,10 @@ export class Surface extends Entity {
         this.createFloor(); // Regenerate with new world-aligned jitter/density
     }
     
-    // Spawn Towers
+    // Spawn Towers/Turrets
     if (this.elapsedTime >= this.nextTowerSpawnTime) {
-      const tower = this.spawnTower(playerPosition.x, playerZ);
-      result.spawned.push(tower);
+      const entity = this.spawnTower(playerPosition.x, playerZ);
+      result.spawned.push(entity);
       
       const { towerSpawnInterval } = GameConfig.stages.surface;
       const multiplier = GameConfig.getDifficultyMultiplier(state.wave);
@@ -172,22 +175,52 @@ export class Surface extends Entity {
         }
     }
 
+    // Update Turrets and Cleanup
+    for (let i = this.turrets.length - 1; i >= 0; i--) {
+        const turret = this.turrets[i];
+        
+        // Cleanup passed turrets
+        if (turret.mesh.position.z > playerZ + GameConfig.stages.surface.towerCleanupDistance) {
+            result.removed.push(turret);
+            this.removeTurret(i);
+            continue;
+        }
+    }
+
     return result;
   }
 
-  private spawnTower(playerX: number, playerZ: number): Tower {
-     const { width: surfaceWidth, floorY: surfaceFloorY, towerSpawnDistance, towerMarginX } = GameConfig.stages.surface;
+  private spawnTower(playerX: number, playerZ: number): Tower | Turret {
+     const { width: surfaceWidth, floorY: surfaceFloorY, towerSpawnDistance, towerMarginX, turretSpawnProbability } = GameConfig.stages.surface;
      
      const spawnZ = playerZ - towerSpawnDistance; 
      
      const rangeX = surfaceWidth / 2 - towerMarginX; 
      const x = playerX + (Math.random() * 2 - 1) * rangeX;
      
-     const tower = new Tower(new THREE.Vector3(x, surfaceFloorY, spawnZ));
-     this.towers.push(tower);
-     this.mesh.add(tower.mesh);
+     if (Math.random() < turretSpawnProbability) {
+        const turretSize = GameConfig.stages.surface.turretSize;
+        const turret = new Turret(new THREE.Vector3(x, surfaceFloorY, spawnZ), turretSize);
+        // Rotate turret to lie flat on the ground
+        turret.mesh.rotation.x = -Math.PI / 2;
+        this.turrets.push(turret);
+        this.mesh.add(turret.mesh);
+        return turret;
+     } else {
+        const tower = new Tower(new THREE.Vector3(x, surfaceFloorY, spawnZ));
+        this.towers.push(tower);
+        this.mesh.add(tower.mesh);
+        return tower;
+     }
+  }
 
-     return tower;
+  private removeTurret(index: number): void {
+      const turret = this.turrets[index];
+      if (turret) {
+        this.mesh.remove(turret.mesh);
+        turret.dispose();
+        this.turrets.splice(index, 1);
+      }
   }
 
   private removeTower(index: number): void {
@@ -205,18 +238,31 @@ export class Surface extends Entity {
       // Player Y is center of ship. Ship size is roughly 1.
       this.collisionResult.floorHit = playerPosition.y - 1 < surfaceFloorY;
       this.collisionResult.towerHit = null;
+      this.collisionResult.turretHit = null;
 
       for (const tower of this.towers) {
           if (tower.checkCollision(playerBox)) {
               this.collisionResult.towerHit = tower;
-              break; 
+              return this.collisionResult;
           }
       }
+
+      for (const turret of this.turrets) {
+        if (turret.checkCollision(playerBox)) {
+            this.collisionResult.turretHit = turret;
+            return this.collisionResult;
+        }
+      }
+
       return this.collisionResult;
   }
 
   public getTowers(): Tower[] {
       return this.towers;
+  }
+
+  public getTurrets(): Turret[] {
+      return this.turrets;
   }
 
   public dispose(): void {
@@ -232,6 +278,9 @@ export class Surface extends Entity {
     }
     while (this.towers.length > 0) {
       this.removeTower(0);
+    }
+    while (this.turrets.length > 0) {
+      this.removeTurret(0);
     }
   }
 }

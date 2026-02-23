@@ -165,4 +165,26 @@ describe('Turret Entity', () => {
     expect((turret as any).fireCooldown).toBeCloseTo(scaledRate, 2);
     expect(turret.getFireballSpeed()).toBe(112);
   });
+
+  it('should detect collision with player box', () => {
+    const playerBox = new THREE.Box3(
+      new THREE.Vector3(-1, -1, -1),
+      new THREE.Vector3(1, 1, 1)
+    );
+    
+    // Position turret to collide
+    turret.mesh.position.set(0, 0, 0);
+    
+    // Check if checkCollision exists and works
+    expect((turret as any).checkCollision(playerBox)).toBe(true);
+    
+    // Move turret away
+    turret.mesh.position.set(100, 100, 100);
+    expect((turret as any).checkCollision(playerBox)).toBe(false);
+
+    // Exploded turret should not collide
+    turret.mesh.position.set(0, 0, 0);
+    turret.explode();
+    expect((turret as any).checkCollision(playerBox)).toBe(false);
+  });
 });

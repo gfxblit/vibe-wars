@@ -9,6 +9,8 @@ describe('Surface Entity', () => {
 
   beforeEach(() => {
     surface = new Surface();
+    // Default to tower spawning (random >= 0.3)
+    vi.spyOn(Math, 'random').mockReturnValue(0.9);
   });
 
   afterEach(() => {
@@ -286,6 +288,33 @@ describe('Surface Entity', () => {
     expect(geometryDisposeSpy).toHaveBeenCalled();
     expect(materialDisposeSpy).toHaveBeenCalled();
     expect(surface.getTowers().length).toBe(0);
+    expect(surface.getTurrets().length).toBe(0);
+  });
+
+  it('should spawn turrets occasionally', () => {
+    // We already have Math.random mocked in beforeEach, but let's override it to ensure a turret spawns
+    vi.mocked(Math.random).mockReturnValue(0.1); 
+    
+    surface.update(0.1, new THREE.Vector3(0, 0, 0));
+    
+    const turrets = surface.getTurrets();
+    expect(turrets.length).toBe(1);
+    expect(turrets[0].mesh.rotation.x).toBeCloseTo(-Math.PI / 2);
+  });
+
+  it('should detect turret collision', () => {
+    // Override Math.random mock to ensure a turret spawns
+    vi.mocked(Math.random).mockReturnValue(0.1); 
+    
+    surface.update(0.1, new THREE.Vector3(0, 0, 0));
+    const turrets = surface.getTurrets();
+    const turret = turrets[0];
+    
+    const playerBox = new THREE.Box3().setFromObject(turret.mesh);
+    const position = new THREE.Vector3(0, 0, 0);
+    
+    const { turretHit } = surface.checkCollisions(playerBox, position);
+    expect(turretHit).toBe(turret);
   });
 
   it('should scale tower spawn interval with wave count', () => {

@@ -37,6 +37,8 @@ describe('SurfaceStage', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    // Default to tower spawning (random >= 0.3)
+    vi.spyOn(Math, 'random').mockReturnValue(0.9);
     scene = new THREE.Scene();
     mockCamera = new THREE.PerspectiveCamera();
     
@@ -167,5 +169,24 @@ describe('SurfaceStage', () => {
     
     expect(takeDamage).toHaveBeenCalledWith(GameConfig.stages.surface.collisionDamage);
     expect(mockTower.explode).toHaveBeenCalled();
+  });
+
+  it('should damage player if they hit a turret', () => {
+    const mockTurret = { explode: vi.fn(), isExploded: false };
+    const mockSurface = {
+      mesh: new THREE.Group(),
+      update: vi.fn(),
+      checkCollisions: vi.fn().mockReturnValue({ floorHit: false, towerHit: null, turretHit: mockTurret }),
+      getTowers: vi.fn().mockReturnValue([]),
+      dispose: vi.fn()
+    } as unknown as Surface;
+
+    stage = new SurfaceStage(scene, vi.fn(), mockSurface);
+    const player = state.player as Player;
+    
+    stage.update(0.1, player, mockCamera);
+    
+    expect(takeDamage).toHaveBeenCalledWith(GameConfig.stages.surface.collisionDamage);
+    expect(mockTurret.explode).toHaveBeenCalled();
   });
 });
