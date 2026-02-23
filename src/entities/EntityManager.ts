@@ -182,7 +182,11 @@ export class EntityManager {
     this.scratchRelativeVelocity.copy(fireDirection).multiplyScalar(relativeSpeed);
     this.scratchTotalVelocity.copy(this.scratchPlayerVelocity).add(this.scratchRelativeVelocity);
 
-    target.getWorldPosition(this.scratchFireballPos);
+    if (target.getFirePosition) {
+      target.getFirePosition(this.scratchFireballPos);
+    } else {
+      target.getWorldPosition(this.scratchFireballPos);
+    }
     
     this.spawnFireball(this.scratchFireballPos, this.scratchTotalVelocity, size);
   }
