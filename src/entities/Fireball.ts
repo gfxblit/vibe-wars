@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { Entity } from './Entity';
 import { GameConfig } from '../config';
+import { SparkleVisual } from './SparkleVisual';
 
 export class Fireball extends Entity {
   mesh: THREE.Group;
@@ -8,8 +9,7 @@ export class Fireball extends Entity {
   previousPosition: THREE.Vector3;
   isExploded: boolean = false;
   explosionTimer: number = 0;
-  private sparkleVelocities: THREE.Vector3[] = [];
-  private sparkleRotationSpeeds: number[] = [];
+  private visual: SparkleVisual;
   private static sharedTexture: THREE.Texture | null = null;
 
   constructor(position: THREE.Vector3, velocity: THREE.Vector3, size: number = GameConfig.fireball.sparkleSize) {
@@ -23,37 +23,15 @@ export class Fireball extends Entity {
       Fireball.sharedTexture = Fireball.createSparkleTexture();
     }
 
-    const baseColor = new THREE.Color(GameConfig.fireball.meshColor);
+    this.visual = new SparkleVisual({
+      count: GameConfig.fireball.sparkleCount,
+      size: size,
+      color: new THREE.Color(GameConfig.fireball.meshColor),
+      explosionVelocity: GameConfig.fireball.explosionVelocity,
+      texture: Fireball.sharedTexture
+    });
 
-    for (let i = 0; i < GameConfig.fireball.sparkleCount; i++) {
-      // Create a unique material for each sparkle to allow random rotation and color variations
-      const color = baseColor.clone();
-      // Add slight variation to color
-      color.offsetHSL((Math.random() - 0.5) * 0.1, 0, (Math.random() - 0.5) * 0.2);
-
-      const material = new THREE.SpriteMaterial({
-        map: Fireball.sharedTexture,
-        color: color,
-        transparent: true,
-        blending: THREE.AdditiveBlending,
-        rotation: Math.random() * Math.PI * 2, // Random initial 2D orientation
-      });
-
-      const sparkle = new THREE.Sprite(material);
-      sparkle.scale.set(size, size, 1);
-
-      // Initial small random offset in 3D space
-      sparkle.position.set(
-        (Math.random() - 0.5) * 0.5,
-        (Math.random() - 0.5) * 0.5,
-        (Math.random() - 0.5) * 0.5
-      );
-
-      this.mesh.add(sparkle);
-      this.sparkleVelocities.push(new THREE.Vector3());
-      // Random rotation speed: -4 to 4 radians per second
-      this.sparkleRotationSpeeds.push((Math.random() - 0.5) * 8.0);
-    }
+    this.mesh.add(this.visual.group);
   }
 
   private static createSparkleTexture(): THREE.Texture {
@@ -92,19 +70,7 @@ export class Fireball extends Entity {
   explode(): void {
     if (this.isExploded) return;
     this.isExploded = true;
-
-    this.mesh.children.forEach((_, i) => {
-      // Shards burst outward from the center
-      const direction = new THREE.Vector3(
-        Math.random() - 0.5,
-        Math.random() - 0.5,
-        Math.random() - 0.5
-      ).normalize();
-      this.sparkleVelocities[i].copy(direction).multiplyScalar(GameConfig.fireball.explosionVelocity);
-
-      // Speed up rotation on explosion for extra "energy"
-      this.sparkleRotationSpeeds[i] *= 2.5;
-    });
+    this.visual.explode();
   }
 
   update(deltaTime: number): void {
@@ -116,17 +82,7 @@ export class Fireball extends Entity {
       this.explosionTimer += deltaTime;
     }
 
-    this.mesh.children.forEach((child, i) => {
-      if (child instanceof THREE.Sprite) {
-        // Apply individual rotation
-        child.material.rotation += this.sparkleRotationSpeeds[i] * deltaTime;
-
-        // Apply outward movement if exploded
-        if (this.isExploded) {
-          child.position.addScaledVector(this.sparkleVelocities[i], deltaTime);
-        }
-      }
-    });
+    this.visual.update(deltaTime);
   }
 
 
@@ -145,11 +101,6 @@ export class Fireball extends Entity {
   }
 
   dispose(): void {
-    this.mesh.children.forEach(child => {
-      if (child instanceof THREE.Sprite) {
-        // Do not dispose the shared texture map
-        child.material.dispose();
-      }
-    });
+    this.visual.dispose();
   }
 }

@@ -56,7 +56,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: dist
-          path: dist-new
+          path: ${{ runner.temp }}/dist
 
       - name: Deploy to gh-pages
         run: |
@@ -68,12 +68,12 @@ jobs:
             TARGET_DIR="pr-$PR_NUMBER"
             mkdir -p "$TARGET_DIR"
             rm -rf "$TARGET_DIR"/*
-            cp -r dist-new/* "$TARGET_DIR"/
+            cp -r ${{ runner.temp }}/dist/* "$TARGET_DIR"/
           else
             # Production deploy (main branch)
             # Preserve pr-* directories and the source artifacts
-            find . -maxdepth 1 -not -name '.git' -not -name 'pr-*' -not -name 'dist-new' -not -name '.' -exec rm -rf {} +
-            cp -r dist-new/* .
+            find . -maxdepth 1 -not -name '.git' -not -name 'pr-*' -not -name '.' -exec rm -rf {} +
+            cp -r ${{ runner.temp }}/dist/* .
           fi
           
           git add .

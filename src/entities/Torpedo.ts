@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { Entity } from './Entity';
 import { GameConfig } from '../config';
+import { SparkleVisual } from './SparkleVisual';
 
 export class Torpedo extends Entity {
   mesh: THREE.Group;
@@ -8,8 +9,7 @@ export class Torpedo extends Entity {
   previousPosition: THREE.Vector3;
   isExploded: boolean = false;
   explosionTimer: number = 0;
-  private sparkleVelocities: THREE.Vector3[] = [];
-  private sparkleRotationSpeeds: number[] = [];
+  private visual: SparkleVisual;
   private static sparkleTexture: THREE.Texture | null = null;
 
   constructor(position: THREE.Vector3, velocity: THREE.Vector3) {
@@ -27,29 +27,15 @@ export class Torpedo extends Entity {
       Torpedo.sparkleTexture = Torpedo.createSparkleTexture();
     }
 
-    for (let i = 0; i < GameConfig.torpedo.sparkleCount; i++) {
-      const material = new THREE.SpriteMaterial({
-        map: Torpedo.sparkleTexture,
-        color: color,
-        transparent: true,
-        blending: THREE.AdditiveBlending,
-        rotation: Math.random() * Math.PI * 2,
-      });
+    this.visual = new SparkleVisual({
+      count: GameConfig.torpedo.sparkleCount,
+      size: size,
+      color: color,
+      explosionVelocity: GameConfig.torpedo.explosionVelocity * 1.5,
+      texture: Torpedo.sparkleTexture
+    });
 
-      const sparkle = new THREE.Sprite(material);
-      sparkle.scale.set(size, size, 1);
-      
-      // Random offset
-      sparkle.position.set(
-        (Math.random() - 0.5) * 0.5,
-        (Math.random() - 0.5) * 0.5,
-        (Math.random() - 0.5) * 0.5
-      );
-
-      this.mesh.add(sparkle);
-      this.sparkleVelocities.push(new THREE.Vector3());
-      this.sparkleRotationSpeeds.push((Math.random() - 0.5) * 10.0);
-    }
+    this.mesh.add(this.visual.group);
   }
 
   private static createSparkleTexture(): THREE.Texture {
@@ -88,16 +74,7 @@ export class Torpedo extends Entity {
   explode(): void {
     if (this.isExploded) return;
     this.isExploded = true;
-
-    this.mesh.children.forEach((_, i) => {
-      const direction = new THREE.Vector3(
-        Math.random() - 0.5,
-        Math.random() - 0.5,
-        Math.random() - 0.5
-      ).normalize();
-      this.sparkleVelocities[i].copy(direction).multiplyScalar(GameConfig.torpedo.explosionVelocity * 1.5);
-      this.sparkleRotationSpeeds[i] *= 3;
-    });
+    this.visual.explode();
   }
 
   update(deltaTime: number): void {
@@ -108,14 +85,7 @@ export class Torpedo extends Entity {
       this.explosionTimer += deltaTime;
     }
 
-    this.mesh.children.forEach((child, i) => {
-      if (child instanceof THREE.Sprite) {
-        child.material.rotation += this.sparkleRotationSpeeds[i] * deltaTime;
-        if (this.isExploded) {
-          child.position.addScaledVector(this.sparkleVelocities[i], deltaTime);
-        }
-      }
-    });
+    this.visual.update(deltaTime);
   }
 
   isExpired(): boolean {
@@ -123,11 +93,6 @@ export class Torpedo extends Entity {
   }
 
   dispose(): void {
-    this.mesh.children.forEach(child => {
-      if (child instanceof THREE.Sprite) {
-        // child.material.map?.dispose(); // Shared texture, do not dispose here
-        child.material.dispose();
-      }
-    });
+    this.visual.dispose();
   }
 }
