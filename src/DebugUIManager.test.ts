@@ -84,6 +84,15 @@ describe('DebugUIManager', () => {
     expect(state.debugSurfaceFireballSpeed).toBe(123);
   });
 
+  it('should initialize numeric input with value if state has it', () => {
+    debugManager.destroy();
+    state.debugSurfaceFireballSize = 42;
+    const manager = new DebugUIManager();
+    const input = document.getElementById('debug-surface-fireball-size-input') as HTMLInputElement;
+    expect(input.value).toBe('42');
+    manager.destroy();
+  });
+
   it('should update stats in update loop', () => {
      // Mock tie fighters
      state.entityManager = {
