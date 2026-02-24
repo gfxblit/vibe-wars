@@ -298,6 +298,51 @@ describe('Surface Entity', () => {
     expect(countLow).toBeGreaterThan(0);
   });
 
+  it('should update towers even when an EntityManager is not provided', () => {
+    // 1. Force spawn a tower
+    surface.update(0.1, new THREE.Vector3(0, 0, 0));
+    const tower = surface.getTowers()[0];
+    
+    // 2. Mark tower as exploded so update() has a visible effect (moving debris)
+    tower.explode();
+    
+    // 3. Get initial positions of debris
+    const debris = (tower as any).debris as { mesh: THREE.Mesh, velocity: THREE.Vector3 }[];
+    const initialPositions = debris.map(item => item.mesh.position.clone());
+    
+    // 4. Update surface again (without EntityManager)
+    surface.update(0.1, new THREE.Vector3(0, 0, 0));
+    
+    // 5. Debris should have moved if tower.update() was called
+    debris.forEach((item, index) => {
+      expect(item.mesh.position.equals(initialPositions[index])).toBe(false);
+    });
+  });
+
+  it('should update towers when transitioning from no EntityManager to having an EntityManager', () => {
+    // 1. Update without EntityManager
+    surface.update(0.1, new THREE.Vector3(0, 0, 0));
+    const tower = surface.getTowers()[0];
+    
+    // 2. Update with EntityManager
+    const entityManager = {
+        addTarget: vi.fn(),
+        removeTarget: vi.fn(),
+    } as any;
+    
+    surface.update(0.1, new THREE.Vector3(0, 0, 0), entityManager);
+    
+    // If it's NOT in entityManager, it's not going to fire or update (if skipped by Surface)
+    // So Surface should either call its update or add it to entityManager.
+    // If we want it to fire, it MUST be added to entityManager.
+    
+    // Check if it's added (since it wasn't before)
+    expect(entityManager.addTarget).toHaveBeenCalledWith(tower);
+    
+    // And if it's in entityManager, we don't expect Surface to call its update anymore (to avoid double-update)
+    // But for this test, let's just see if it's being updated AT ALL.
+  });
+
   it('should dispose resources correctly', () => {
     // Spawn some towers first
     surface.update(0.1, new THREE.Vector3(0, 0, 0));

@@ -16,6 +16,7 @@ export class Surface extends Entity {
   private nextTowerSpawnTime: number = 0;
   private elapsedTime: number = 0;
   private collisionResult: CollisionResult = { floorHit: false, towerHit: null };
+  private currentEntityManager: EntityManager | null = null;
 
   private currentVerticalLineHeight: number = 0;
   private currentVerticalLineNoise: number = 0;
@@ -124,6 +125,18 @@ export class Surface extends Entity {
   }
 
   public update(deltaTime: number, playerPosition: THREE.Vector3, entityManager?: EntityManager): void {
+    const manager = entityManager || null;
+    if (manager !== this.currentEntityManager) {
+        // Transition manager for all active towers
+        if (this.currentEntityManager) {
+            this.towers.forEach(t => this.currentEntityManager!.removeTarget(t));
+        }
+        if (manager) {
+            this.towers.forEach(t => manager.addTarget(t));
+        }
+        this.currentEntityManager = manager;
+    }
+
     this.elapsedTime += deltaTime;
     const playerZ = playerPosition.z;
     const spacing = GameConfig.stages.surface.gridSpacing;
@@ -140,7 +153,7 @@ export class Surface extends Entity {
     
     // Spawn Towers
     if (this.elapsedTime >= this.nextTowerSpawnTime) {
-      this.spawnTower(playerPosition.x, playerZ, entityManager);
+      this.spawnTower(playerPosition.x, playerZ);
       
       const { towerSpawnInterval } = GameConfig.stages.surface;
       const interval = towerSpawnInterval * (0.8 + Math.random() * 0.4);
@@ -151,9 +164,14 @@ export class Surface extends Entity {
     for (let i = this.towers.length - 1; i >= 0; i--) {
         const tower = this.towers[i];
         
+        // If not managed by an entity manager, update it here
+        if (!this.currentEntityManager) {
+            tower.update(deltaTime, playerPosition);
+        }
+
         // Cleanup passed towers
         if (tower.mesh.position.z > playerZ + GameConfig.stages.surface.towerCleanupDistance) {
-            this.removeTower(i, entityManager);
+            this.removeTower(i);
             continue;
         }
 
@@ -165,7 +183,7 @@ export class Surface extends Entity {
     }
   }
 
-  private spawnTower(playerX: number, playerZ: number, entityManager?: EntityManager): void {
+  private spawnTower(playerX: number, playerZ: number): void {
      const { width: surfaceWidth, floorY: surfaceFloorY, towerSpawnDistance, towerMarginX } = GameConfig.stages.surface;
      
      const spawnZ = playerZ - towerSpawnDistance; 
@@ -177,22 +195,23 @@ export class Surface extends Entity {
      this.towers.push(tower);
      this.mesh.add(tower.mesh);
 
-     if (entityManager) {
-       entityManager.addTarget(tower);
+     if (this.currentEntityManager) {
+       this.currentEntityManager.addTarget(tower);
      }
   }
 
-  private removeTower(index: number, entityManager?: EntityManager): void {
+  private removeTower(index: number): void {
       const tower = this.towers[index];
       if (tower) {
-        if (entityManager) {
-          entityManager.removeTarget(tower);
+        if (this.currentEntityManager) {
+          this.currentEntityManager.removeTarget(tower);
         }
         this.mesh.remove(tower.mesh);
         tower.dispose();
         this.towers.splice(index, 1);
       }
   }
+
 
   public checkCollisions(playerBox: THREE.Box3, playerPosition: THREE.Vector3): CollisionResult {
       const { floorY: surfaceFloorY } = GameConfig.stages.surface;
