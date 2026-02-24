@@ -16,14 +16,6 @@ export class Tower extends Entity implements Targetable {
     public get isExploded(): boolean {
       return this._isExploded;
     }
-  
-    public set isExploded(value: boolean) {
-      if (value) {
-        this.explode();
-      } else {
-        this._isExploded = value;
-      }
-    }
 
     public get position(): THREE.Vector3 {
       return this.mesh.position;

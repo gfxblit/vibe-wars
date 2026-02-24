@@ -15,14 +15,10 @@ describe('Tower Explosion', () => {
     expect(tower.isExploded).toBe(false);
     tower.explode();
     expect(tower.isExploded).toBe(true);
-  });
-
-  it('should trigger explode() when isExploded is set to true', () => {
-    const explodeSpy = vi.spyOn(tower, 'explode');
-    tower.isExploded = true;
-    expect(explodeSpy).toHaveBeenCalled();
+    
+    // Calling it again should not crash or change anything
+    tower.explode();
     expect(tower.isExploded).toBe(true);
-    explodeSpy.mockRestore();
   });
 
   it('should change material color to config value when exploded', () => {
