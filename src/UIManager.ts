@@ -57,12 +57,21 @@ export class UIManager {
     this.distanceValue.id = 'distance-value';
     this.destructionValue = this.createEl('div', 'text-vector-red text-3xl font-bold text-center hidden animate-pulse', centerArea);
     this.destructionValue.id = 'destruction-value';
+    this.destructionValue.setAttribute('role', 'status');
+    this.destructionValue.setAttribute('aria-live', 'assertive');
     this.destructionValue.textContent = 'DEATH STAR DESTROYED';
     this.greatShotValue = this.createEl('div', 'text-vector-yellow text-2xl font-bold text-center hidden', centerArea);
     this.greatShotValue.id = 'great-shot-value';
+    this.greatShotValue.setAttribute('role', 'status');
+    this.greatShotValue.setAttribute('aria-live', 'polite');
     this.greatShotValue.textContent = 'GREAT SHOT KID!';
     this.instructionValue = this.createEl('div', 'text-vector-green text-xl text-center hidden', centerArea);
+    this.instructionValue.id = 'instruction-value';
+    this.instructionValue.setAttribute('role', 'status');
+    this.instructionValue.setAttribute('aria-live', 'polite');
     this.torpedoReadyValue = this.createEl('div', 'text-vector-red text-2xl font-bold hidden animate-pulse', centerArea);
+    this.torpedoReadyValue.id = 'torpedo-ready-value';
+    this.torpedoReadyValue.setAttribute('role', 'alert');
     this.torpedoReadyValue.textContent = 'TORPEDO READY';
 
     this.createGameOverOverlay();
@@ -125,8 +134,12 @@ export class UIManager {
   private createGameOverOverlay() {
     this.gameOver = this.createEl('div', 'fixed inset-0 flex flex-col items-center justify-center bg-black bg-opacity-70 hidden z-50 pointer-events-auto', this.hud);
     this.gameOver.id = 'game-over';
+    this.gameOver.setAttribute('role', 'alertdialog');
+    this.gameOver.setAttribute('aria-modal', 'true');
+    this.gameOver.setAttribute('aria-labelledby', 'game-over-title');
 
     const text = this.createEl('div', 'text-vector-red text-6xl font-retro animate-pulse mb-8', this.gameOver);
+    text.id = 'game-over-title';
     text.textContent = 'GAME OVER';
 
     const restartBtn = this.createEl('button', 'px-8 py-3 border-2 border-vector-green text-vector-green hover:bg-vector-green hover:text-black font-retro text-2xl transition-colors focus:outline-none focus:ring-2 focus:ring-vector-green focus:ring-offset-2 focus:ring-offset-black', this.gameOver);
