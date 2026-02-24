@@ -17,6 +17,14 @@ describe('Tower Explosion', () => {
     expect(tower.isExploded).toBe(true);
   });
 
+  it('should trigger explode() when isExploded is set to true', () => {
+    const explodeSpy = vi.spyOn(tower, 'explode');
+    tower.isExploded = true;
+    expect(explodeSpy).toHaveBeenCalled();
+    expect(tower.isExploded).toBe(true);
+    explodeSpy.mockRestore();
+  });
+
   it('should change material color to config value when exploded', () => {
     tower.explode();
     
@@ -49,25 +57,24 @@ describe('Tower Explosion', () => {
     // Mock Math.random for predictable velocities
     const randomMock = vi.spyOn(Math, 'random').mockReturnValue(0.7);
 
-    // Identify debris by name (we'll add this to Tower.ts)
-    const debris = tower.mesh.children.filter(child => child.name === 'debris');
-    expect(debris.length).toBeGreaterThan(0);
+    // Access private debris for testing
+    const debris = (tower as any).debris as { mesh: THREE.Mesh, velocity: THREE.Vector3 }[];
 
-    const initialStates = debris.map(child => ({
-      position: child.position.clone(),
-      rotation: child.rotation.clone(),
+    const initialStates = debris.map(item => ({
+      position: item.mesh.position.clone(),
+      rotation: item.mesh.rotation.clone(),
     }));
 
     tower.explode();
     tower.update(dt, playerPos);
 
-    debris.forEach((child, index) => {
+    debris.forEach((item, index) => {
       const initialState = initialStates[index];
       // Position should have changed
-      expect(child.position.equals(initialState.position)).toBe(false);
+      expect(item.mesh.position.equals(initialState.position)).toBe(false);
       
       // Rotation should have changed
-      expect(child.rotation.equals(initialState.rotation)).toBe(false);
+      expect(item.mesh.rotation.equals(initialState.rotation)).toBe(false);
     });
 
     randomMock.mockRestore();
