@@ -148,21 +148,12 @@ export class DebugUIManager {
   }
 
   private createDebugNumericInput(label: string, id: string, value: number | undefined, min: number, step: number, placeholder: string, onChange: (val: number | undefined) => void, parent: HTMLElement, ariaLabel?: string) {
-    const row = this.createDebugRow(label, parent);
-    const input = this.createEl('input', 'w-24 bg-black text-vector-green border border-vector-green px-2 py-1 text-right', row) as HTMLInputElement;
-    input.id = id;
-    input.setAttribute('aria-label', ariaLabel || label);
-    input.type = 'number';
-    input.min = min.toString();
-    input.step = step.toString();
-    input.placeholder = placeholder;
-    if (value !== undefined) {
-      input.value = value.toString();
-    }
-    input.onchange = (e) => {
+    const input = this.createLabeledInput(label, id, 'number', value !== undefined ? value.toString() : '', placeholder, (e) => {
       const val = parseFloat((e.target as HTMLInputElement).value);
       onChange(!isNaN(val) ? Math.max(min, val) : undefined);
-    };
+    }, parent, ariaLabel);
+    input.min = min.toString();
+    input.step = step.toString();
     return input;
   }
 
@@ -176,14 +167,18 @@ export class DebugUIManager {
   }
 
   private createDebugTextInput(label: string, id: string, value: string, placeholder: string, onChange: (val: string) => void, parent: HTMLElement, ariaLabel?: string) {
+    return this.createLabeledInput(label, id, 'text', value, placeholder, (e) => onChange((e.target as HTMLInputElement).value.trim()), parent, ariaLabel);
+  }
+
+  private createLabeledInput(label: string, id: string, type: string, value: string, placeholder: string, onChange: (e: Event) => void, parent: HTMLElement, ariaLabel?: string) {
     const row = this.createDebugRow(label, parent);
     const input = this.createEl('input', 'w-24 bg-black text-vector-green border border-vector-green px-2 py-1 text-right', row) as HTMLInputElement;
     input.id = id;
     input.setAttribute('aria-label', ariaLabel || label);
-    input.type = 'text';
+    input.type = type;
     input.placeholder = placeholder;
     input.value = value;
-    input.onchange = (e) => onChange((e.target as HTMLInputElement).value.trim());
+    input.onchange = onChange;
     return input;
   }
 
