@@ -125,12 +125,13 @@ describe('Tower Explosion', () => {
   it('should return direction vector when fireCooldown expires', () => {
     // Tower constructor initializes fireCooldown to Math.random() * GameConfig.fireball.fireRate
     // Let's force it by calling update with a large delta
-    const playerPos = new THREE.Vector3(0, 0, 100);
+    // Tower fires from its topMesh, which is at y=135. Place player at y=135 to get a clean z-direction.
+    const playerPos = new THREE.Vector3(0, 135, 100);
     const result = tower.update(GameConfig.fireball.fireRate + 1, playerPos);
     
     expect(result).not.toBeNull();
     expect(result instanceof THREE.Vector3).toBe(true);
-    // Direction should be (0, 0, 1) if player is at (0, 0, 100) and tower at (0, 0, 0)
+    // Direction should be (0, 0, 1) if player is at (0, 135, 100) and tower fires from (0, 135, 0)
     expect(result?.z).toBeGreaterThan(0.9);
   });
 
