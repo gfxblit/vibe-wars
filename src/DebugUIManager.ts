@@ -28,17 +28,15 @@ export class DebugUIManager {
   }
 
   private createStatsSection(parent: HTMLElement) {
-    const statsSection = this.createDebugSection('STATS', parent);
-    statsSection.classList.remove('mt-4'); // First section doesn't need top margin
-
-    const tfRow = this.createEl('div', 'flex justify-between', parent);
-    this.createEl('span', '', tfRow).textContent = 'TIE FIGHTERS:';
+    this.createDebugSection('STATS', parent, false);
+    const tfRow = this.createDebugRow('TIE FIGHTERS:', parent);
     this.tieFighterCountValue = this.createEl('span', '', tfRow);
     this.tieFighterCountValue.id = 'debug-tie-fighter-count';
     this.tieFighterCountValue.textContent = '0';
   }
 
   private createControlsSection(parent: HTMLElement) {
+    this.createDebugSection('CONTROLS', parent);
     this.createToggleButton('ai-mode-toggle', () => `AI: ${state.isSmartAI ? 'SMART' : 'DUMB'}`, () => { state.isSmartAI = !state.isSmartAI; }, parent, () => state.isSmartAI);
     this.createToggleButton('mode-coloring-toggle', () => `COLORS: ${state.isModeColoring ? 'ON' : 'OFF'}`, () => { state.isModeColoring = !state.isModeColoring; }, parent, () => state.isModeColoring);
     this.createToggleButton('chassis-toggle', () => `CHASSIS: ${state.showChassis ? 'ON' : 'OFF'}`, () => { state.showChassis = !state.showChassis; }, parent, () => state.showChassis);
@@ -56,10 +54,12 @@ export class DebugUIManager {
   }
 
   private createGameplayParametersSection(parent: HTMLElement) {
+    this.createDebugSection('GAMEPLAY PARAMETERS', parent);
     this.createDebugNumericInput('KILLS TO ADVANCE', 'debug-kills-input', state.debugKillsThreshold, 0, 1, `Default (${GameConfig.stages.dogfight.killsThreshold})`, (val) => { state.debugKillsThreshold = val; }, parent, 'Kills to Advance');
   }
 
   private createEntityParametersSection(parent: HTMLElement) {
+    this.createDebugSection('ENTITY PARAMETERS', parent);
     this.createDebugNumericInput('TURRET SIZE', 'debug-turret-size-input', state.debugTurretSize, 1, 1, `Default (${GameConfig.turret.meshSize})`, (val) => { state.debugTurretSize = val; }, parent, 'Turret Size');
     this.createDebugNumericInput('FIREBALL SIZE', 'debug-fireball-size-input', state.debugFireballSize, 1, 1, `Default (${GameConfig.fireball.sparkleSize})`, (val) => { state.debugFireballSize = val; }, parent, 'Fireball Size');
     this.createDebugNumericInput('TIE FIGHTER SIZE', 'debug-tiefighter-size-input', state.debugTieFighterSize, 0.1, 0.1, `Default (${GameConfig.tieFighter.meshSize})`, (val) => { state.debugTieFighterSize = val; }, parent, 'TIE Fighter Size');
@@ -67,20 +67,21 @@ export class DebugUIManager {
   }
 
   private createSurfaceParametersSection(parent: HTMLElement) {
-    this.createDebugNumericInput('SURFACE FIREBALL SIZE', 'debug-surface-fireball-size-input', state.debugSurfaceFireballSize, 1, 1, `Default (${GameConfig.stages.surface.fireballSize})`, (val) => { state.debugSurfaceFireballSize = val; }, parent, 'Surface Fireball Size');
-    this.createDebugNumericInput('SURFACE FIREBALL SPEED', 'debug-surface-fireball-speed-input', state.debugSurfaceFireballSpeed, 1, 1, `Default (${GameConfig.stages.surface.fireballSpeed})`, (val) => { state.debugSurfaceFireballSpeed = val; }, parent, 'Surface Fireball Speed');
+    this.createDebugSection('SURFACE PARAMETERS', parent);
+    this.createDebugNumericInput('FIREBALL SIZE', 'debug-surface-fireball-size-input', state.debugSurfaceFireballSize, 1, 1, `Default (${GameConfig.stages.surface.fireballSize})`, (val) => { state.debugSurfaceFireballSize = val; }, parent, 'Surface Fireball Size');
+    this.createDebugNumericInput('FIREBALL SPEED', 'debug-surface-fireball-speed-input', state.debugSurfaceFireballSpeed, 1, 1, `Default (${GameConfig.stages.surface.fireballSpeed})`, (val) => { state.debugSurfaceFireballSpeed = val; }, parent, 'Surface Fireball Speed');
     
-    this.createDebugNumericInput('SURFACE VERTICAL LINE HEIGHT', 'debug-surface-height-input', state.debugSurfaceVerticalLineHeight, 1, 1, `Default (${GameConfig.stages.surface.verticalLineHeight})`, (val) => { 
+    this.createDebugNumericInput('VERT LINE HEIGHT', 'debug-surface-height-input', state.debugSurfaceVerticalLineHeight, 1, 1, `Default (${GameConfig.stages.surface.verticalLineHeight})`, (val) => { 
       state.debugSurfaceVerticalLineHeight = val;
       this.notifySurfaceGridSettings();
     }, parent, 'Surface Vertical Line Height');
 
-    this.createDebugNumericInput('SURFACE VERTICAL LINE NOISE', 'debug-surface-noise-input', state.debugSurfaceVerticalLineNoise, 0, 1, `Default (${GameConfig.stages.surface.verticalLineNoise})`, (val) => { 
+    this.createDebugNumericInput('VERT LINE NOISE', 'debug-surface-noise-input', state.debugSurfaceVerticalLineNoise, 0, 1, `Default (${GameConfig.stages.surface.verticalLineNoise})`, (val) => { 
       state.debugSurfaceVerticalLineNoise = val;
       this.notifySurfaceGridSettings();
     }, parent, 'Surface Vertical Line Noise');
 
-    this.createDebugNumericInput('SURFACE VERTICAL LINE DENSITY', 'debug-surface-density-input', state.debugSurfaceVerticalLineDensity, 0, 0.1, `Default (${GameConfig.stages.surface.verticalLineDensity})`, (val) => { 
+    this.createDebugNumericInput('VERT LINE DENSITY', 'debug-surface-density-input', state.debugSurfaceVerticalLineDensity, 0, 0.1, `Default (${GameConfig.stages.surface.verticalLineDensity})`, (val) => { 
       state.debugSurfaceVerticalLineDensity = val;
       this.notifySurfaceGridSettings();
     }, parent, 'Surface Vertical Line Density');
@@ -133,15 +134,22 @@ export class DebugUIManager {
     };
   }
 
-  private createDebugSection(title: string, parent: HTMLElement) {
-    const el = this.createEl('div', 'mt-4 mb-2 border-b border-vector-green pb-1', parent);
+  private createDebugSection(title: string, parent: HTMLElement, marginTop = true) {
+    const el = this.createEl('div', `${marginTop ? 'mt-4 ' : ''}mb-2 border-b border-vector-green pb-1`, parent);
     el.textContent = title;
     return el;
   }
 
+  private createDebugRow(label: string, parent: HTMLElement) {
+    const row = this.createEl('div', 'flex justify-between items-center mb-1', parent);
+    const labelEl = this.createEl('span', 'mr-2', row);
+    labelEl.textContent = label;
+    return row;
+  }
+
   private createDebugNumericInput(label: string, id: string, value: number | undefined, min: number, step: number, placeholder: string, onChange: (val: number | undefined) => void, parent: HTMLElement, ariaLabel?: string) {
-    this.createDebugSection(label, parent);
-    const input = this.createEl('input', 'w-full bg-black text-vector-green border border-vector-green px-2 py-1', parent) as HTMLInputElement;
+    const row = this.createDebugRow(label, parent);
+    const input = this.createEl('input', 'w-24 bg-black text-vector-green border border-vector-green px-2 py-1 text-right', row) as HTMLInputElement;
     input.id = id;
     input.setAttribute('aria-label', ariaLabel || label);
     input.type = 'number';
@@ -168,8 +176,8 @@ export class DebugUIManager {
   }
 
   private createDebugTextInput(label: string, id: string, value: string, placeholder: string, onChange: (val: string) => void, parent: HTMLElement, ariaLabel?: string) {
-    this.createDebugSection(label, parent);
-    const input = this.createEl('input', 'w-full bg-black text-vector-green border border-vector-green px-2 py-1', parent) as HTMLInputElement;
+    const row = this.createDebugRow(label, parent);
+    const input = this.createEl('input', 'w-24 bg-black text-vector-green border border-vector-green px-2 py-1 text-right', row) as HTMLInputElement;
     input.id = id;
     input.setAttribute('aria-label', ariaLabel || label);
     input.type = 'text';
