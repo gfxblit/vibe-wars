@@ -174,9 +174,15 @@ describe('DebugUIManager', () => {
     expect(state.debugTieFighterColor).toBeUndefined();
   });
 
-  it('should use provided aria-label for inputs', () => {
-    const input = document.getElementById('debug-kills-input') as HTMLInputElement;
-    expect(input.getAttribute('aria-label')).toBe('Kills to Advance');
+  it('should fallback to label for aria-label if ariaLabel is not provided', () => {
+    // We can use createDebugTextInput which passes ariaLabel to createLabeledInput
+    // Let's manually trigger a call or just check an existing one that doesn't provide it
+    // Wait, all existing calls in createDebugPanel provide it.
+    // I'll add a temporary input to test this.
+    const container = document.createElement('div');
+    (debugManager as any).createDebugTextInput('TEST LABEL', 'test-id', '', 'placeholder', () => {}, container);
+    const input = container.querySelector('#test-id') as HTMLInputElement;
+    expect(input.getAttribute('aria-label')).toBe('TEST LABEL');
   });
 
   it('should toggle minimize state when clicking toggle button', () => {
