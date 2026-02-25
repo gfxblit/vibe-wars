@@ -114,6 +114,21 @@ describe('DebugUIManager', () => {
     manager.destroy();
   });
 
+  it('should initialize hex input with value if state has it', () => {
+    debugManager.destroy();
+    state.debugTieFighterColor = 0x00FF00;
+    const manager = new DebugUIManager();
+    const input = document.getElementById('debug-tiefighter-color-input') as HTMLInputElement;
+    expect(input.value).toBe('0xFF00');
+    manager.destroy();
+  });
+
+  it('should handle update when tieFighterCountValue is missing', () => {
+    // Clear it manually to test the branch
+    (debugManager as any).tieFighterCountValue = undefined;
+    expect(() => debugManager.update(state)).not.toThrow();
+  });
+
   it('should create TIE Fighter Size input', () => {
     const input = document.getElementById('debug-tiefighter-size-input') as HTMLInputElement;
     expect(input).toBeTruthy();

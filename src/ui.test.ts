@@ -573,6 +573,21 @@ describe('UIManager', () => {
       noiseInput.dispatchEvent(new Event('change'));
 
       expect(mockUpdateGridSettings).toHaveBeenCalledWith(15, 10, GameConfig.stages.surface.verticalLineDensity);
+
+      mockUpdateGridSettings.mockClear();
+
+      const densityInput = document.getElementById('debug-surface-density-input') as HTMLInputElement;
+      densityInput.value = '0.5';
+      densityInput.dispatchEvent(new Event('change'));
+
+      expect(mockUpdateGridSettings).toHaveBeenCalledWith(15, 10, 0.5);
+
+      mockUpdateGridSettings.mockClear();
+
+      // Test clearing an input (should use GameConfig defaults)
+      heightInput.value = '';
+      heightInput.dispatchEvent(new Event('change'));
+      expect(mockUpdateGridSettings).toHaveBeenCalledWith(GameConfig.stages.surface.verticalLineHeight, 10, 0.5);
     });
   });
 });
