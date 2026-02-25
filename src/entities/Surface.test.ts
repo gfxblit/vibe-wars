@@ -83,7 +83,7 @@ describe('Surface Entity', () => {
     expect(typeof surface.updateGridSettings).toBe('function');
   });
 
-  it('should recreate floor in update if state changes', () => {
+  it('should NOT recreate floor in update if state changes', () => {
     const customSurface = new Surface(10, 0);
     const floor = (customSurface as any).floor as THREE.Group;
     
@@ -92,10 +92,9 @@ describe('Surface Entity', () => {
     customSurface.update(0.1, new THREE.Vector3(0, 0, 0));
     
     const currentGridMesh = floor.children[0] as THREE.LineSegments;
-    // For now it might still be a new mesh if we haven't optimized it yet, 
-    // but the point is it should have the new height.
     const positions = currentGridMesh.geometry.attributes.position.array;
-    expect(Math.abs(positions[1] - positions[4])).toBe(50);
+    // Should NOT have changed to 50, should still be 10
+    expect(Math.abs(positions[1] - positions[4])).toBe(10);
     
     state.debugSurfaceVerticalLineHeight = undefined;
   });

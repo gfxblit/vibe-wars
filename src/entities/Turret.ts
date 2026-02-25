@@ -22,6 +22,12 @@ export class Turret extends Entity implements Targetable {
     return this.mesh.getWorldPosition(target);
   }
 
+  public getTargetPositions(target: THREE.Vector3): THREE.Vector3[] {
+    const basePos = this.getWorldPosition(target.clone());
+    const firePos = this.getFirePosition(new THREE.Vector3());
+    return [basePos, firePos];
+  }
+
   public get position(): THREE.Vector3 {
     return this.mesh.position;
   }

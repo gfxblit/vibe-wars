@@ -130,6 +130,14 @@ describe('Turret Entity', () => {
     expect(t.getFireballSpeed()).toBe(customFireballSpeed);
   });
 
+  it('should return multiple target positions', () => {
+    const turret = new Turret(new THREE.Vector3(0, 0, 0), 10);
+    const targets = turret.getTargetPositions(new THREE.Vector3());
+    expect(targets.length).toBeGreaterThan(0);
+    // At least the base position
+    expect(targets[0].length()).toBe(0);
+  });
+
   it('should dispose resources correctly', () => {
     const materialDisposeSpy = vi.spyOn((turret as any).material, 'dispose');
     

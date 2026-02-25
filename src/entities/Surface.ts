@@ -1,7 +1,6 @@
 import * as THREE from 'three';
 import { Entity } from './Entity';
 import { GameConfig } from '../config';
-import { state } from '../state';
 
 export class Surface extends Entity {
   public mesh: THREE.Group;
@@ -110,26 +109,11 @@ export class Surface extends Entity {
   public update(_deltaTime: number, playerPosition: THREE.Vector3): void {
     const spacing = GameConfig.stages.surface.gridSpacing;
 
-    // React to state changes (architect feedback: Decouple UI from entity)
-    const targetHeight = state.debugSurfaceVerticalLineHeight ?? GameConfig.stages.surface.verticalLineHeight;
-    const targetNoise = state.debugSurfaceVerticalLineNoise ?? GameConfig.stages.surface.verticalLineNoise;
-    const targetDensity = state.debugSurfaceVerticalLineDensity ?? GameConfig.stages.surface.verticalLineDensity;
-
-    let settingsChanged = false;
-    if (this.currentVerticalLineHeight !== targetHeight || 
-        this.currentVerticalLineNoise !== targetNoise || 
-        this.currentVerticalLineDensity !== targetDensity) {
-      this.currentVerticalLineHeight = targetHeight;
-      this.currentVerticalLineNoise = targetNoise;
-      this.currentVerticalLineDensity = targetDensity;
-      settingsChanged = true;
-    }
-
     // Update floor position to follow player with snapping
     const newFloorX = Math.round(playerPosition.x / spacing) * spacing;
     const newFloorZ = Math.round(playerPosition.z / spacing) * spacing;
 
-    if (newFloorX !== this.floor.position.x || newFloorZ !== this.floor.position.z || settingsChanged) {
+    if (newFloorX !== this.floor.position.x || newFloorZ !== this.floor.position.z) {
         this.floor.position.x = newFloorX;
         this.floor.position.z = newFloorZ;
         this.createFloor(); // Regenerate with new world-aligned jitter/density
