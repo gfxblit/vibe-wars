@@ -128,6 +128,52 @@ describe('DebugUIManager', () => {
     expect(input.getAttribute('aria-label')).toBe('Kills to Advance');
   });
 
+  it('should toggle minimize state when clicking toggle button', () => {
+    const toggleBtn = document.getElementById('debug-minimize-toggle') as HTMLButtonElement;
+    const content = document.getElementById('debug-panel-content') as HTMLElement;
+    const panel = document.getElementById('debug-panel') as HTMLElement;
+
+    expect(toggleBtn.textContent).toBe('[-]');
+    expect(content.classList.contains('hidden')).toBe(false);
+
+    // Minimize
+    toggleBtn.click();
+    expect(toggleBtn.textContent).toBe('[+]');
+    expect(content.classList.contains('hidden')).toBe(true);
+    expect(panel.classList.contains('debug-minimized')).toBe(true);
+
+    // Expand
+    toggleBtn.click();
+    expect(toggleBtn.textContent).toBe('[-]');
+    expect(content.classList.contains('hidden')).toBe(false);
+    expect(panel.classList.contains('debug-minimized')).toBe(false);
+  });
+
+  it('should update toggle button state on click', () => {
+    const aiBtn = document.getElementById('ai-mode-toggle') as HTMLButtonElement;
+    const initialState = state.isSmartAI;
+    
+    expect(aiBtn.textContent).toContain(`AI: ${initialState ? 'SMART' : 'DUMB'}`);
+    expect(aiBtn.getAttribute('aria-pressed')).toBe(initialState.toString());
+    
+    aiBtn.click();
+    
+    expect(state.isSmartAI).toBe(!initialState);
+    expect(aiBtn.textContent).toContain(`AI: ${!initialState ? 'SMART' : 'DUMB'}`);
+    expect(aiBtn.getAttribute('aria-pressed')).toBe((!initialState).toString());
+  });
+
+  it('should trigger stage switcher button click', () => {
+    const surfaceBtn = document.getElementById('stage-surface') as HTMLButtonElement;
+    
+    // Set initial stage to something else
+    state.stage = 'DOGFIGHT';
+    
+    surfaceBtn.click();
+    
+    expect(state.stage).toBe('SURFACE');
+  });
+
   it('should handle update when stageButtons is not initialized', () => {
     // This is a bit tricky since it's initialized in constructor
     // but we can try to call update before it's fully ready if we had access to internals

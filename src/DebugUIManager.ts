@@ -17,6 +17,17 @@ export class DebugUIManager {
   private createDebugPanel() {
     this.debugPanel = this.createPanelContainer();
     const content = this.createContentContainer(this.debugPanel);
+<<<<<<< HEAD
+||||||| parent of 02e344f (refactor: further simplify createDebugPanel and achieve 100% test coverage for DebugUIManager)
+    this.debugPanel = this.createEl('div', 'fixed bottom-4 left-4 pointer-events-auto bg-black bg-opacity-70 border border-vector-green p-4 flex flex-col space-y-2 text-vector-green font-retro font-bold text-xs z-20', document.body);
+    this.debugPanel.id = 'debug-panel';
+
+    const content = this.createEl('div', 'flex flex-col space-y-2', this.debugPanel);
+    content.id = 'debug-panel-content';
+
+=======
+
+>>>>>>> 02e344f (refactor: further simplify createDebugPanel and achieve 100% test coverage for DebugUIManager)
     this.createHeader(this.debugPanel, content);
 
     this.createStatsSection(content);
@@ -27,6 +38,7 @@ export class DebugUIManager {
     this.createSurfaceParamsSection(content);
   }
 
+<<<<<<< HEAD
   private createStatsSection(parent: HTMLElement) {
     this.createDebugSection('STATS', parent, false);
     const tfRow = this.createDebugRow('TIE FIGHTERS:', parent);
@@ -34,6 +46,29 @@ export class DebugUIManager {
     this.tieFighterCountValue.id = 'debug-tie-fighter-count';
     this.tieFighterCountValue.textContent = '0';
   }
+||||||| parent of 02e344f (refactor: further simplify createDebugPanel and achieve 100% test coverage for DebugUIManager)
+  private createHeader(parent: HTMLElement, content: HTMLElement) {
+    const header = this.createEl('div', 'flex justify-between items-center mb-2 border-b border-vector-green pb-1', parent);
+    // Move header to the top of the panel (before content)
+    parent.insertBefore(header, content);
+=======
+  private createPanelContainer(): HTMLElement {
+    const panel = this.createEl('div', 'fixed bottom-4 left-4 pointer-events-auto bg-black bg-opacity-70 border border-vector-green p-4 flex flex-col space-y-2 text-vector-green font-retro font-bold text-xs z-20', document.body);
+    panel.id = 'debug-panel';
+    return panel;
+  }
+
+  private createContentContainer(parent: HTMLElement): HTMLElement {
+    const content = this.createEl('div', 'flex flex-col space-y-2', parent);
+    content.id = 'debug-panel-content';
+    return content;
+  }
+
+  private createHeader(parent: HTMLElement, content: HTMLElement) {
+    const header = this.createEl('div', 'flex justify-between items-center mb-2 border-b border-vector-green pb-1', parent);
+    // Move header to the top of the panel (before content)
+    parent.insertBefore(header, content);
+>>>>>>> 02e344f (refactor: further simplify createDebugPanel and achieve 100% test coverage for DebugUIManager)
 
   private createControlsSection(parent: HTMLElement) {
     this.createDebugSection('CONTROLS', parent);
