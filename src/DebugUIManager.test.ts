@@ -114,13 +114,64 @@ describe('DebugUIManager', () => {
     manager.destroy();
   });
 
-  it('should initialize hex input with hex string if value is defined', () => {
-    debugManager.destroy();
-    state.debugTieFighterColor = 0xFF0000;
-    const manager = new DebugUIManager();
+  it('should create TIE Fighter Size input', () => {
+    const input = document.getElementById('debug-tiefighter-size-input') as HTMLInputElement;
+    expect(input).toBeTruthy();
+    expect(input.placeholder).toContain(GameConfig.tieFighter.meshSize.toString());
+  });
+
+  it('should update state when TIE Fighter Size input changes', () => {
+    const input = document.getElementById('debug-tiefighter-size-input') as HTMLInputElement;
+    input.value = '7.5';
+    input.dispatchEvent(new Event('change'));
+    
+    expect(state.debugTieFighterSize).toBe(7.5);
+  });
+
+  it('should clamp TIE Fighter Size to minimum 0.1', () => {
+    const input = document.getElementById('debug-tiefighter-size-input') as HTMLInputElement;
+    input.value = '0';
+    input.dispatchEvent(new Event('change'));
+    
+    expect(state.debugTieFighterSize).toBe(0.1);
+  });
+
+  it('should create TIE Fighter Color input', () => {
     const input = document.getElementById('debug-tiefighter-color-input') as HTMLInputElement;
-    expect(input.value).toBe('0xFF0000');
-    manager.destroy();
+    expect(input).toBeTruthy();
+    expect(input.placeholder).toContain('Hex');
+  });
+
+  it('should update state when TIE Fighter Color input changes (hex)', () => {
+    const input = document.getElementById('debug-tiefighter-color-input') as HTMLInputElement;
+    input.value = '0x00FF00';
+    input.dispatchEvent(new Event('change'));
+    
+    expect(state.debugTieFighterColor).toBe(0x00FF00);
+  });
+
+  it('should handle hex color with # prefix', () => {
+    const input = document.getElementById('debug-tiefighter-color-input') as HTMLInputElement;
+    input.value = '#FF0000';
+    input.dispatchEvent(new Event('change'));
+    
+    expect(state.debugTieFighterColor).toBe(0xFF0000);
+  });
+
+  it('should handle hex color without prefix', () => {
+    const input = document.getElementById('debug-tiefighter-color-input') as HTMLInputElement;
+    input.value = '0000FF';
+    input.dispatchEvent(new Event('change'));
+    
+    expect(state.debugTieFighterColor).toBe(0x0000FF);
+  });
+
+  it('should set color to undefined for invalid hex', () => {
+    const input = document.getElementById('debug-tiefighter-color-input') as HTMLInputElement;
+    input.value = 'invalid';
+    input.dispatchEvent(new Event('change'));
+    
+    expect(state.debugTieFighterColor).toBeUndefined();
   });
 
   it('should use provided aria-label for inputs', () => {
