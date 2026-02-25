@@ -26,6 +26,13 @@ export class Tower extends Entity implements Targetable {
       return this.mesh.getWorldPosition(target);
     }
 
+    public getTargetPositions(target: THREE.Vector3): THREE.Vector3[] {
+      // Return both the base (represented by mesh position) and the top
+      const basePos = this.getWorldPosition(target.clone());
+      const topPos = this.getFirePosition(new THREE.Vector3());
+      return [basePos, topPos];
+    }
+
     public getFirePosition(target: THREE.Vector3): THREE.Vector3 {
       this.topMesh.updateWorldMatrix(true, false);
       return this.topMesh.getWorldPosition(target);

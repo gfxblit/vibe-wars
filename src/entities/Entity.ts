@@ -15,6 +15,7 @@ export interface FireballDebugContext {
 export interface Targetable {
   readonly position: THREE.Vector3;
   getWorldPosition(target: THREE.Vector3): THREE.Vector3;
+  getTargetPositions?(target: THREE.Vector3): THREE.Vector3[];
   getFirePosition?(target: THREE.Vector3): THREE.Vector3;
   readonly isExploded: boolean;
   explode(): void;

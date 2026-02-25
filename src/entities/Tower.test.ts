@@ -70,4 +70,17 @@ describe('Tower', () => {
     expect(firePos.x).toBe(0);
     expect(firePos.z).toBe(0);
   });
+
+  it('should return both base and top positions in getTargetPositions', () => {
+    const target = new THREE.Vector3();
+    const positions = tower.getTargetPositions(target);
+    
+    expect(positions).toHaveLength(2);
+    
+    // Base position (0, 0, 0)
+    expect(positions[0].y).toBe(0);
+    
+    // Top position (y ~ 135)
+    expect(positions[1].y).toBeGreaterThan(100);
+  });
 });
