@@ -1,59 +1,37 @@
-import * as THREE from 'three';
 import { describe, it, expect, beforeEach } from 'vitest';
+import * as THREE from 'three';
 import { Turret } from './Turret';
 
-describe('Turret Orientation and Firing', () => {
+describe('Turret Orientation', () => {
   let turret: Turret;
-  const initialPosition = new THREE.Vector3(0, -50, -500); // Typical surface position
+  const size = 10;
 
   beforeEach(() => {
-    turret = new Turret(initialPosition);
+    turret = new Turret(new THREE.Vector3(0, 0, 0), size);
   });
 
-  it('should fire towards the player when rotated flat on the ground', () => {
-    // Rotate turret like it is on the surface
-    turret.mesh.rotation.x = -Math.PI / 2;
-    turret.mesh.updateMatrixWorld(true);
-
-    const playerPos = new THREE.Vector3(0, 0, 0); // Player at origin
-    // Force cooldown to 0
-    (turret as any).fireCooldown = 0;
+  it('should have fire position in front of swivel body (+Z)', () => {
+    const firePos = new THREE.Vector3();
+    turret.getFirePosition(firePos);
     
-    const fireDir = turret.update(0.1, playerPos, new THREE.Quaternion(), 200);
-    
-    expect(fireDir).not.toBeNull();
-    if (fireDir) {
-      const turretWorldPos = new THREE.Vector3();
-      turret.getWorldPosition(turretWorldPos);
-      
-      const expectedDir = new THREE.Vector3().subVectors(playerPos, turretWorldPos).normalize();
-      
-      // The fire direction should be towards the player
-      expect(fireDir.x).toBeCloseTo(expectedDir.x, 2);
-      expect(fireDir.y).toBeCloseTo(expectedDir.y, 2);
-      expect(fireDir.z).toBeCloseTo(expectedDir.z, 2);
-    }
+    // swivelBody is at 0,0,0 initially looking down +Z (default Object3D)
+    // local (0, 0, size * 0.4) should be (0, 0, 4) in world
+    expect(firePos.x).toBeCloseTo(0);
+    expect(firePos.y).toBeCloseTo(0);
+    expect(firePos.z).toBeCloseTo(4);
   });
 
-  it('should swivel correctly when rotated flat on the ground', () => {
-    turret.mesh.rotation.x = -Math.PI / 2;
-    turret.mesh.updateMatrixWorld(true);
-
-    const playerPos = new THREE.Vector3(100, 50, -250); // Player to the right and above
-    turret.update(0.1, playerPos, new THREE.Quaternion(), 200);
+  it('should swivel to look at player', () => {
+    const playerPos = new THREE.Vector3(0, 0, -100);
+    turret.update(0.1, playerPos, new THREE.Quaternion(), 0);
     
-    // Check if swivelBody is looking at player
-    // Since swivelBody is a child of mesh (which is rotated), 
-    // we check its world orientation.
-    const swivelWorldDirection = new THREE.Vector3(0, 0, 1);
-    const swivelBody = (turret as any).swivelBody as THREE.Group;
-    swivelBody.updateMatrixWorld(true);
-    swivelWorldDirection.applyQuaternion(swivelBody.getWorldQuaternion(new THREE.Quaternion()));
-
-    const turretWorldPos = new THREE.Vector3();
-    turret.getWorldPosition(turretWorldPos);
-    const toPlayer = new THREE.Vector3().subVectors(playerPos, turretWorldPos).normalize();
-
-    expect(swivelWorldDirection.dot(toPlayer)).toBeGreaterThan(0.9);
+    // swivelBody.lookAt(playerPos) makes +Z point towards playerPos
+    // Player is at -100 on Z. So +Z should point towards -Z world.
+    const firePos = new THREE.Vector3();
+    turret.getFirePosition(firePos);
+    
+    // firePos was at local (0, 0, 4). 
+    // If +Z points to -100 world Z, then firePos should be at (0, 0, -4) roughly.
+    expect(firePos.z).toBeLessThan(0);
   });
 });

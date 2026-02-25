@@ -1,10 +1,12 @@
 import * as THREE from 'three';
 import { Entity } from './Entity';
 import { GameConfig } from '../config';
+import { state } from '../state';
 
 export class Surface extends Entity {
   public mesh: THREE.Group;
   private floor: THREE.Group;
+  private gridMesh?: THREE.LineSegments;
 
   private currentVerticalLineHeight: number = 0;
   private currentVerticalLineNoise: number = 0;
@@ -43,14 +45,6 @@ export class Surface extends Entity {
     // Grid size should be enough to cover the camera's far plane in all directions.
     const halfSize = far + surfaceGridSpacing * 2;
     
-    const material = new THREE.LineBasicMaterial({ 
-        color: surfaceColor, 
-        opacity: 1.0,
-        transparent: false 
-    });
-    
-    const points: THREE.Vector3[] = [];
-    
     const xStart = -halfSize;
     const xEnd = halfSize;
     const zStart = halfSize;
@@ -59,6 +53,8 @@ export class Surface extends Entity {
     const floorX = this.floor.position.x;
     const floorZ = this.floor.position.z;
 
+    const points: number[] = [];
+    
     for (let x = xStart; x <= xEnd; x += surfaceGridSpacing) {
         for (let z = zStart; z >= zEnd; z -= surfaceGridSpacing) {
             // World grid indices
@@ -77,27 +73,27 @@ export class Surface extends Entity {
             const px = x + jx;
             const pz = z + jz;
             
-            points.push(new THREE.Vector3(px, 0, pz));
-            points.push(new THREE.Vector3(px, height, pz));
+            points.push(px, 0, pz);
+            points.push(px, height, pz);
         }
     }
     
-    const geometry = new THREE.BufferGeometry().setFromPoints(points);
-    const gridMesh = new THREE.LineSegments(geometry, material);
-    
-    gridMesh.position.y = surfaceFloorY;
-    
-    // Clear existing floor children
-    while (this.floor.children.length > 0) {
-        const child = this.floor.children[0] as THREE.LineSegments;
-        child.geometry.dispose();
-        if (child.material instanceof THREE.Material) {
-            child.material.dispose();
-        }
-        this.floor.remove(child);
+    if (!this.gridMesh) {
+        const geometry = new THREE.BufferGeometry();
+        const material = new THREE.LineBasicMaterial({ 
+            color: surfaceColor, 
+            opacity: 1.0,
+            transparent: false 
+        });
+        this.gridMesh = new THREE.LineSegments(geometry, material);
+        this.gridMesh.position.y = surfaceFloorY;
+        this.floor.add(this.gridMesh);
     }
 
-    this.floor.add(gridMesh);
+    const geometry = this.gridMesh.geometry;
+    geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(points), 3));
+    
+    geometry.computeBoundingSphere();
   }
 
   public updateGridSettings(height: number, noise: number, density: number): void {
@@ -114,11 +110,26 @@ export class Surface extends Entity {
   public update(_deltaTime: number, playerPosition: THREE.Vector3): void {
     const spacing = GameConfig.stages.surface.gridSpacing;
 
+    // React to state changes (architect feedback: Decouple UI from entity)
+    const targetHeight = state.debugSurfaceVerticalLineHeight ?? GameConfig.stages.surface.verticalLineHeight;
+    const targetNoise = state.debugSurfaceVerticalLineNoise ?? GameConfig.stages.surface.verticalLineNoise;
+    const targetDensity = state.debugSurfaceVerticalLineDensity ?? GameConfig.stages.surface.verticalLineDensity;
+
+    let settingsChanged = false;
+    if (this.currentVerticalLineHeight !== targetHeight || 
+        this.currentVerticalLineNoise !== targetNoise || 
+        this.currentVerticalLineDensity !== targetDensity) {
+      this.currentVerticalLineHeight = targetHeight;
+      this.currentVerticalLineNoise = targetNoise;
+      this.currentVerticalLineDensity = targetDensity;
+      settingsChanged = true;
+    }
+
     // Update floor position to follow player with snapping
     const newFloorX = Math.round(playerPosition.x / spacing) * spacing;
     const newFloorZ = Math.round(playerPosition.z / spacing) * spacing;
 
-    if (newFloorX !== this.floor.position.x || newFloorZ !== this.floor.position.z) {
+    if (newFloorX !== this.floor.position.x || newFloorZ !== this.floor.position.z || settingsChanged) {
         this.floor.position.x = newFloorX;
         this.floor.position.z = newFloorZ;
         this.createFloor(); // Regenerate with new world-aligned jitter/density
@@ -131,15 +142,11 @@ export class Surface extends Entity {
   }
 
   public dispose(): void {
-    if (this.floor) {
-        this.floor.traverse(child => {
-            if (child instanceof THREE.Mesh || child instanceof THREE.LineSegments) {
-                child.geometry.dispose();
-                if (child.material instanceof THREE.Material) {
-                    child.material.dispose();
-                }
-            }
-        });
+    if (this.gridMesh) {
+        this.gridMesh.geometry.dispose();
+        if (this.gridMesh.material instanceof THREE.Material) {
+            this.gridMesh.material.dispose();
+        }
     }
   }
 }

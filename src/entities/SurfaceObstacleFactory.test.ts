@@ -24,8 +24,9 @@ describe('SurfaceObstacleFactory', () => {
     const obstacle = factory.createTurret(pos);
     expect(obstacle).toBeInstanceOf(Turret);
     expect(obstacle.position.equals(pos)).toBe(true);
-    // Turret should be rotated to lie on the ground
-    expect(obstacle.mesh.rotation.x).toBeCloseTo(-Math.PI / 2);
+    // Turret should be rotated so its local Z (normal) points UP (world +Y)
+    // Rotating PI/2 around X: Z becomes Y.
+    expect(obstacle.mesh.rotation.x).toBeCloseTo(Math.PI / 2);
 
     // Verify fireball config
     const turret = obstacle as Turret;

@@ -1,6 +1,5 @@
 import { GameState, state, setStage } from './state';
 import { GameConfig } from './config';
-import { SurfaceStage } from './stages/SurfaceStage';
 
 export class DebugUIManager {
   private static readonly BUTTON_CLASSES = 'px-2 py-1 border border-vector-green hover:bg-vector-green hover:text-black transition-colors font-retro text-[9px]';
@@ -78,28 +77,27 @@ export class DebugUIManager {
     
     this.createDebugNumericInput('VERT LINE HEIGHT', 'debug-surface-height-input', state.debugSurfaceVerticalLineHeight, 1, 1, `Default (${GameConfig.stages.surface.verticalLineHeight})`, (val) => { 
       state.debugSurfaceVerticalLineHeight = val;
-      this.notifySurfaceGridSettings();
+      this.notifySurfaceStage();
     }, parent, 'Surface Vertical Line Height');
 
     this.createDebugNumericInput('VERT LINE NOISE', 'debug-surface-noise-input', state.debugSurfaceVerticalLineNoise, 0, 1, `Default (${GameConfig.stages.surface.verticalLineNoise})`, (val) => { 
       state.debugSurfaceVerticalLineNoise = val;
-      this.notifySurfaceGridSettings();
+      this.notifySurfaceStage();
     }, parent, 'Surface Vertical Line Noise');
 
     this.createDebugNumericInput('VERT LINE DENSITY', 'debug-surface-density-input', state.debugSurfaceVerticalLineDensity, 0, 0.1, `Default (${GameConfig.stages.surface.verticalLineDensity})`, (val) => { 
       state.debugSurfaceVerticalLineDensity = val;
-      this.notifySurfaceGridSettings();
+      this.notifySurfaceStage();
     }, parent, 'Surface Vertical Line Density');
   }
 
-  private notifySurfaceGridSettings() {
-    const currentStage = state.stageManager?.getStage();
-    if (currentStage instanceof SurfaceStage) {
-      currentStage.surface.updateGridSettings(
-        state.debugSurfaceVerticalLineHeight ?? GameConfig.stages.surface.verticalLineHeight,
-        state.debugSurfaceVerticalLineNoise ?? GameConfig.stages.surface.verticalLineNoise,
-        state.debugSurfaceVerticalLineDensity ?? GameConfig.stages.surface.verticalLineDensity
-      );
+  private notifySurfaceStage() {
+    const stage = state.stageManager?.getStage() as any;
+    if (stage && stage.surface && typeof stage.surface.updateGridSettings === 'function') {
+      const height = state.debugSurfaceVerticalLineHeight ?? GameConfig.stages.surface.verticalLineHeight;
+      const noise = state.debugSurfaceVerticalLineNoise ?? GameConfig.stages.surface.verticalLineNoise;
+      const density = state.debugSurfaceVerticalLineDensity ?? GameConfig.stages.surface.verticalLineDensity;
+      stage.surface.updateGridSettings(height, noise, density);
     }
   }
 

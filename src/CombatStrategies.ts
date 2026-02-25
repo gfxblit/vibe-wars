@@ -4,7 +4,6 @@ import { UserInput } from './input';
 import { state, spawnLasers, addScore, addKill, spawnTorpedo } from './state';
 import { checkAim } from './collision';
 import { Targetable } from './entities/Entity';
-import { GameConfig } from './config';
 
 abstract class BaseCombatStrategy implements CombatStrategy {
   protected fireCooldown: number = 0;
@@ -137,40 +136,12 @@ export class DogfightCombatStrategy extends BaseCombatStrategy {
 }
 
 export class SurfaceCombatStrategy extends BaseCombatStrategy {
-  private wasFiring: boolean = false;
-
   constructor(config: CombatStrategyConfig) {
     super(config);
   }
 
   protected checkHits(input: UserInput, camera: THREE.Camera) {
     this.checkTargets(input, camera);
-  }
-
-  protected updateSpecial(_deltaTime: number, input: UserInput, camera: THREE.Camera): void {
-    if (state.stage === 'SURFACE' && state.entityManager) {
-      let aimedAtTarget = false;
-      
-      for (const target of state.entityManager.getTargets()) {
-        const worldPos = target.getWorldPosition(this.tempVector3);
-        if (!target.isExploded && checkAim(worldPos, input, camera)) {
-          const dist = worldPos.distanceTo(state.player!.position);
-          if (dist < GameConfig.torpedo.range) {
-            aimedAtTarget = true;
-            break;
-          }
-        }
-      }
-
-      state.canFireTorpedo = aimedAtTarget;
-      
-      // Allow firing torpedo at any target in SURFACE stage
-      if (input.isFiring && !this.wasFiring && state.canFireTorpedo) {
-        this.launchTorpedo(input, camera);
-      }
-
-      this.wasFiring = input.isFiring;
-    }
   }
 }
 
