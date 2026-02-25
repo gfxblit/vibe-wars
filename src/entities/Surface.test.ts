@@ -165,8 +165,17 @@ describe('Surface Entity', () => {
     const mesh1 = floor1.children[0] as THREE.LineSegments;
     const pos1 = mesh1.geometry.attributes.position.array;
     
-    // Pick the first generated line
-    const localIndex = 0;
+    // Pick a line near the center (world 0,0) to ensure overlap
+    let localIndex = -1;
+    for (let i = 0; i < pos1.length; i += 6) {
+        // Use a larger radius (500) to ensure we find a point even with low density (0.1)
+        if (Math.abs(pos1[i]) < 500 && Math.abs(pos1[i+2]) < 500) {
+            localIndex = i;
+            break;
+        }
+    }
+    expect(localIndex).not.toBe(-1);
+
     const worldX1 = pos1[localIndex] + floor1.position.x;
     const worldZ1 = pos1[localIndex+2] + floor1.position.z;
 
@@ -176,11 +185,7 @@ describe('Surface Entity', () => {
     const floor2 = (surface2 as any).floor as THREE.Group;
     const mesh2 = floor2.children[0] as THREE.LineSegments;
     const pos2 = mesh2.geometry.attributes.position.array;
-    const count2 = mesh2.geometry.drawRange.count * 3; // Number of numbers in position array to check
-
-    console.log(`Floor1 pos: ${floor1.position.x}, ${floor1.position.z}`);
-    console.log(`Floor2 pos: ${floor2.position.x}, ${floor2.position.z}`);
-    console.log(`World target: ${worldX1}, ${worldZ1}`);
+    const count2 = pos2.length;
 
     // Find the line that corresponds to the same world position
     let foundMatch = false;
