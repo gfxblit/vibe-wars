@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { Entity } from './Entity';
 import { GameConfig } from '../config';
 import { Tower } from './Tower';
+import { state } from '../state';
 
 export interface CollisionResult {
   floorHit: boolean;
@@ -153,7 +154,9 @@ export class Surface extends Entity {
       result.spawned.push(tower);
       
       const { towerSpawnInterval } = GameConfig.stages.surface;
-      const interval = towerSpawnInterval * (0.8 + Math.random() * 0.4);
+      const multiplier = GameConfig.getDifficultyMultiplier(state.wave);
+      const scaledInterval = GameConfig.getScaledInterval(towerSpawnInterval, multiplier);
+      const interval = scaledInterval * (0.8 + Math.random() * 0.4);
       this.nextTowerSpawnTime = this.elapsedTime + interval;
     }
 

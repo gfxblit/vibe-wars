@@ -67,9 +67,9 @@ describe('Torpedo Miss', () => {
     const initialShields = state.shields;
 
     // Fire a torpedo that hits a catwalk
-    // There is a catwalk at z = -500, y = -20
+    // There is a catwalk at z = -500, y = 20
     state.entityManager!.spawnTorpedo(
-      new THREE.Vector3(0, -20, -500),
+      new THREE.Vector3(0, 20, -500),
       new THREE.Vector3(0, 0, 0)
     );
     

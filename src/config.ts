@@ -233,4 +233,13 @@ export const GameConfig = deepFreeze({
     fragmentRotationSpeed: 2.0,
     particleCount: 50,
   },
+  getDifficultyMultiplier(wave: number): number {
+    return Math.min(1.0 + (wave - 1) * 0.2, 2.8);
+  },
+  getScaledInterval(base: number, multiplier: number): number {
+    return base / multiplier;
+  },
+  getScaledSpeed(base: number, multiplier: number): number {
+    return base * multiplier;
+  },
 } as const);

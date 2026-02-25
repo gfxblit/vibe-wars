@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { Entity, Targetable } from './Entity';
 import { GameConfig } from '../config';
 import { AIStrategy } from './AIStrategy';
+import { state } from '../state';
 
 export class TieFighter extends Entity implements Targetable {
   public readonly mesh: THREE.Group;
@@ -137,7 +138,8 @@ export class TieFighter extends Entity implements Targetable {
     });
 
     if (this.fireCooldown <= 0) {
-      this.fireCooldown = GameConfig.fireball.fireRate;
+      const multiplier = GameConfig.getDifficultyMultiplier(state.wave);
+      this.fireCooldown = GameConfig.getScaledInterval(GameConfig.fireball.fireRate, multiplier);
       // Return direction towards player
       return new THREE.Vector3().subVectors(playerPosition, this.position).normalize();
     }

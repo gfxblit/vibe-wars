@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { Entity, Targetable, FireballDebugContext } from './Entity';
 import { GameConfig } from '../config';
+import { state } from '../state';
 
 export class Turret extends Entity implements Targetable {
   public readonly mesh: THREE.Group;
@@ -106,7 +107,8 @@ export class Turret extends Entity implements Targetable {
     const isPlayerAhead = playerPosition.z > worldPos.z;
 
     if (isPlayerAhead && dist < GameConfig.turret.range && this.fireCooldown <= 0) {
-      this.fireCooldown = GameConfig.turret.fireRate;
+      const multiplier = GameConfig.getDifficultyMultiplier(state.wave);
+      this.fireCooldown = GameConfig.getScaledInterval(GameConfig.turret.fireRate, multiplier);
       // Return direction towards player
       return new THREE.Vector3().subVectors(playerPosition, worldPos).normalize();
     }
@@ -127,7 +129,9 @@ export class Turret extends Entity implements Targetable {
   }
 
   public getFireballSpeed(_context?: FireballDebugContext): number {
-    return GameConfig.fireball.relativeSpeed;
+    const baseSpeed = GameConfig.fireball.relativeSpeed;
+    const multiplier = GameConfig.getDifficultyMultiplier(state.wave);
+    return GameConfig.getScaledSpeed(baseSpeed, multiplier);
   }
 
   public dispose(): void {

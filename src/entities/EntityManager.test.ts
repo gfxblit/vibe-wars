@@ -91,8 +91,37 @@ describe('EntityManager', () => {
     entityManager.update(0.1, playerPosition, playerQuaternion, false, new THREE.PerspectiveCamera(), GameConfig.player.baseForwardSpeed);
     expect(torpedo.position.z).toBeCloseTo(-10);
 
-    torpedo.explode();
-    entityManager.update(GameConfig.fireball.explosionDuration + 0.1, playerPosition, playerQuaternion, false, new THREE.PerspectiveCamera(), GameConfig.player.baseForwardSpeed);
-    expect(entityManager.getTorpedoes().length).toBe(0);
-  });
-})
+        torpedo.explode();
+        entityManager.update(GameConfig.fireball.explosionDuration + 0.1, playerPosition, playerQuaternion, false, new THREE.PerspectiveCamera(), GameConfig.player.baseForwardSpeed);
+        expect(entityManager.getTorpedoes().length).toBe(0);
+      });
+    
+      test('spawn interval should scale with wave count', () => {
+        entityManager.clear();
+        const camera = new THREE.PerspectiveCamera();
+        
+        // Wave 1: base interval (3.0s)
+        state.wave = 1;
+        entityManager.update(2.9, playerPosition, playerQuaternion, false, camera, GameConfig.player.baseForwardSpeed);
+        expect(entityManager.getTieFighters().length).toBe(0);
+        entityManager.update(0.2, playerPosition, playerQuaternion, false, camera, GameConfig.player.baseForwardSpeed);
+        expect(entityManager.getTieFighters().length).toBe(1);
+    
+        entityManager.clear();
+        // Wave 2: multiplier 1.2, interval 3.0 / 1.2 = 2.5s
+        state.wave = 2;
+        entityManager.update(2.4, playerPosition, playerQuaternion, false, camera, GameConfig.player.baseForwardSpeed);
+        expect(entityManager.getTieFighters().length).toBe(0);
+        entityManager.update(0.2, playerPosition, playerQuaternion, false, camera, GameConfig.player.baseForwardSpeed);
+        expect(entityManager.getTieFighters().length).toBe(1);
+    
+        entityManager.clear();
+        // Wave 10: multiplier 2.8, interval 3.0 / 2.8 ~= 1.07s
+        state.wave = 10;
+        entityManager.update(1.0, playerPosition, playerQuaternion, false, camera, GameConfig.player.baseForwardSpeed);
+        expect(entityManager.getTieFighters().length).toBe(0);
+        entityManager.update(0.2, playerPosition, playerQuaternion, false, camera, GameConfig.player.baseForwardSpeed);
+        expect(entityManager.getTieFighters().length).toBe(1);
+      });
+    })
+    

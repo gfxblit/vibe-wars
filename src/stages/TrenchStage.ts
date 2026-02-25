@@ -26,7 +26,7 @@ export class TrenchStage extends Stage {
     const turretSize = state.debugTurretSize ?? GameConfig.stages.trench.turretSize;
     const turretFireballSize = state.debugFireballSize ?? GameConfig.stages.trench.fireballSize;
 
-    this.trench = new Trench(turretSize, turretFireballSize);
+    this.trench = new Trench(state.wave, turretSize, turretFireballSize);
     this.scene.add(this.trench.mesh);
 
     // Register turrets with EntityManager

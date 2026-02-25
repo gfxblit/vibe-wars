@@ -287,4 +287,35 @@ describe('Surface Entity', () => {
     expect(materialDisposeSpy).toHaveBeenCalled();
     expect(surface.getTowers().length).toBe(0);
   });
+
+  it('should scale tower spawn interval with wave count', () => {
+    // Mock Math.random to return 0.5 (average case: interval = towerSpawnInterval * 1.0)
+    vi.spyOn(Math, 'random').mockReturnValue(0.5);
+
+    // Wave 1: base interval (1.5s)
+    state.wave = 1;
+    surface = new Surface();
+    // first update spawns immediately
+    surface.update(0.1, new THREE.Vector3(0, 0, 0));
+    expect(surface.getTowers().length).toBe(1);
+
+    // second update at 1.4s (total 1.5s) should NOT spawn?
+    // Wait, nextTowerSpawnTime is set to elapsedTime + interval.
+    // 0.1 + 1.5 = 1.6s.
+    surface.update(1.4, new THREE.Vector3(0, 0, 0)); // elapsedTime = 1.5
+    expect(surface.getTowers().length).toBe(1);
+    surface.update(0.2, new THREE.Vector3(0, 0, 0)); // elapsedTime = 1.7
+    expect(surface.getTowers().length).toBe(2);
+
+    // Wave 10: multiplier 2.8, interval 1.5 / 2.8 ~= 0.536s
+    state.wave = 10;
+    surface = new Surface();
+    surface.update(0.1, new THREE.Vector3(0, 0, 0));
+    expect(surface.getTowers().length).toBe(1);
+    // nextTowerSpawnTime = 0.1 + 0.536 = 0.636s.
+    surface.update(0.4, new THREE.Vector3(0, 0, 0)); // elapsedTime = 0.5
+    expect(surface.getTowers().length).toBe(1);
+    surface.update(0.2, new THREE.Vector3(0, 0, 0)); // elapsedTime = 0.7
+    expect(surface.getTowers().length).toBe(2);
+  });
 });

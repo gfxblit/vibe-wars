@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { Entity, Targetable, FireballDebugContext } from './Entity';
 import { GameConfig } from '../config';
+import { state } from '../state';
 
 export class Tower extends Entity implements Targetable {
     public mesh: THREE.Group;
@@ -47,7 +48,9 @@ export class Tower extends Entity implements Targetable {
     }
 
     public getFireballSpeed(context?: FireballDebugContext): number {
-      return context?.surfaceFireballSpeed ?? GameConfig.stages.surface.fireballSpeed;
+      const baseSpeed = context?.surfaceFireballSpeed ?? GameConfig.stages.surface.fireballSpeed;
+      const multiplier = GameConfig.getDifficultyMultiplier(state.wave);
+      return GameConfig.getScaledSpeed(baseSpeed, multiplier);
     }
 
     public getVelocity(_playerForward: THREE.Vector3, _playerSpeed: number): THREE.Vector3 {
@@ -126,7 +129,8 @@ export class Tower extends Entity implements Targetable {
 
     this.fireCooldown -= deltaTime;
     if (this.fireCooldown <= 0) {
-      this.fireCooldown = GameConfig.fireball.fireRate;
+      const multiplier = GameConfig.getDifficultyMultiplier(state.wave);
+      this.fireCooldown = GameConfig.getScaledInterval(GameConfig.fireball.fireRate, multiplier);
       // Aim at player from the top of the tower
       const firePos = this.getFirePosition(new THREE.Vector3());
       return new THREE.Vector3().subVectors(playerPosition, firePos).normalize();
