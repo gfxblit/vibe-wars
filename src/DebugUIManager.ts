@@ -423,6 +423,26 @@ export class DebugUIManager {
       parent,
       'TIE Fighter Color'
     );
+
+    this.createActionButton('debug-reset-entity-params', 'RESET ALL', () => {
+      state.debugTurretSize = undefined;
+      state.debugFireballSize = undefined;
+      state.debugTieFighterSize = undefined;
+      state.debugTieFighterColor = undefined;
+      
+      // Refresh UI by re-creating the panel or manually clearing inputs
+      // For simplicity in this action, we'll manually clear the inputs we know about
+      const inputs = [
+        'debug-turret-size-input',
+        'debug-fireball-size-input',
+        'debug-tiefighter-size-input',
+        'debug-tiefighter-color-input'
+      ];
+      inputs.forEach(id => {
+        const el = document.getElementById(id) as HTMLInputElement;
+        if (el) el.value = '';
+      });
+    }, parent);
   }
 
   private createSurfaceParamsSection(parent: HTMLElement) {

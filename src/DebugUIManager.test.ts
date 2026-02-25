@@ -190,4 +190,33 @@ describe('DebugUIManager', () => {
     const input = document.getElementById('debug-surface-fireball-size-input') as HTMLInputElement;
     expect(input.getAttribute('aria-label')).toBe('Surface Fireball Size');
   });
+
+  it('should have a working Reset All button for entity parameters', () => {
+    // Set some non-default values
+    state.debugTurretSize = 20;
+    state.debugFireballSize = 15;
+    state.debugTieFighterSize = 5;
+    state.debugTieFighterColor = 0xFF00FF;
+
+    // Refresh UI to reflect changes
+    debugManager.destroy();
+    debugManager = new DebugUIManager();
+
+    const resetBtn = document.getElementById('debug-reset-entity-params') as HTMLButtonElement;
+    expect(resetBtn).toBeTruthy();
+    expect(resetBtn.textContent).toBe('RESET ALL');
+
+    resetBtn.click();
+
+    expect(state.debugTurretSize).toBeUndefined();
+    expect(state.debugFireballSize).toBeUndefined();
+    expect(state.debugTieFighterSize).toBeUndefined();
+    expect(state.debugTieFighterColor).toBeUndefined();
+
+    // Verify inputs were also cleared
+    expect((document.getElementById('debug-turret-size-input') as HTMLInputElement).value).toBe('');
+    expect((document.getElementById('debug-fireball-size-input') as HTMLInputElement).value).toBe('');
+    expect((document.getElementById('debug-tiefighter-size-input') as HTMLInputElement).value).toBe('');
+    expect((document.getElementById('debug-tiefighter-color-input') as HTMLInputElement).value).toBe('');
+  });
 });
