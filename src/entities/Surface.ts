@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { Entity } from './Entity';
 import { GameConfig } from '../config';
 import { Tower } from './Tower';
+import { state } from '../state';
 
 export interface CollisionResult {
   floorHit: boolean;
