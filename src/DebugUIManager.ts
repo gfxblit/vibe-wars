@@ -169,6 +169,302 @@ export class DebugUIManager {
     };
   }
 
+<<<<<<< HEAD
+||||||| parent of ddc2ed3 (refactor: simplify DebugUIManager with further helpers and update ARCHITECTURE.md)
+  private createControlsSection(parent: HTMLElement) {
+    this.createDebugSection('CONTROLS', parent);
+    this.createToggleButton(
+      'ai-mode-toggle',
+      () => `AI: ${state.isSmartAI ? 'SMART' : 'DUMB'}`,
+      () => { state.isSmartAI = !state.isSmartAI; },
+      parent,
+      () => state.isSmartAI
+    );
+
+    this.createToggleButton(
+      'mode-coloring-toggle',
+      () => `COLORS: ${state.isModeColoring ? 'ON' : 'OFF'}`,
+      () => { state.isModeColoring = !state.isModeColoring; },
+      parent,
+      () => state.isModeColoring
+    );
+
+    this.createToggleButton(
+      'chassis-toggle',
+      () => `CHASSIS: ${state.showChassis ? 'ON' : 'OFF'}`,
+      () => { state.showChassis = !state.showChassis; },
+      parent,
+      () => state.showChassis
+    );
+  }
+
+  private createStageSwitcherSection(parent: HTMLElement) {
+    this.createDebugSection('STAGE SWITCHER', parent);
+    const stageRow = this.createEl('div', 'flex space-x-2', parent);
+    this.stageButtons = new Map();
+
+    const dogfightBtn = this.createActionButton('stage-dogfight', 'DOGFIGHT', () => { setStage('DOGFIGHT'); }, stageRow);
+    this.stageButtons.set('DOGFIGHT', dogfightBtn);
+
+    const surfaceBtn = this.createActionButton('stage-surface', 'SURFACE', () => { setStage('SURFACE'); }, stageRow);
+    this.stageButtons.set('SURFACE', surfaceBtn);
+
+    const trenchBtn = this.createActionButton('stage-trench', 'TRENCH', () => { setStage('TRENCH'); }, stageRow);
+    this.stageButtons.set('TRENCH', trenchBtn);
+
+    this.updateStageButtons(state.stage);
+    this.lastStage = state.stage;
+  }
+
+  private createGameplayParamsSection(parent: HTMLElement) {
+    this.createDebugSection('GAMEPLAY PARAMETERS', parent);
+    this.createDebugNumericInput(
+      'KILLS TO ADVANCE',
+      'debug-kills-input',
+      state.debugKillsThreshold,
+      0,
+      1,
+      `Default (${GameConfig.stages.dogfight.killsThreshold})`,
+      (val) => { state.debugKillsThreshold = val; },
+      parent,
+      'Kills to Advance'
+    );
+  }
+
+  private createEntityParamsSection(parent: HTMLElement) {
+    this.createDebugSection('ENTITY PARAMETERS', parent);
+    this.createDebugNumericInput(
+      'TURRET SIZE',
+      'debug-turret-size-input',
+      state.debugTurretSize,
+      1,
+      1,
+      `Default (${GameConfig.turret.meshSize})`,
+      (val) => { state.debugTurretSize = val; },
+      parent,
+      'Turret Size'
+    );
+
+    this.createDebugNumericInput(
+      'FIREBALL SIZE',
+      'debug-fireball-size-input',
+      state.debugFireballSize,
+      1,
+      1,
+      `Default (${GameConfig.fireball.sparkleSize})`,
+      (val) => { state.debugFireballSize = val; },
+      parent,
+      'Fireball Size'
+    );
+
+    this.createDebugNumericInput(
+      'TIE FIGHTER SIZE',
+      'debug-tiefighter-size-input',
+      state.debugTieFighterSize,
+      0.1,
+      0.1,
+      `Default (${GameConfig.tieFighter.meshSize})`,
+      (val) => { state.debugTieFighterSize = val; },
+      parent,
+      'TIE Fighter Size'
+    );
+
+    this.createDebugHexInput(
+      'TIE FIGHTER COLOR',
+      'debug-tiefighter-color-input',
+      state.debugTieFighterColor,
+      `Hex (e.g. 0xFF0000)`,
+      (val) => { state.debugTieFighterColor = val; },
+      parent,
+      'TIE Fighter Color'
+    );
+  }
+
+  private createSurfaceParamsSection(parent: HTMLElement) {
+    this.createDebugSection('SURFACE PARAMETERS', parent);
+    this.createDebugNumericInput(
+      'FIREBALL SIZE',
+      'debug-surface-fireball-size-input',
+      state.debugSurfaceFireballSize,
+      1,
+      1,
+      `Default (${GameConfig.stages.surface.fireballSize})`,
+      (val) => { state.debugSurfaceFireballSize = val; },
+      parent
+    );
+
+    this.createDebugNumericInput(
+      'FIREBALL SPEED',
+      'debug-surface-fireball-speed-input',
+      state.debugSurfaceFireballSpeed,
+      1,
+      1,
+      `Default (${GameConfig.stages.surface.fireballSpeed})`,
+      (val) => { state.debugSurfaceFireballSpeed = val; },
+      parent,
+      'Surface Fireball Speed'
+    );
+  }
+
+  private createStatsSection(parent: HTMLElement) {
+    this.createDebugSection('STATS', parent, false);
+
+    const tfRow = this.createDebugRow('TIE FIGHTERS:', parent);
+    this.tieFighterCountValue = this.createEl('span', '', tfRow);
+    this.tieFighterCountValue.id = 'debug-tie-fighter-count';
+    this.tieFighterCountValue.textContent = '0';
+  }
+
+=======
+  private createControlsSection(parent: HTMLElement) {
+    this.createDebugSection('CONTROLS', parent);
+    this.createToggleButton(
+      'ai-mode-toggle',
+      () => `AI: ${state.isSmartAI ? 'SMART' : 'DUMB'}`,
+      () => { state.isSmartAI = !state.isSmartAI; },
+      parent,
+      () => state.isSmartAI
+    );
+
+    this.createToggleButton(
+      'mode-coloring-toggle',
+      () => `COLORS: ${state.isModeColoring ? 'ON' : 'OFF'}`,
+      () => { state.isModeColoring = !state.isModeColoring; },
+      parent,
+      () => state.isModeColoring
+    );
+
+    this.createToggleButton(
+      'chassis-toggle',
+      () => `CHASSIS: ${state.showChassis ? 'ON' : 'OFF'}`,
+      () => { state.showChassis = !state.showChassis; },
+      parent,
+      () => state.showChassis
+    );
+  }
+
+  private createStageSwitcherSection(parent: HTMLElement) {
+    this.createDebugSection('STAGE SWITCHER', parent);
+    const stageRow = this.createEl('div', 'flex space-x-2', parent);
+    this.stageButtons = new Map();
+
+    const dogfightBtn = this.createActionButton('stage-dogfight', 'DOGFIGHT', () => { setStage('DOGFIGHT'); }, stageRow);
+    this.stageButtons.set('DOGFIGHT', dogfightBtn);
+
+    const surfaceBtn = this.createActionButton('stage-surface', 'SURFACE', () => { setStage('SURFACE'); }, stageRow);
+    this.stageButtons.set('SURFACE', surfaceBtn);
+
+    const trenchBtn = this.createActionButton('stage-trench', 'TRENCH', () => { setStage('TRENCH'); }, stageRow);
+    this.stageButtons.set('TRENCH', trenchBtn);
+
+    this.updateStageButtons(state.stage);
+    this.lastStage = state.stage;
+  }
+
+  private createGameplayParamsSection(parent: HTMLElement) {
+    this.createDebugSection('GAMEPLAY PARAMETERS', parent);
+    this.createDebugNumericInput(
+      'KILLS TO ADVANCE',
+      'debug-kills-input',
+      state.debugKillsThreshold,
+      0,
+      1,
+      `Default (${GameConfig.stages.dogfight.killsThreshold})`,
+      (val) => { state.debugKillsThreshold = val; },
+      parent,
+      'Kills to Advance'
+    );
+  }
+
+  private createEntityParamsSection(parent: HTMLElement) {
+    this.createDebugSection('ENTITY PARAMETERS', parent);
+    this.createDebugNumericInput(
+      'TURRET SIZE',
+      'debug-turret-size-input',
+      state.debugTurretSize,
+      1,
+      1,
+      `Default (${GameConfig.turret.meshSize})`,
+      (val) => { state.debugTurretSize = val; },
+      parent,
+      'Turret Size'
+    );
+
+    this.createDebugNumericInput(
+      'FIREBALL SIZE',
+      'debug-fireball-size-input',
+      state.debugFireballSize,
+      1,
+      1,
+      `Default (${GameConfig.fireball.sparkleSize})`,
+      (val) => { state.debugFireballSize = val; },
+      parent,
+      'Fireball Size'
+    );
+
+    this.createDebugNumericInput(
+      'TIE FIGHTER SIZE',
+      'debug-tiefighter-size-input',
+      state.debugTieFighterSize,
+      0.1,
+      0.1,
+      `Default (${GameConfig.tieFighter.meshSize})`,
+      (val) => { state.debugTieFighterSize = val; },
+      parent,
+      'TIE Fighter Size'
+    );
+
+    this.createDebugHexInput(
+      'TIE FIGHTER COLOR',
+      'debug-tiefighter-color-input',
+      state.debugTieFighterColor,
+      `Hex (e.g. 0xFF0000)`,
+      (val) => { state.debugTieFighterColor = val; },
+      parent,
+      'TIE Fighter Color'
+    );
+  }
+
+  private createSurfaceParamsSection(parent: HTMLElement) {
+    this.createDebugSection('SURFACE PARAMETERS', parent);
+    this.createDebugNumericInput(
+      'FIREBALL SIZE',
+      'debug-surface-fireball-size-input',
+      state.debugSurfaceFireballSize,
+      1,
+      1,
+      `Default (${GameConfig.stages.surface.fireballSize})`,
+      (val) => { state.debugSurfaceFireballSize = val; },
+      parent
+    );
+
+    this.createDebugNumericInput(
+      'FIREBALL SPEED',
+      'debug-surface-fireball-speed-input',
+      state.debugSurfaceFireballSpeed,
+      1,
+      1,
+      `Default (${GameConfig.stages.surface.fireballSpeed})`,
+      (val) => { state.debugSurfaceFireballSpeed = val; },
+      parent,
+      'Surface Fireball Speed'
+    );
+  }
+
+  private createStatsSection(parent: HTMLElement) {
+    this.createDebugSection('STATS', parent, false);
+    this.tieFighterCountValue = this.createDebugStat('TIE FIGHTERS:', 'debug-tie-fighter-count', parent);
+  }
+
+  private createDebugStat(label: string, id: string, parent: HTMLElement) {
+    const row = this.createDebugRow(label, parent);
+    const valueEl = this.createEl('span', '', row);
+    valueEl.id = id;
+    valueEl.textContent = '0';
+    return valueEl;
+  }
+
+>>>>>>> ddc2ed3 (refactor: simplify DebugUIManager with further helpers and update ARCHITECTURE.md)
   private createDebugSection(title: string, parent: HTMLElement, marginTop = true) {
     const el = this.createEl('div', `${marginTop ? 'mt-4 ' : ''}mb-2 border-b border-vector-green pb-1`, parent);
     el.textContent = title;

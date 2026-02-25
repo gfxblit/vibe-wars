@@ -40,7 +40,16 @@ Vibe Wars is a state-driven, 3D space combat simulator inspired by the 1983 *Sta
 ### 3.6 Game Loop (`src/GameSystem.ts`)
 *   **Orchestration:** The main game loop that coordinates state updates, combat, and rendering.
 
-### 3.7 Entities (`src/entities/`)
+### 3.7 UI Manager (`src/UIManager.ts`)
+*   **HUD Rendering:** Manages the game's head-up display, including score, shields, and wave indicators.
+*   **State Observation:** Updates UI elements based on changes in the global game state.
+*   **Damage FX:** Triggers visual feedback for player damage.
+
+### 3.8 Debugging (`src/DebugUIManager.ts`)
+*   **Diagnostic Tools:** Provides a toggleable panel for real-time state inspection and modification.
+*   **Helper Methods:** Uses a suite of reusable DOM-creation helpers to maintain consistent styling and behavior across debug parameters.
+
+### 3.9 Entities (`src/entities/`)
 *   **Modular Actors:** Classes for X-Wings, TIE Fighters, fireballs, and towers.
 *   **Definition:** Entities define their geometry (as lines) and behavior.
 
@@ -50,7 +59,7 @@ Vibe Wars is a state-driven, 3D space combat simulator inspired by the 1983 *Sta
 The game follows a unidirectional data flow:
 1.  **Input** updates the desired intent (e.g., target crosshair position).
 2.  **State Logic** updates positions, checks collisions, and increments scores.
-3.  **Renderer** reads the current state and updates the visual scene.
+3.  **Renderer & UI** read the current state and update the visual scene and HUD.
 
 ### 4.2 Modular Rendering
 Entities provide line-based geometry data. The renderer batches these into `LineSegments` for performance and to maintain the "vector" aesthetic.
@@ -59,6 +68,7 @@ Entities provide line-based geometry data. The renderer batches these into `Line
 
 ### 5.1 Unit Testing (Vitest)
 *   **`state.ts`:** Comprehensive tests for scoring logic, health reduction, and physics calculations.
+*   **UI Testing:** Verification of HUD updates, debug panel toggles, and parameter modifications using `happy-dom`.
 *   **Physics Verification:** Mathematical verification for crosshair "chase" behavior and collision bounds.
 
 ### 5.2 Manual Verification
@@ -72,6 +82,8 @@ src/
 ├── state.ts         # Game state and physics logic
 ├── renderer.ts      # Three.js lifecycle and vector rendering
 ├── input.ts         # Input abstraction
+├── UIManager.ts     # HUD management
+├── DebugUIManager.ts # Debug panel and diagnostics
 ├── StageManager.ts  # Stage transition logic
 ├── CombatSystem.ts  # Combat logic
 ├── GameSystem.ts    # Main game system
