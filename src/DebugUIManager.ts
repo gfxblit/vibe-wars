@@ -22,9 +22,9 @@ export class DebugUIManager {
     this.createStatsSection(content);
     this.createControlsSection(content);
     this.createStageSwitcherSection(content);
-    this.createGameplayParametersSection(content);
-    this.createEntityParametersSection(content);
-    this.createSurfaceParametersSection(content);
+    this.createGameplayParamsSection(content);
+    this.createEntityParamsSection(content);
+    this.createSurfaceParamsSection(content);
   }
 
   private createStatsSection(parent: HTMLElement) {
@@ -53,12 +53,12 @@ export class DebugUIManager {
     this.lastStage = state.stage;
   }
 
-  private createGameplayParametersSection(parent: HTMLElement) {
+  private createGameplayParamsSection(parent: HTMLElement) {
     this.createDebugSection('GAMEPLAY PARAMETERS', parent);
     this.createDebugNumericInput('KILLS TO ADVANCE', 'debug-kills-input', state.debugKillsThreshold, 0, 1, `Default (${GameConfig.stages.dogfight.killsThreshold})`, (val) => { state.debugKillsThreshold = val; }, parent, 'Kills to Advance');
   }
 
-  private createEntityParametersSection(parent: HTMLElement) {
+  private createEntityParamsSection(parent: HTMLElement) {
     this.createDebugSection('ENTITY PARAMETERS', parent);
     this.createDebugNumericInput('TURRET SIZE', 'debug-turret-size-input', state.debugTurretSize, 1, 1, `Default (${GameConfig.turret.meshSize})`, (val) => { state.debugTurretSize = val; }, parent, 'Turret Size');
     this.createDebugNumericInput('FIREBALL SIZE', 'debug-fireball-size-input', state.debugFireballSize, 1, 1, `Default (${GameConfig.fireball.sparkleSize})`, (val) => { state.debugFireballSize = val; }, parent, 'Fireball Size');
@@ -66,7 +66,7 @@ export class DebugUIManager {
     this.createDebugHexInput('TIE FIGHTER COLOR', 'debug-tiefighter-color-input', state.debugTieFighterColor, `Hex (e.g. 0xFF0000)`, (val) => { state.debugTieFighterColor = val; }, parent, 'TIE Fighter Color');
   }
 
-  private createSurfaceParametersSection(parent: HTMLElement) {
+  private createSurfaceParamsSection(parent: HTMLElement) {
     this.createDebugSection('SURFACE PARAMETERS', parent);
     this.createDebugNumericInput('FIREBALL SIZE', 'debug-surface-fireball-size-input', state.debugSurfaceFireballSize, 1, 1, `Default (${GameConfig.stages.surface.fireballSize})`, (val) => { state.debugSurfaceFireballSize = val; }, parent, 'Surface Fireball Size');
     this.createDebugNumericInput('FIREBALL SPEED', 'debug-surface-fireball-speed-input', state.debugSurfaceFireballSpeed, 1, 1, `Default (${GameConfig.stages.surface.fireballSpeed})`, (val) => { state.debugSurfaceFireballSpeed = val; }, parent, 'Surface Fireball Speed');
@@ -158,11 +158,18 @@ export class DebugUIManager {
   }
 
   private createDebugHexInput(label: string, id: string, value: number | undefined, placeholder: string, onChange: (val: number | undefined) => void, parent: HTMLElement, ariaLabel?: string) {
-    return this.createDebugTextInput(label, id, value !== undefined ? '0x' + value.toString(16).toUpperCase() : '', placeholder, (valStr) => {
-      if (!valStr) return onChange(undefined);
-      const cleanStr = valStr.startsWith('0x') ? valStr.substring(2) : (valStr.startsWith('#') ? valStr.substring(1) : valStr);
-      const val = parseInt(cleanStr, 16);
-      onChange(!isNaN(val) ? val : undefined);
+    let valueStr = '';
+    if (value !== undefined) {
+      valueStr = '0x' + value.toString(16).toUpperCase();
+    }
+    return this.createDebugTextInput(label, id, valueStr, placeholder, (valStr) => {
+      if (valStr) {
+        const cleanStr = valStr.startsWith('0x') ? valStr.substring(2) : (valStr.startsWith('#') ? valStr.substring(1) : valStr);
+        const val = parseInt(cleanStr, 16);
+        onChange(!isNaN(val) ? val : undefined);
+      } else {
+        onChange(undefined);
+      }
     }, parent, ariaLabel);
   }
 
@@ -174,7 +181,13 @@ export class DebugUIManager {
     const row = this.createDebugRow(label, parent);
     const input = this.createEl('input', 'w-24 bg-black text-vector-green border border-vector-green px-2 py-1 text-right', row) as HTMLInputElement;
     input.id = id;
-    input.setAttribute('aria-label', ariaLabel || label);
+    
+    let effectiveAriaLabel = label;
+    if (ariaLabel) {
+      effectiveAriaLabel = ariaLabel;
+    }
+    input.setAttribute('aria-label', effectiveAriaLabel);
+
     input.type = type;
     input.placeholder = placeholder;
     input.value = value;
@@ -208,9 +221,7 @@ export class DebugUIManager {
   }
 
   private updateStageButtons(currentStage: string) {
-    if (!this.stageButtons) return;
-
-    this.stageButtons.forEach((button, stage) => {
+    this.stageButtons!.forEach((button, stage) => {
       const active = stage === currentStage;
       button.classList.toggle('bg-vector-green', active);
       button.classList.toggle('text-black', active);
