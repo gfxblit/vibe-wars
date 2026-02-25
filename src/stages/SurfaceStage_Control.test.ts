@@ -57,18 +57,18 @@ describe('SurfaceStage Control Stability', () => {
     expect(euler.z).toBeCloseTo(0);
   });
 
-  it('should clamp player position in Surface stage', () => {
+  it('should not clamp player X position but keep Y clamping in Surface stage', () => {
     const player = state.player!;
     const stage = new SurfaceStage(scene, vi.fn());
     
-    // Test X clamping
+    // Test X clamping (should NOT clamp)
     player.position.set(2000, 0, 0);
     stage.update(0.1, player, camera);
-    expect(player.position.x).toBeLessThanOrEqual(GameConfig.stages.surface.width / 2);
+    expect(player.position.x).toBe(2000);
     
     player.position.set(-2000, 0, 0);
     stage.update(0.1, player, camera);
-    expect(player.position.x).toBeGreaterThanOrEqual(-GameConfig.stages.surface.width / 2);
+    expect(player.position.x).toBe(-2000);
     
     // Test Y clamping (ceiling)
     player.position.set(0, 500, 0);
