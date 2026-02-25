@@ -185,4 +185,9 @@ describe('DebugUIManager', () => {
     // Let's just verify it doesn't crash if we call update
     expect(() => debugManager.update(state)).not.toThrow();
   });
+
+  it('should use specific aria-label for Surface Fireball Size', () => {
+    const input = document.getElementById('debug-surface-fireball-size-input') as HTMLInputElement;
+    expect(input.getAttribute('aria-label')).toBe('Surface Fireball Size');
+  });
 });

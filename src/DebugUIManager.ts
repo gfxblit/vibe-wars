@@ -435,7 +435,8 @@ export class DebugUIManager {
       1,
       `Default (${GameConfig.stages.surface.fireballSize})`,
       (val) => { state.debugSurfaceFireballSize = val; },
-      parent
+      parent,
+      'Surface Fireball Size'
     );
 
     this.createDebugNumericInput(
