@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import { SurfaceSpawner } from './SurfaceSpawner';
 import { SurfaceObstacleFactory } from './SurfaceObstacleFactory';
 import { EntityManager } from './EntityManager';
+import { state } from '../state';
 
 describe('SurfaceSpawner', () => {
   let spawner: SurfaceSpawner;
@@ -70,5 +71,36 @@ describe('SurfaceSpawner', () => {
     spawner.dispose();
     expect(scene.children.length).toBe(0);
     expect(entityManager.removeTarget).toHaveBeenCalled();
+  });
+
+  it('should scale spawn interval with wave count', () => {
+    vi.spyOn(Math, 'random').mockReturnValue(0.5);
+
+    // Wave 1: base interval (1.5s)
+    state.wave = 1;
+    // first update spawns immediately
+    spawner.update(0.1, new THREE.Vector3(0, 0, 0));
+    expect(spawner.getObstacles().length).toBe(1);
+
+    // second update at 1.4s (total 1.5s) should NOT spawn
+    spawner.update(1.4, new THREE.Vector3(0, 0, 0));
+    expect(spawner.getObstacles().length).toBe(1);
+    
+    // Total 1.7s should spawn
+    spawner.update(0.2, new THREE.Vector3(0, 0, 0));
+    expect(spawner.getObstacles().length).toBe(2);
+
+    // Wave 10: multiplier 2.8, interval 1.5 / 2.8 ~= 0.536s
+    state.wave = 10;
+    spawner = new SurfaceSpawner(scene, factory, entityManager);
+    spawner.update(0.1, new THREE.Vector3(0, 0, 0));
+    expect(spawner.getObstacles().length).toBe(1);
+    
+    // next spawn at 0.1 + 0.536 = 0.636s.
+    spawner.update(0.4, new THREE.Vector3(0, 0, 0)); // 0.5 total
+    expect(spawner.getObstacles().length).toBe(1);
+    
+    spawner.update(0.2, new THREE.Vector3(0, 0, 0)); // 0.7 total
+    expect(spawner.getObstacles().length).toBe(2);
   });
 });

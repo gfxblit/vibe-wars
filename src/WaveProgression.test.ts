@@ -128,7 +128,11 @@ vi.mock('three', async () => {
         getIndex() { return null; }
     },
     LineSegments: class { 
-        constructor() { this.position = new MockVector3(); this.geometry = { dispose: () => {} }; }
+        constructor(geo, mat) { 
+            this.position = new MockVector3(); 
+            this.geometry = geo || { dispose: () => {}, setAttribute: () => {}, computeBoundingSphere: () => {} }; 
+            this.material = mat || { dispose: () => {} };
+        }
     },
     Float32BufferAttribute: class {},
     Box3: class {
@@ -153,6 +157,9 @@ import { StageManager } from './StageManager';
 import { TieFighter } from './entities/TieFighter';
 import { Turret } from './entities/Turret';
 import { Surface } from './entities/Surface';
+import { SurfaceSpawner } from './entities/SurfaceSpawner';
+import { SurfaceObstacleFactory } from './entities/SurfaceObstacleFactory';
+import { EntityManager } from './entities/EntityManager';
 import { DumbAIStrategy } from './entities/DumbAIStrategy';
 
 describe('Wave Progression System', () => {
@@ -293,11 +300,14 @@ describe('Wave Progression System', () => {
 
     it('Surface tower spawn rate should increase with wave', () => {
        (GameConfig.getDifficultyMultiplier as any).mockClear();
-       const surface = new Surface();
+       const scene = new THREE.Scene();
+       const factory = new SurfaceObstacleFactory();
+       const entityManager = new EntityManager(scene);
+       const spawner = new SurfaceSpawner(scene, factory, entityManager);
        
        state.wave = 3;
        
-       surface.update(100, new THREE.Vector3());
+       spawner.update(100, new THREE.Vector3());
        
        expect(GameConfig.getDifficultyMultiplier).toHaveBeenCalledWith(3);
     });

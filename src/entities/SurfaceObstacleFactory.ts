@@ -13,7 +13,7 @@ export class SurfaceObstacleFactory {
     const { turretSize, fireballSize, fireballSpeed } = GameConfig.stages.surface;
     const turret = new Turret(position, turretSize, fireballSize, fireballSpeed);
     // Rotate turret so its local Z (normal) points UP (world +Y)
-    turret.mesh.rotation.x = Math.PI / 2;
+    turret.mesh.rotation.x = -Math.PI / 2;
     return turret;
   }
 

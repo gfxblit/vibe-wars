@@ -3,6 +3,7 @@ import { SurfaceObstacle } from './SurfaceObstacle';
 import { SurfaceObstacleFactory } from './SurfaceObstacleFactory';
 import { GameConfig } from '../config';
 import { EntityManager } from './EntityManager';
+import { state } from '../state';
 
 export class SurfaceSpawner {
   private obstacles: SurfaceObstacle[] = [];
@@ -24,7 +25,9 @@ export class SurfaceSpawner {
       this.spawnObstacle(playerPosition.x, playerZ);
       
       const { towerSpawnInterval } = GameConfig.stages.surface;
-      const interval = towerSpawnInterval * (0.8 + Math.random() * 0.4);
+      const multiplier = GameConfig.getDifficultyMultiplier(state.wave);
+      const scaledInterval = GameConfig.getScaledInterval(towerSpawnInterval, multiplier);
+      const interval = scaledInterval * (0.8 + Math.random() * 0.4);
       this.nextObstacleSpawnTime = this.elapsedTime + interval;
     }
 

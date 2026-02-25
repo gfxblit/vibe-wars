@@ -8,6 +8,7 @@ import { Player } from '../entities/Player';
 // Mock dependencies
 vi.mock('../state', () => ({
   state: {
+    wave: 1,
     entityManager: {
       clear: vi.fn(),
       setSpawningEnabled: vi.fn(),
@@ -202,5 +203,24 @@ describe('SurfaceStage', () => {
     
     expect(takeDamage).toHaveBeenCalledWith(GameConfig.stages.surface.collisionDamage);
     expect(explodeSpy).toHaveBeenCalled();
+  });
+
+  it('should add spawned obstacles to entity manager', () => {
+    stage = new SurfaceStage(scene, vi.fn());
+    
+    // Reset call counts
+    vi.mocked(state.entityManager!.addTarget).mockClear();
+    
+    // Update to force spawn
+    vi.spyOn(Math, 'random').mockReturnValue(0.9); // Force tower
+    stage.update(0.1, state.player as Player, mockCamera);
+    
+    expect(state.entityManager!.addTarget).toHaveBeenCalledTimes(1);
+
+    // Update to force another spawn
+    vi.spyOn(Math, 'random').mockReturnValue(0.0); // Force turret
+    stage.update(GameConfig.stages.surface.towerSpawnInterval + 1.0, state.player as Player, mockCamera);
+    
+    expect(state.entityManager!.addTarget).toHaveBeenCalledTimes(2);
   });
 });
