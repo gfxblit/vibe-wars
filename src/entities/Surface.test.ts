@@ -113,13 +113,9 @@ describe('Surface Entity', () => {
     expect(initialTowers).toBe(0);
 
     // Update with enough time to trigger spawn
-    // nextTowerSpawnTime starts at 0, so first update should spawn?
-    // In code: if (elapsedTime >= nextTowerSpawnTime) spawn.
-    // elapsedTime starts at 0. nextTowerSpawnTime starts at 0.
-    // update(0.1) -> elapsedTime=0.1. 0.1 >= 0 -> spawn.
+    const { spawned } = surface.update(0.1, new THREE.Vector3(0, 0, 0)); // playerZ = 0
     
-    surface.update(0.1, new THREE.Vector3(0, 0, 0)); // playerZ = 0
-    
+    expect(spawned.length).toBeGreaterThan(0);
     expect(surface.getTowers().length).toBeGreaterThan(0);
   });
 
@@ -129,19 +125,11 @@ describe('Surface Entity', () => {
     const towers = surface.getTowers();
     const tower = towers[0];
     
-    // Tower is spawned at playerZ - 1000.
-    // If player moves PAST the tower + 200, it is removed.
-    // Tower Z is approx -1000.
-    // Remove condition: tower.z > playerZ + 200.
-    // Wait, tower.z (-1000) > playerZ + 200?
-    // If playerZ is -2000. -1000 > -1800. Yes.
-    // The player moves in negative Z.
-    // So "behind" means greater Z value than player (closer to 0).
-    
     // Move player far ahead (negative Z)
     const playerZ = -2000;
-    surface.update(0.1, new THREE.Vector3(0, 0, playerZ));
+    const { removed } = surface.update(0.1, new THREE.Vector3(0, 0, playerZ));
     
+    expect(removed).toContain(tower);
     expect(surface.getTowers()).not.toContain(tower);
   });
 
@@ -155,29 +143,14 @@ describe('Surface Entity', () => {
   
   it('should detect tower collision', () => {
       // Force spawn
-      surface.update(0.1, new THREE.Vector3(0, 0, 0));
-      const tower = surface.getTowers()[0];
+      const { spawned } = surface.update(0.1, new THREE.Vector3(0, 0, 0));
+      const tower = spawned[0];
       
       const playerBox = new THREE.Box3().setFromObject(tower.mesh); // Overlap exactly
       const position = new THREE.Vector3(0, 0, 0);
       
       const { towerHit } = surface.checkCollisions(playerBox, position);
       expect(towerHit).toBe(tower);
-  });
-
-  it('should add spawned towers to EntityManager', () => {
-    const entityManager = {
-        addTarget: vi.fn(),
-        removeTarget: vi.fn(),
-    } as any;
-
-    // Force spawn
-    surface.update(0.1, new THREE.Vector3(0, 0, 0), entityManager);
-    
-    expect(entityManager.addTarget).toHaveBeenCalled();
-    const towers = surface.getTowers();
-    expect(towers.length).toBeGreaterThan(0);
-    expect(entityManager.addTarget).toHaveBeenCalledWith(towers[0]);
   });
 
   it('should spawn towers relative to the player X position', () => {

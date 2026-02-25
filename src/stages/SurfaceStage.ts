@@ -53,7 +53,12 @@ export class SurfaceStage extends Stage {
     player.position.x = THREE.MathUtils.clamp(player.position.x, -halfWidth, halfWidth);
     player.position.y = THREE.MathUtils.clamp(player.position.y, GameConfig.stages.surface.floorY - GameConfig.stages.surface.floorClampBuffer, GameConfig.stages.surface.maxHeight);
     
-    this.surface.update(deltaTime, player.position, state.entityManager || undefined);
+    const { spawned, removed } = this.surface.update(deltaTime, player.position);
+
+    if (state.entityManager) {
+      spawned.forEach(t => state.entityManager!.addTarget(t));
+      removed.forEach(t => state.entityManager!.removeTarget(t));
+    }
 
     const playerBox = this.playerBox.setFromObject(player.mesh);
     
@@ -66,7 +71,7 @@ export class SurfaceStage extends Stage {
 
     if (towerHit) {
         takeDamage(GameConfig.stages.surface.collisionDamage);
-        towerHit.isExploded = true; // Mark as hit so we don't hit it again immediately
+        towerHit.explode(); // Mark as hit so we don't hit it again immediately
     }
     
     // Check End Condition
@@ -76,6 +81,9 @@ export class SurfaceStage extends Stage {
   }
 
   public cleanup(): void {
+    if (state.entityManager) {
+      this.surface.getTowers().forEach(t => state.entityManager!.removeTarget(t));
+    }
     this.scene.remove(this.surface.mesh);
     this.surface.dispose();
   }

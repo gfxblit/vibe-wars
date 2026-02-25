@@ -8,17 +8,13 @@ export class Tower extends Entity implements Targetable {
     private _isExploded: boolean = false;
     private topMesh!: THREE.Mesh;
     private fireCooldown: number = 0;
+    private debris: { mesh: THREE.Mesh, velocity: THREE.Vector3 }[] = [];
+    private baseMaterial: THREE.MeshBasicMaterial;
+    private topMaterial: THREE.MeshBasicMaterial;
   
     // Targetable interface implementation
     public get isExploded(): boolean {
       return this._isExploded;
-    }
-  
-    public set isExploded(value: boolean) {
-      this._isExploded = value;
-      if (this.topMesh) {
-        this.topMesh.visible = !value;
-      }
     }
 
     public get position(): THREE.Vector3 {
@@ -28,6 +24,13 @@ export class Tower extends Entity implements Targetable {
     public getWorldPosition(target: THREE.Vector3): THREE.Vector3 {
       this.mesh.updateWorldMatrix(true, false);
       return this.mesh.getWorldPosition(target);
+    }
+
+    public getTargetPositions(target: THREE.Vector3): THREE.Vector3[] {
+      // Return both the base (represented by mesh position) and the top
+      const basePos = this.getWorldPosition(target.clone());
+      const topPos = this.getFirePosition(new THREE.Vector3());
+      return [basePos, topPos];
     }
 
     public getFirePosition(target: THREE.Vector3): THREE.Vector3 {
@@ -52,7 +55,19 @@ export class Tower extends Entity implements Targetable {
     }
 
     public explode(): void {
-      this.isExploded = true;
+      if (this._isExploded) return;
+      this._isExploded = true;
+      const { towerExplosionColor, towerExplosionVelocity } = GameConfig.stages.surface;
+      this.baseMaterial.color.setHex(towerExplosionColor);
+      this.topMaterial.color.setHex(towerExplosionColor);
+
+      this.debris.forEach((item) => {
+        item.velocity.set(
+          (Math.random() - 0.5) * towerExplosionVelocity,
+          (Math.random() + 0.5) * towerExplosionVelocity, // Upward bias
+          (Math.random() - 0.5) * towerExplosionVelocity
+        );
+      });
     }
   
     constructor(position: THREE.Vector3) {
@@ -71,23 +86,27 @@ export class Tower extends Entity implements Targetable {
   
       // Base
       const baseGeo = new THREE.BoxGeometry(towerWidth, baseHeight, towerWidth);
-      const baseMaterial = new THREE.MeshBasicMaterial({ 
+      this.baseMaterial = new THREE.MeshBasicMaterial({ 
         color: towerColor,
         wireframe: true 
       });
-      const base = new THREE.Mesh(baseGeo, baseMaterial);
+      const base = new THREE.Mesh(baseGeo, this.baseMaterial);
+      base.name = 'debris';
       base.position.y = baseHeight / 2;
       this.mesh.add(base);
+      this.debris.push({ mesh: base, velocity: new THREE.Vector3() });
   
       // Top
       const topGeo = new THREE.BoxGeometry(towerWidth * 0.8, topHeight, towerWidth * 0.8);
-      const topMaterial = new THREE.MeshBasicMaterial({ 
+      this.topMaterial = new THREE.MeshBasicMaterial({ 
         color: towerTopColor,
         wireframe: true 
       });
-      this.topMesh = new THREE.Mesh(topGeo, topMaterial);
+      this.topMesh = new THREE.Mesh(topGeo, this.topMaterial);
+      this.topMesh.name = 'debris';
       this.topMesh.position.y = baseHeight + topHeight / 2;
       this.mesh.add(this.topMesh);
+      this.debris.push({ mesh: this.topMesh, velocity: new THREE.Vector3() });
   
       // Initial collision box calculation
       this.collisionBox = new THREE.Box3();
@@ -95,7 +114,15 @@ export class Tower extends Entity implements Targetable {
     }
 
   update(deltaTime: number, playerPosition: THREE.Vector3, _playerQuaternion?: THREE.Quaternion, _playerSpeed?: number): THREE.Vector3 | null {
-    if (this.isExploded) return null;
+    if (this.isExploded) {
+      const { towerDebrisRotationSpeed } = GameConfig.stages.surface;
+      this.debris.forEach((item) => {
+        item.mesh.position.addScaledVector(item.velocity, deltaTime);
+        item.mesh.rotation.x += deltaTime * towerDebrisRotationSpeed;
+        item.mesh.rotation.y += deltaTime * towerDebrisRotationSpeed;
+      });
+      return null;
+    }
 
     this.fireCooldown -= deltaTime;
     if (this.fireCooldown <= 0) {
@@ -122,10 +149,9 @@ export class Tower extends Entity implements Targetable {
     this.mesh.traverse(child => {
       if (child instanceof THREE.Mesh) {
         child.geometry.dispose();
-        if (child.material instanceof THREE.Material) {
-          child.material.dispose();
-        }
       }
     });
+    this.baseMaterial.dispose();
+    this.topMaterial.dispose();
   }
 }

@@ -129,6 +129,16 @@ describe('SurfaceStage', () => {
     expect(Array.isArray(towers)).toBe(true);
   });
 
+  it('should return correct player options', () => {
+    stage = new SurfaceStage(scene, vi.fn());
+    const options = stage.getPlayerOptions();
+    expect(options).toEqual({
+      lockUpright: true,
+      maxPitch: GameConfig.stages.surface.maxPitch,
+      maxYaw: GameConfig.stages.surface.maxYaw,
+    });
+  });
+
   it('should cleanup resources', () => {
     stage = new SurfaceStage(scene, vi.fn());
     const removeSpy = vi.spyOn(scene, 'remove');
@@ -137,10 +147,13 @@ describe('SurfaceStage', () => {
   });
 
   it('should damage player if they hit a tower', () => {
-    const mockTower = { isExploded: false };
+    const mockTower = { 
+      isExploded: false,
+      explode: vi.fn()
+    };
     const mockSurface = {
       mesh: new THREE.Group(),
-      update: vi.fn(),
+      update: vi.fn().mockReturnValue({ spawned: [], removed: [] }),
       updateGridSettings: vi.fn(),
       checkCollisions: vi.fn().mockReturnValue({ floorHit: false, towerHit: mockTower }),
       getTowers: vi.fn().mockReturnValue([mockTower]),
@@ -153,6 +166,6 @@ describe('SurfaceStage', () => {
     stage.update(0.1, player, mockCamera);
     
     expect(takeDamage).toHaveBeenCalledWith(GameConfig.stages.surface.collisionDamage);
-    expect(mockTower.isExploded).toBe(true);
+    expect(mockTower.explode).toHaveBeenCalled();
   });
 });

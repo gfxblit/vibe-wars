@@ -26,7 +26,7 @@ describe('Tower Firing', () => {
   });
 
   it('should not fire if destroyed', () => {
-    tower.isExploded = true;
+    tower.explode();
     const playerPos = new THREE.Vector3(0, 0, 0);
     const fireDir = tower.update(1.0, playerPos);
     expect(fireDir).toBeNull();

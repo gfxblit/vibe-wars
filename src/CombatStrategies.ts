@@ -45,16 +45,29 @@ abstract class BaseCombatStrategy implements CombatStrategy {
     camera.getWorldPosition(this.scratchCameraPos);
 
     for (const target of state.entityManager.getTargets()) {
-      // UsegetWorldPosition to get accurate world position regardless of scene graph depth
-      const worldPos = target.getWorldPosition(this.tempVector3);
+      if (target.isExploded) continue;
+
+      // Check all possible target points if the entity provides them, otherwise use base world position
+      const targetPoints = target.getTargetPositions ? 
+        target.getTargetPositions(this.tempVector3) : 
+        [target.getWorldPosition(this.tempVector3)];
       
-      // Only target active, non-exploded entities within max range
-      if (!target.isExploded && checkAim(worldPos, input, camera)) {
-        const dist = worldPos.distanceTo(this.scratchCameraPos);
-        if (dist < closestDist && dist < this.config.maxRange) {
-          closestDist = dist;
-          closestTarget = target;
+      let isHit = false;
+      let hitDist = Infinity;
+
+      for (const point of targetPoints) {
+        if (checkAim(point, input, camera)) {
+          const dist = point.distanceTo(this.scratchCameraPos);
+          if (dist < hitDist) {
+            hitDist = dist;
+            isHit = true;
+          }
         }
+      }
+
+      if (isHit && hitDist < closestDist && hitDist < this.config.maxRange) {
+        closestDist = hitDist;
+        closestTarget = target;
       }
     }
 
