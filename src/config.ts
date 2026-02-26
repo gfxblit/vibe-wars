@@ -57,9 +57,9 @@ export const GameConfig = deepFreeze({
     masterVolume: 0.7,
     sfxVolume: 1.0,
     assets: {
-      laser: 'src/assets/sfx/laser.wav',
-      explosion: 'src/assets/sfx/explosion.wav',
-      tieFighter: 'src/assets/sfx/tie-fighter.wav',
+      laser: 'assets/sfx/laser.wav',
+      explosion: 'assets/sfx/explosion.wav',
+      tieFighter: 'assets/sfx/tie-fighter.wav',
     },
   },
   stages: {

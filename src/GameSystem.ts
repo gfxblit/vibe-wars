@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { updateState } from './state';
+import { state, updateState } from './state';
 import { UserInput } from './input';
 import { CombatSystem } from './CombatSystem';
 
@@ -18,5 +18,8 @@ export class GameSystem {
 
     // 2. Update Combat (Firing, Hits, Lasers)
     this.combatSystem.update(deltaTime, input);
+
+    // 3. Update Audio Listener
+    state.audioManager?.updateListener(this.camera);
   }
 }

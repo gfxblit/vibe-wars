@@ -5,6 +5,18 @@ import { AudioManager } from './AudioManager';
 class MockAudioContext {
   state = 'suspended';
   destination = {};
+  currentTime = 0;
+  listener = {
+    positionX: { value: 0, setValueAtTime: vi.fn() },
+    positionY: { value: 0, setValueAtTime: vi.fn() },
+    positionZ: { value: 0, setValueAtTime: vi.fn() },
+    forwardX: { value: 0, setValueAtTime: vi.fn() },
+    forwardY: { value: 0, setValueAtTime: vi.fn() },
+    forwardZ: { value: 0, setValueAtTime: vi.fn() },
+    upX: { value: 0, setValueAtTime: vi.fn() },
+    upY: { value: 0, setValueAtTime: vi.fn() },
+    upZ: { value: 0, setValueAtTime: vi.fn() },
+  };
   createGain = vi.fn(() => ({
     connect: vi.fn(),
     gain: { value: 1, setValueAtTime: vi.fn() },
@@ -19,6 +31,10 @@ class MockAudioContext {
     positionX: { value: 0, setValueAtTime: vi.fn() },
     positionY: { value: 0, setValueAtTime: vi.fn() },
     positionZ: { value: 0, setValueAtTime: vi.fn() },
+    setPosition: vi.fn(),
+  }));
+  createBuffer = vi.fn(() => ({
+    getChannelData: vi.fn(),
   }));
   createBufferSource = vi.fn(() => ({
     connect: vi.fn(),
@@ -26,7 +42,10 @@ class MockAudioContext {
     buffer: null,
     playbackRate: { value: 1, setValueAtTime: vi.fn() },
   }));
-  decodeAudioData = vi.fn().mockResolvedValue({ duration: 1 });
+  decodeAudioData = vi.fn((_data: any, success: any) => {
+    if (success) setTimeout(() => success({ duration: 1 }), 0);
+    return Promise.resolve({ duration: 1 });
+  });
   resume = vi.fn().mockImplementation(() => {
     this.state = 'running';
     return Promise.resolve();
@@ -45,24 +64,33 @@ describe('AudioManager', () => {
     audioManager = new AudioManager();
   });
 
-  test('should initialize with an AudioContext', () => {
+  test('should initialize context on resume', async () => {
     expect(audioManager).toBeDefined();
+    await audioManager.resume();
     expect(global.AudioContext).toHaveBeenCalled();
   });
 
   test('resume() should resume the AudioContext', async () => {
     await audioManager.resume();
-    const ctx = (audioManager as any).context;
+    const ctx = (audioManager as any).getContext();
     expect(ctx.resume).toHaveBeenCalled();
   });
 
   test('loadAudio() should fetch and decode audio data', async () => {
     const mockBuffer = { duration: 2 };
-    const ctx = (audioManager as any).context;
-    ctx.decodeAudioData.mockResolvedValue(mockBuffer);
+    
+    // Trigger context creation
+    await audioManager.resume();
+    const ctx = (audioManager as any).getContext();
+    
+    // Override the mock implementation for this specific test
+    ctx.decodeAudioData.mockImplementation((_data: any, success: any) => {
+      if (success) success(mockBuffer);
+    });
     
     // Mock fetch
     global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
       arrayBuffer: () => Promise.resolve(new ArrayBuffer(10)),
     });
 
@@ -74,13 +102,17 @@ describe('AudioManager', () => {
 
   test('playEffect() should play a one-shot sound', async () => {
     const mockBuffer = { duration: 1 };
+    
+    // Trigger context creation and mock buffer
+    await audioManager.resume(); // Calls createBufferSource for silent kick
     (audioManager as any).buffers.set('laser', mockBuffer);
     
-    const ctx = (audioManager as any).context;
-    audioManager.playEffect('laser');
+    const ctx = (audioManager as any).getContext();
+    await audioManager.playEffect('laser');
     
-    expect(ctx.createBufferSource).toHaveBeenCalled();
-    const source = ctx.createBufferSource.mock.results[0].value;
+    // We expect 2 calls: 1 for silent kick, 1 for laser
+    expect(ctx.createBufferSource).toHaveBeenCalledTimes(2);
+    const source = ctx.createBufferSource.mock.results[1].value;
     expect(source.buffer).toBe(mockBuffer);
     expect(source.connect).toHaveBeenCalled();
     expect(source.start).toHaveBeenCalled();
@@ -88,23 +120,27 @@ describe('AudioManager', () => {
 
   test('playEffect() with pitch randomization', async () => {
     const mockBuffer = { duration: 1 };
+    
+    await audioManager.resume();
     (audioManager as any).buffers.set('laser', mockBuffer);
     
-    const ctx = (audioManager as any).context;
-    audioManager.playEffect('laser', { pitchRange: 0.5 });
+    const ctx = (audioManager as any).getContext();
+    await audioManager.playEffect('laser', { pitchRange: 0.5 });
     
-    const source = ctx.createBufferSource.mock.results[0].value;
+    const source = ctx.createBufferSource.mock.results[1].value;
     expect(source.playbackRate.value).not.toBe(1);
   });
 
-  test('playSpatialEffect() should use PannerNode', () => {
+  test('playSpatialEffect() should use PannerNode', async () => {
     const mockBuffer = { duration: 1 };
+    
+    await audioManager.resume();
     (audioManager as any).buffers.set('explosion', mockBuffer);
     
-    const ctx = (audioManager as any).context;
+    const ctx = (audioManager as any).getContext();
     const mockPosition = { x: 10, y: 0, z: -50 };
     
-    audioManager.playSpatialEffect('explosion', mockPosition as any);
+    await audioManager.playSpatialEffect('explosion', mockPosition as any);
     
     expect(ctx.createPanner).toHaveBeenCalled();
     const panner = ctx.createPanner.mock.results[0].value;
