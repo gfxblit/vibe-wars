@@ -4,6 +4,7 @@ import { SurfaceObstacleFactory } from './SurfaceObstacleFactory';
 import { Tower } from './Tower';
 import { Turret } from './Turret';
 import { GameConfig } from '../config';
+import { state } from '../state';
 
 describe('SurfaceObstacleFactory', () => {
   const factory = new SurfaceObstacleFactory();
@@ -59,5 +60,21 @@ describe('SurfaceObstacleFactory', () => {
     vi.spyOn(Math, 'random').mockReturnValue(turretDensity + 0.01);
     const wave2Turret = factory.createRandom(pos, 2);
     expect(wave2Turret).toBeInstanceOf(Turret);
+  });
+
+  it('should override density if state.debugSurfaceTurretDensity is set', () => {
+    const pos = new THREE.Vector3(1, 2, 3);
+    state.debugSurfaceTurretDensity = 0.9;
+    
+    // If density is overridden to 0.9, then 0.8 is < 0.9 (Turret)
+    vi.spyOn(Math, 'random').mockReturnValue(0.8);
+    expect(factory.createRandom(pos, 1)).toBeInstanceOf(Turret);
+
+    // And 0.95 is > 0.9 (Tower)
+    vi.spyOn(Math, 'random').mockReturnValue(0.95);
+    expect(factory.createRandom(pos, 1)).toBeInstanceOf(Tower);
+
+    // Reset debug state
+    state.debugSurfaceTurretDensity = undefined;
   });
 });

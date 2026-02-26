@@ -89,6 +89,10 @@ export class DebugUIManager {
       state.debugSurfaceVerticalLineDensity = val;
       this.notifySurfaceStage();
     }, parent, 'Surface Vertical Line Density');
+
+    this.createDebugNumericInput('TURRET DENSITY', 'debug-surface-turret-density-input', state.debugSurfaceTurretDensity, 0, 0.01, `Default (${GameConfig.stages.surface.turretDensity})`, (val) => {
+      state.debugSurfaceTurretDensity = val;
+    }, parent, 'Surface Turret Density');
   }
 
   private notifySurfaceStage() {

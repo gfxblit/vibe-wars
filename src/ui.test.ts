@@ -544,6 +544,27 @@ describe('UIManager', () => {
       expect(state.debugSurfaceVerticalLineNoise).toBeUndefined();
     });
 
+    it('should have SURFACE TURRET DENSITY input', () => {
+      const input = document.getElementById('debug-surface-turret-density-input') as HTMLInputElement;
+      expect(input).not.toBeNull();
+      expect(input.type).toBe('number');
+
+      // Simulate input change
+      input.value = '0.5';
+      input.dispatchEvent(new Event('change'));
+      expect(state.debugSurfaceTurretDensity).toBe(0.5);
+
+      // Test invalid input (min is 0)
+      input.value = '-0.1';
+      input.dispatchEvent(new Event('change'));
+      expect(state.debugSurfaceTurretDensity).toBe(0);
+
+      // Test clearing input
+      input.value = '';
+      input.dispatchEvent(new Event('change'));
+      expect(state.debugSurfaceTurretDensity).toBeUndefined();
+    });
+
     it('should notify Surface instance when grid settings change in UI', () => {
       const mockUpdateGridSettings = vi.fn();
       const mockSurface = {

@@ -3,6 +3,7 @@ import { Tower } from './Tower';
 import { Turret } from './Turret';
 import { GameConfig } from '../config';
 import { SurfaceObstacle } from './SurfaceObstacle';
+import { state } from '../state';
 
 export class SurfaceObstacleFactory {
   public createTower(position: THREE.Vector3): SurfaceObstacle {
@@ -18,7 +19,7 @@ export class SurfaceObstacleFactory {
   }
 
   public createRandom(position: THREE.Vector3, wave: number = 1): SurfaceObstacle {
-    const { turretDensity } = GameConfig.stages.surface;
+    const turretDensity = state.debugSurfaceTurretDensity ?? GameConfig.stages.surface.turretDensity;
     const multiplier = GameConfig.getDifficultyMultiplier(wave);
     const scaledDensity = turretDensity * multiplier;
     

@@ -50,6 +50,7 @@ export interface GameState {
   debugSurfaceVerticalLineHeight?: number;
   debugSurfaceVerticalLineNoise?: number;
   debugSurfaceVerticalLineDensity?: number;
+  debugSurfaceTurretDensity?: number;
 }
 
 const initialWidth = typeof window !== 'undefined' ? window.innerWidth : 1024;
@@ -90,6 +91,7 @@ export const state: GameState = {
   debugSurfaceVerticalLineHeight: undefined,
   debugSurfaceVerticalLineNoise: undefined,
   debugSurfaceVerticalLineDensity: undefined,
+  debugSurfaceTurretDensity: undefined,
 };
 
 export function initGame(worldScene: THREE.Scene, hudScene: THREE.Scene) {
@@ -118,6 +120,7 @@ export function initGame(worldScene: THREE.Scene, hudScene: THREE.Scene) {
   state.debugSurfaceVerticalLineHeight = undefined;
   state.debugSurfaceVerticalLineNoise = undefined;
   state.debugSurfaceVerticalLineDensity = undefined;
+  state.debugSurfaceTurretDensity = undefined;
 
   state.player = new Player();
 
