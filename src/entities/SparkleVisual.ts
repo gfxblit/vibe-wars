@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { materialSystem, BloomCategory } from '../MaterialSystem';
 
 export interface SparkleConfig {
   count: number;
@@ -6,6 +7,7 @@ export interface SparkleConfig {
   color: THREE.Color;
   explosionVelocity: number;
   texture: THREE.Texture;
+  category: BloomCategory;
 }
 
 export class SparkleVisual {
@@ -32,6 +34,8 @@ export class SparkleVisual {
         depthWrite: false, // Fix for black background artifacts
         rotation: Math.random() * Math.PI * 2,
       });
+
+      materialSystem.register(material, config.category, color.getHex());
 
       const sparkle = new THREE.Sprite(material);
       sparkle.scale.set(config.size, config.size, 1);
@@ -69,20 +73,11 @@ export class SparkleVisual {
     });
   }
 
-  update(deltaTime: number, intensity: number = 1.0): void {
+  update(deltaTime: number): void {
     this.group.children.forEach((child, i) => {
       if (child instanceof THREE.Sprite) {
         // Apply individual rotation
         child.material.rotation += this.sparkleRotationSpeeds[i] * deltaTime;
-
-        // Apply bloom intensity (we use a hacky way to store base color in userData or just trust it's 0-1)
-        // Actually, we can just use the current color and ensure we don't multiply it every frame without resetting.
-        // But SpriteMaterial.color is persistent.
-        // Let's store the base color once.
-        if (!(child as any).baseColor) {
-           (child as any).baseColor = child.material.color.clone();
-        }
-        child.material.color.copy((child as any).baseColor).multiplyScalar(intensity);
 
         // Apply outward movement if exploded
         if (this.isExploded) {
@@ -95,6 +90,7 @@ export class SparkleVisual {
   dispose(): void {
     this.group.children.forEach(child => {
       if (child instanceof THREE.Sprite) {
+        materialSystem.unregister(child.material);
         child.material.dispose();
       }
     });

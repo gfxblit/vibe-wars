@@ -114,6 +114,8 @@ export class DebugUIManager {
       { id: 'starField', label: 'STARS', key: 'debugStarFieldBloom', config: GameConfig.starField },
       { id: 'surface', label: 'SURF', key: 'debugSurfaceBloom', config: GameConfig.stages.surface },
       { id: 'trench', label: 'TRNCH', key: 'debugTrenchBloom', config: GameConfig.stages.trench },
+      { id: 'deathStar', label: 'D-STAR', key: 'debugDeathStarBloom', config: GameConfig.stages.deathStar },
+      { id: 'torpedo', label: 'TORP', key: 'debugTorpedoBloom', config: GameConfig.torpedo },
     ];
 
     entities.forEach(entity => {

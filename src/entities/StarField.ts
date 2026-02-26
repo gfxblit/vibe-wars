@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { Entity } from './Entity';
 import { GameConfig } from '../config';
-import { state } from '../state';
+import { materialSystem } from '../MaterialSystem';
 
 export class StarField extends Entity {
   public readonly points: THREE.Points;
@@ -25,14 +25,13 @@ export class StarField extends Entity {
       size: GameConfig.starField.starSize,
     });
 
+    materialSystem.register(this.material, 'StarField', GameConfig.starField.starColor);
+
     this.points = new THREE.Points(this.geometry, this.material);
     this.points.frustumCulled = false;
   }
 
   public update(playerPosition: THREE.Vector3) {
-    const intensity = (state.debugStarFieldBloom ?? GameConfig.starField.bloom) ? 2.0 : 1.0;
-    this.material.color.setHex(GameConfig.starField.starColor).multiplyScalar(intensity);
-
     const positions = this.geometry.attributes.position.array as Float32Array;
     const halfSize = GameConfig.starField.fieldSize / 2;
 
@@ -63,5 +62,11 @@ export class StarField extends Entity {
       }
     }
     this.geometry.attributes.position.needsUpdate = true;
+  }
+
+  public dispose() {
+    materialSystem.unregister(this.material);
+    this.geometry.dispose();
+    this.material.dispose();
   }
 }

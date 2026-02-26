@@ -96,7 +96,8 @@ vi.mock('three', async () => {
               color: { 
                   setHex: function() { return this; }, 
                   getHex: () => 0,
-                  multiplyScalar: function() { return this; }
+                  multiplyScalar: function() { return this; },
+                  copy: function() { return this; }
               }, 
               dispose: () => {} 
           }; 
@@ -125,7 +126,8 @@ vi.mock('three', async () => {
             this.color = { 
                 setHex: function() { return this; }, 
                 getHex: () => 0,
-                multiplyScalar: function() { return this; }
+                multiplyScalar: function() { return this; },
+                copy: function() { return this; }
             }; 
             if (params && params.color) this.color.getHex = () => params.color;
         } 
@@ -137,7 +139,8 @@ vi.mock('three', async () => {
             this.color = { 
                 setHex: function() { return this; }, 
                 getHex: () => 0,
-                multiplyScalar: function() { return this; }
+                multiplyScalar: function() { return this; },
+                copy: function() { return this; }
             }; 
             if (params && params.color) this.color.getHex = () => params.color;
         } 

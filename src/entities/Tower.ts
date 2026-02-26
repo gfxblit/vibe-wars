@@ -1,8 +1,9 @@
 import * as THREE from 'three';
 import { Entity, Targetable, FireballDebugContext } from './Entity';
 import { GameConfig } from '../config';
-import { state } from '../state';
+import { materialSystem } from '../MaterialSystem';
 import { GameEventType, globalEvents } from '../EventBus';
+import { state } from '../state';
 
 export class Tower extends Entity implements Targetable {
     public mesh: THREE.Group;
@@ -63,8 +64,8 @@ export class Tower extends Entity implements Targetable {
       this._isExploded = true;
       globalEvents.emit(GameEventType.ENTITY_EXPLODED, { position: this.position, entity: this });
       const { towerExplosionColor, towerExplosionVelocity } = GameConfig.stages.surface;
-      this.baseMaterial.color.setHex(towerExplosionColor);
-      this.topMaterial.color.setHex(towerExplosionColor);
+      materialSystem.setBaseColor(this.baseMaterial, towerExplosionColor);
+      materialSystem.setBaseColor(this.topMaterial, towerExplosionColor);
 
       this.debris.forEach((item) => {
         item.velocity.set(
@@ -96,6 +97,7 @@ export class Tower extends Entity implements Targetable {
       this.baseMaterial = new THREE.LineBasicMaterial({ 
         color: towerColor
       });
+      materialSystem.register(this.baseMaterial, 'Surface', towerColor);
       const base = new THREE.LineSegments(baseGeo, this.baseMaterial);
       base.name = 'debris';
       base.position.y = baseHeight / 2;
@@ -109,6 +111,7 @@ export class Tower extends Entity implements Targetable {
       this.topMaterial = new THREE.LineBasicMaterial({ 
         color: towerTopColor
       });
+      materialSystem.register(this.topMaterial, 'Surface', towerTopColor);
       this.topMesh = new THREE.LineSegments(topGeo, this.topMaterial);
       this.topMesh.name = 'debris';
       this.topMesh.position.y = baseHeight + topHeight / 2;
@@ -121,13 +124,7 @@ export class Tower extends Entity implements Targetable {
     }
 
   update(deltaTime: number, playerPosition: THREE.Vector3, _playerQuaternion?: THREE.Quaternion, _playerSpeed?: number): THREE.Vector3 | null {
-    const intensity = (state.debugSurfaceBloom ?? GameConfig.stages.surface.bloom) ? 2.0 : 1.0;
-    const { towerColor, towerTopColor, towerExplosionColor } = GameConfig.stages.surface;
-    
     if (this.isExploded) {
-      this.baseMaterial.color.setHex(towerExplosionColor).multiplyScalar(intensity);
-      this.topMaterial.color.setHex(towerExplosionColor).multiplyScalar(intensity);
-
       const { towerDebrisRotationSpeed } = GameConfig.stages.surface;
       this.debris.forEach((item) => {
         item.mesh.position.addScaledVector(item.velocity, deltaTime);
@@ -136,9 +133,6 @@ export class Tower extends Entity implements Targetable {
       });
       return null;
     }
-
-    this.baseMaterial.color.setHex(towerColor).multiplyScalar(intensity);
-    this.topMaterial.color.setHex(towerTopColor).multiplyScalar(intensity);
 
     this.fireCooldown -= deltaTime;
     if (this.fireCooldown <= 0) {
@@ -168,6 +162,8 @@ export class Tower extends Entity implements Targetable {
         child.geometry.dispose();
       }
     });
+    materialSystem.unregister(this.baseMaterial);
+    materialSystem.unregister(this.topMaterial);
     this.baseMaterial.dispose();
     this.topMaterial.dispose();
   }

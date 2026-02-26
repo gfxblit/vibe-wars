@@ -8,6 +8,7 @@ describe('Turret Entity', () => {
   const initialPosition = new THREE.Vector3(0, 0, -500);
 
   beforeEach(() => {
+    state.debugTurretBloom = false;
     turret = new Turret(initialPosition);
   });
 

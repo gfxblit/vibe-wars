@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { Entity } from './Entity';
 import { GameConfig } from '../config';
-import { state } from '../state';
+import { materialSystem } from '../MaterialSystem';
 
 export class Laser extends Entity {
   public readonly mesh: THREE.Mesh;
@@ -17,16 +17,16 @@ export class Laser extends Entity {
     this.target2D = target2D.clone();
     this.color = color;
 
-    const intensity = (state.debugLaserBloom ?? GameConfig.laser.bloom) ? 2.0 : 1.0;
-
     // A simple quad centered at origin, pointing up (+Y)
     const geometry = new THREE.PlaneGeometry(1, 1);
     const material = new THREE.MeshBasicMaterial({ 
-      color: new THREE.Color(this.color).multiplyScalar(intensity),
+      color: this.color,
       transparent: true,
       opacity: 1.0,
       depthTest: false
     });
+
+    materialSystem.register(material, 'Laser', this.color);
     
     this.mesh = new THREE.Mesh(geometry, material);
     
@@ -80,12 +80,17 @@ export class Laser extends Entity {
     return this.progress >= 1.0;
   }
 
-  public dispose(): void {
-    this.mesh.geometry.dispose();
-    if (Array.isArray(this.mesh.material)) {
-      this.mesh.material.forEach(m => m.dispose());
-    } else {
-      this.mesh.material.dispose();
+    public dispose(): void {
+      this.mesh.geometry.dispose();
+      if (Array.isArray(this.mesh.material)) {
+        this.mesh.material.forEach(m => {
+          materialSystem.unregister(m);
+          m.dispose();
+        });
+      } else {
+        materialSystem.unregister(this.mesh.material);
+        this.mesh.material.dispose();
+      }
     }
   }
-}
+  

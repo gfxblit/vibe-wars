@@ -16,7 +16,8 @@ describe('SparkleVisual', () => {
       size,
       color,
       explosionVelocity,
-      texture
+      texture,
+      category: 'Fireball'
     });
   });
 

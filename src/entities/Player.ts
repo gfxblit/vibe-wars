@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { Entity } from './Entity';
 import { GameConfig } from '../config';
 import { UserInput } from '../input';
-import { state } from '../state';
+import { materialSystem } from '../MaterialSystem';
 
 export interface PlayerUpdateOptions {
   lockUpright?: boolean;
@@ -33,8 +33,15 @@ export class Player extends Entity {
     this.visualMesh = new THREE.LineSegments(edges, material);
     this.visualMesh.visible = false;
 
+    materialSystem.register(material, 'Player', GameConfig.player.meshColor);
+
     this.mesh.add(this.visualMesh);
     this.position.set(0, 0, 0);
+  }
+
+  public dispose(): void {
+    materialSystem.unregister(this.visualMesh.material as THREE.Material);
+    (this.visualMesh.material as THREE.Material).dispose();
   }
 
   public update(
@@ -45,8 +52,6 @@ export class Player extends Entity {
     options?: PlayerUpdateOptions
   ): void {
     this.visualMesh.visible = showChassis;
-    const intensity = (state.debugPlayerBloom ?? GameConfig.player.bloom) ? 2.0 : 1.0;
-    (this.visualMesh.material as THREE.LineBasicMaterial).color.setHex(GameConfig.player.meshColor).multiplyScalar(intensity);
 
     // Relative turning amounts
     const yawAmount = -input.x * GameConfig.player.turnSpeedYaw * deltaTime;
