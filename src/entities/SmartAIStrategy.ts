@@ -38,7 +38,7 @@ export class SmartAIStrategy implements AIStrategy {
     if (!debug) return GameConfig.tieFighter.meshColor;
     if (this.stage === 'ESCAPE') return 0xffff00; // Yellow for Escape
     if (this.stage === 'SHADOW') return 0x00ffff; // Cyan for Shadow
-    return GameConfig.tieFighter.meshColor; // Red for Approach
+    return GameConfig.tieFighter.meshColor; // Green for Approach
   }
 
   update(
