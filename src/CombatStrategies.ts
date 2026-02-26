@@ -108,6 +108,21 @@ abstract class BaseCombatStrategy implements CombatStrategy {
       }
     });
   }
+
+  protected launchTorpedo(input: UserInput, camera: THREE.Camera) {
+    if (!state.player) return;
+
+    const position = state.player.position.clone();
+    const targetPoint = new THREE.Vector3(input.x, input.y, 0.5);
+    targetPoint.unproject(camera);
+    
+    camera.getWorldPosition(this.tempVector3);
+    const direction = new THREE.Vector3().subVectors(targetPoint, this.tempVector3).normalize();
+    const stageSpeed = state.stageManager?.getStage()?.speed ?? this.config.baseForwardSpeed;
+    const velocity = direction.multiplyScalar(stageSpeed * this.config.torpedoSpeedMultiplier);
+
+    spawnTorpedo(position, velocity);
+  }
 }
 
 export class DogfightCombatStrategy extends BaseCombatStrategy {
@@ -153,20 +168,5 @@ export class TrenchCombatStrategy extends BaseCombatStrategy {
 
       this.wasFiring = input.isFiring;
     }
-  }
-
-  private launchTorpedo(input: UserInput, camera: THREE.Camera) {
-    if (!state.player) return;
-
-    const position = state.player.position.clone();
-    const targetPoint = new THREE.Vector3(input.x, input.y, 0.5);
-    targetPoint.unproject(camera);
-    
-    camera.getWorldPosition(this.tempVector3);
-    const direction = new THREE.Vector3().subVectors(targetPoint, this.tempVector3).normalize();
-    const stageSpeed = state.stageManager?.getStage()?.speed ?? this.config.baseForwardSpeed;
-    const velocity = direction.multiplyScalar(stageSpeed * this.config.torpedoSpeedMultiplier);
-
-    spawnTorpedo(position, velocity);
   }
 }

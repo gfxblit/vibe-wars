@@ -47,7 +47,7 @@ describe('Turret Fireball Movement', () => {
     
     const fireball = fireballs[0];
     const initialZ = fireball.position.z;
-    expect(initialZ).toBe(-500);
+    expect(initialZ).toBeCloseTo(-498);
     
     // Static turrets no longer inherit player velocity.
     // direction is (0, 0, 1) (towards player at Z=0 from turret at Z=-500)

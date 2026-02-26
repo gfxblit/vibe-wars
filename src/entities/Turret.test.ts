@@ -120,6 +120,24 @@ describe('Turret Entity', () => {
     expect(turret.getFireballSize()).toBeGreaterThan(0);
   });
 
+  it('should allow configuring fireball size and speed', () => {
+    const customSize = 50.0;
+    const customFireballSize = 100.0;
+    const customFireballSpeed = 500.0;
+    const t = new Turret(initialPosition, customSize, customFireballSize, customFireballSpeed);
+    
+    expect(t.getFireballSize()).toBe(customFireballSize);
+    expect(t.getFireballSpeed()).toBe(customFireballSpeed);
+  });
+
+  it('should return multiple target positions', () => {
+    const turret = new Turret(new THREE.Vector3(0, 0, 0), 10);
+    const targets = turret.getTargetPositions(new THREE.Vector3());
+    expect(targets.length).toBeGreaterThan(0);
+    // At least the base position
+    expect(targets[0].length()).toBe(0);
+  });
+
   it('should dispose resources correctly', () => {
     const materialDisposeSpy = vi.spyOn((turret as any).material, 'dispose');
     
@@ -164,5 +182,27 @@ describe('Turret Entity', () => {
     expect(fire).not.toBeNull();
     expect((turret as any).fireCooldown).toBeCloseTo(scaledRate, 2);
     expect(turret.getFireballSpeed()).toBe(112);
+  });
+
+  it('should detect collision with player box', () => {
+    const playerBox = new THREE.Box3(
+      new THREE.Vector3(-1, -1, -1),
+      new THREE.Vector3(1, 1, 1)
+    );
+    
+    // Position turret to collide
+    turret.mesh.position.set(0, 0, 0);
+    
+    // Check if checkCollision exists and works
+    expect((turret as any).checkCollision(playerBox)).toBe(true);
+    
+    // Move turret away
+    turret.mesh.position.set(100, 100, 100);
+    expect((turret as any).checkCollision(playerBox)).toBe(false);
+
+    // Exploded turret should not collide
+    turret.mesh.position.set(0, 0, 0);
+    turret.explode();
+    expect((turret as any).checkCollision(playerBox)).toBe(false);
   });
 });

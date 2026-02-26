@@ -1,26 +1,11 @@
 import * as THREE from 'three';
 import { Entity } from './Entity';
 import { GameConfig } from '../config';
-import { Tower } from './Tower';
-import { state } from '../state';
-
-export interface CollisionResult {
-  floorHit: boolean;
-  towerHit: Tower | null;
-}
-
-export interface SurfaceUpdateResult {
-  spawned: Tower[];
-  removed: Tower[];
-}
 
 export class Surface extends Entity {
   public mesh: THREE.Group;
-  private towers: Tower[] = [];
   private floor: THREE.Group;
-  private nextTowerSpawnTime: number = 0;
-  private elapsedTime: number = 0;
-  private collisionResult: CollisionResult = { floorHit: false, towerHit: null };
+  private gridMesh?: THREE.LineSegments;
 
   private currentVerticalLineHeight: number = 0;
   private currentVerticalLineNoise: number = 0;
@@ -41,7 +26,6 @@ export class Surface extends Entity {
 
     this.createFloor();
     this.mesh.add(this.floor);
-    this.nextTowerSpawnTime = 0;
   }
 
   private pseudoRandom(x: number, z: number): number {
@@ -60,14 +44,6 @@ export class Surface extends Entity {
     // Grid size should be enough to cover the camera's far plane in all directions.
     const halfSize = far + surfaceGridSpacing * 2;
     
-    const material = new THREE.LineBasicMaterial({ 
-        color: surfaceColor, 
-        opacity: 1.0,
-        transparent: false 
-    });
-    
-    const points: THREE.Vector3[] = [];
-    
     const xStart = -halfSize;
     const xEnd = halfSize;
     const zStart = halfSize;
@@ -76,6 +52,8 @@ export class Surface extends Entity {
     const floorX = this.floor.position.x;
     const floorZ = this.floor.position.z;
 
+    const points: number[] = [];
+    
     for (let x = xStart; x <= xEnd; x += surfaceGridSpacing) {
         for (let z = zStart; z >= zEnd; z -= surfaceGridSpacing) {
             // World grid indices
@@ -94,27 +72,27 @@ export class Surface extends Entity {
             const px = x + jx;
             const pz = z + jz;
             
-            points.push(new THREE.Vector3(px, 0, pz));
-            points.push(new THREE.Vector3(px, height, pz));
+            points.push(px, 0, pz);
+            points.push(px, height, pz);
         }
     }
     
-    const geometry = new THREE.BufferGeometry().setFromPoints(points);
-    const gridMesh = new THREE.LineSegments(geometry, material);
-    
-    gridMesh.position.y = surfaceFloorY;
-    
-    // Clear existing floor children
-    while (this.floor.children.length > 0) {
-        const child = this.floor.children[0] as THREE.LineSegments;
-        child.geometry.dispose();
-        if (child.material instanceof THREE.Material) {
-            child.material.dispose();
-        }
-        this.floor.remove(child);
+    if (!this.gridMesh) {
+        const geometry = new THREE.BufferGeometry();
+        const material = new THREE.LineBasicMaterial({ 
+            color: surfaceColor, 
+            opacity: 1.0,
+            transparent: false 
+        });
+        this.gridMesh = new THREE.LineSegments(geometry, material);
+        this.gridMesh.position.y = surfaceFloorY;
+        this.floor.add(this.gridMesh);
     }
 
-    this.floor.add(gridMesh);
+    const geometry = this.gridMesh.geometry;
+    geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(points), 3));
+    
+    geometry.computeBoundingSphere();
   }
 
   public updateGridSettings(height: number, noise: number, density: number): void {
@@ -128,14 +106,7 @@ export class Surface extends Entity {
     }
   }
 
-  public update(deltaTime: number, playerPosition: THREE.Vector3): SurfaceUpdateResult {
-    const result: SurfaceUpdateResult = {
-      spawned: [],
-      removed: []
-    };
-
-    this.elapsedTime += deltaTime;
-    const playerZ = playerPosition.z;
+  public update(_deltaTime: number, playerPosition: THREE.Vector3): void {
     const spacing = GameConfig.stages.surface.gridSpacing;
 
     // Update floor position to follow player with snapping
@@ -147,91 +118,19 @@ export class Surface extends Entity {
         this.floor.position.z = newFloorZ;
         this.createFloor(); // Regenerate with new world-aligned jitter/density
     }
-    
-    // Spawn Towers
-    if (this.elapsedTime >= this.nextTowerSpawnTime) {
-      const tower = this.spawnTower(playerPosition.x, playerZ);
-      result.spawned.push(tower);
-      
-      const { towerSpawnInterval } = GameConfig.stages.surface;
-      const multiplier = GameConfig.getDifficultyMultiplier(state.wave);
-      const scaledInterval = GameConfig.getScaledInterval(towerSpawnInterval, multiplier);
-      const interval = scaledInterval * (0.8 + Math.random() * 0.4);
-      this.nextTowerSpawnTime = this.elapsedTime + interval;
-    }
-
-    // Update Towers and Cleanup
-    for (let i = this.towers.length - 1; i >= 0; i--) {
-        const tower = this.towers[i];
-        
-        // Cleanup passed towers
-        if (tower.mesh.position.z > playerZ + GameConfig.stages.surface.towerCleanupDistance) {
-            result.removed.push(tower);
-            this.removeTower(i);
-            continue;
-        }
-    }
-
-    return result;
   }
 
-  private spawnTower(playerX: number, playerZ: number): Tower {
-     const { width: surfaceWidth, floorY: surfaceFloorY, towerSpawnDistance, towerMarginX } = GameConfig.stages.surface;
-     
-     const spawnZ = playerZ - towerSpawnDistance; 
-     
-     const rangeX = surfaceWidth / 2 - towerMarginX; 
-     const x = playerX + (Math.random() * 2 - 1) * rangeX;
-     
-     const tower = new Tower(new THREE.Vector3(x, surfaceFloorY, spawnZ));
-     this.towers.push(tower);
-     this.mesh.add(tower.mesh);
-
-     return tower;
-  }
-
-  private removeTower(index: number): void {
-      const tower = this.towers[index];
-      if (tower) {
-        this.mesh.remove(tower.mesh);
-        tower.dispose();
-        this.towers.splice(index, 1);
-      }
-  }
-
-
-  public checkCollisions(playerBox: THREE.Box3, playerPosition: THREE.Vector3): CollisionResult {
-      const { floorY: surfaceFloorY } = GameConfig.stages.surface;
-      // Player Y is center of ship. Ship size is roughly 1.
-      this.collisionResult.floorHit = playerPosition.y - 1 < surfaceFloorY;
-      this.collisionResult.towerHit = null;
-
-      for (const tower of this.towers) {
-          if (tower.checkCollision(playerBox)) {
-              this.collisionResult.towerHit = tower;
-              break; 
-          }
-      }
-      return this.collisionResult;
-  }
-
-  public getTowers(): Tower[] {
-      return this.towers;
+  public checkFloorCollision(playerPosition: THREE.Vector3): boolean {
+    const { floorY: surfaceFloorY } = GameConfig.stages.surface;
+    return playerPosition.y - 1 < surfaceFloorY;
   }
 
   public dispose(): void {
-    if (this.floor) {
-        this.floor.traverse(child => {
-            if (child instanceof THREE.Mesh || child instanceof THREE.LineSegments) {
-                child.geometry.dispose();
-                if (child.material instanceof THREE.Material) {
-                    child.material.dispose();
-                }
-            }
-        });
-    }
-    while (this.towers.length > 0) {
-      this.removeTower(0);
+    if (this.gridMesh) {
+        this.gridMesh.geometry.dispose();
+        if (this.gridMesh.material instanceof THREE.Material) {
+            this.gridMesh.material.dispose();
+        }
     }
   }
 }

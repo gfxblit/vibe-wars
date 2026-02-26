@@ -166,4 +166,21 @@ describe('SurfaceCombatStrategy', () => {
     expect(tower.isExploded).toBe(true);
     expect(state.score).toBeGreaterThan(initialScore);
   });
+
+  it('does not fire torpedo when aiming at tower', () => {
+    state.entityManager!.clear();
+    const tower = new Tower(new THREE.Vector3(0, 0, -50));
+    state.entityManager!.addTarget(tower);
+    state.stage = 'SURFACE';
+    
+    const input = { x: 0, y: 0, isFiring: true };
+    
+    // Mock checkAim to return true for this target
+    vi.mocked(checkAim).mockReturnValue(true);
+
+    strategy.update(0.01, input, camera);
+
+    expect(StateModule.spawnTorpedo).not.toHaveBeenCalled();
+    expect(state.canFireTorpedo).toBe(false);
+  });
 });
