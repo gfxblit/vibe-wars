@@ -27,6 +27,7 @@ export class Player extends Entity {
       GameConfig.player.meshSize
     );
     const edges = new THREE.EdgesGeometry(geometry);
+    geometry.dispose();
     const material = new THREE.LineBasicMaterial({ color: GameConfig.player.meshColor });
     this.visualMesh = new THREE.LineSegments(edges, material);
     this.visualMesh.visible = false;

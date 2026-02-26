@@ -45,11 +45,15 @@ export class TieFighter extends Entity implements Targetable {
     }
 
     if (!TieFighter.bodyGeo) {
-      TieFighter.bodyGeo = new THREE.EdgesGeometry(new THREE.SphereGeometry(size / 3, 8, 8));
+      const tempBodyGeo = new THREE.SphereGeometry(size / 3, 8, 8);
+      TieFighter.bodyGeo = new THREE.EdgesGeometry(tempBodyGeo);
+      tempBodyGeo.dispose();
     }
 
     if (!TieFighter.wingGeo) {
-      TieFighter.wingGeo = new THREE.EdgesGeometry(new THREE.PlaneGeometry(size, size));
+      const tempWingGeo = new THREE.PlaneGeometry(size, size);
+      TieFighter.wingGeo = new THREE.EdgesGeometry(tempWingGeo);
+      tempWingGeo.dispose();
     }
 
     // Body

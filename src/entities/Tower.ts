@@ -90,7 +90,9 @@ export class Tower extends Entity implements Targetable {
       const topHeight = towerHeight * 0.2;
   
       // Base
-      const baseGeo = new THREE.EdgesGeometry(new THREE.BoxGeometry(towerWidth, baseHeight, towerWidth));
+      const tempBaseGeo = new THREE.BoxGeometry(towerWidth, baseHeight, towerWidth);
+      const baseGeo = new THREE.EdgesGeometry(tempBaseGeo);
+      tempBaseGeo.dispose();
       this.baseMaterial = new THREE.LineBasicMaterial({ 
         color: towerColor
       });
@@ -101,7 +103,9 @@ export class Tower extends Entity implements Targetable {
       this.debris.push({ mesh: base, velocity: new THREE.Vector3() });
   
       // Top
-      const topGeo = new THREE.EdgesGeometry(new THREE.BoxGeometry(towerWidth * 0.8, topHeight, towerWidth * 0.8));
+      const tempTopGeo = new THREE.BoxGeometry(towerWidth * 0.8, topHeight, towerWidth * 0.8);
+      const topGeo = new THREE.EdgesGeometry(tempTopGeo);
+      tempTopGeo.dispose();
       this.topMaterial = new THREE.LineBasicMaterial({ 
         color: towerTopColor
       });
