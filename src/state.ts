@@ -11,6 +11,8 @@ import { GameConfig } from './config';
 import { EntityManager } from './entities/EntityManager';
 import { StageManager } from './StageManager';
 import { AudioManager } from './AudioManager';
+import { AudioSystem } from './AudioSystem';
+import { globalEvents } from './EventBus';
 
 export type GameStage = 'DOGFIGHT' | 'SURFACE' | 'TRENCH' | 'EXPLOSION';
 
@@ -32,6 +34,7 @@ export interface GameState {
   entityManager: EntityManager | null;
   stageManager: StageManager | null;
   audioManager: AudioManager | null;
+  audioSystem: AudioSystem | null;
   viewport: Viewport;
   gunColorToggles: boolean[];
   debug: boolean;
@@ -68,6 +71,7 @@ export const state: GameState = {
   entityManager: null,
   stageManager: null,
   audioManager: null,
+  audioSystem: null,
   viewport: {
     width: initialWidth,
     height: initialHeight,
@@ -125,6 +129,9 @@ export function initGame(worldScene: THREE.Scene, hudScene: THREE.Scene) {
   if (!state.audioManager) {
     state.audioManager = new AudioManager();
     state.audioManager.init().catch(console.error);
+    
+    state.audioSystem = new AudioSystem(state.audioManager, globalEvents);
+    state.audioSystem.init();
   }
 
   state.player = new Player();
