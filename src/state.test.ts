@@ -32,6 +32,7 @@ describe('Game State', () => {
     expect(state.isSmartAI).toBe(true);
     expect(state.isModeColoring).toBe(false);
     expect(state.debugKillsThreshold).toBeUndefined();
+    expect(state.debugSurfaceTurretDensity).toBeUndefined();
   })
 
   test('spawnLasers creates at least 2 lasers and alternates colors', () => {

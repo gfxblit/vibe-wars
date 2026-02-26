@@ -180,7 +180,7 @@ describe('SurfaceStage', () => {
 
   it('should damage player if they hit a turret', () => {
     // Force turret spawn
-    vi.mocked(Math.random).mockReturnValue(GameConfig.stages.surface.turretSpawnProbability - 0.01);
+    vi.mocked(Math.random).mockReturnValue(GameConfig.stages.surface.turretDensity - 0.01);
     
     stage = new SurfaceStage(scene, vi.fn());
     const player = state.player as Player;

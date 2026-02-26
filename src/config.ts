@@ -97,7 +97,7 @@ export const GameConfig = deepFreeze({
       towerExplosionColor: 0xffa500,
       towerDebrisRotationSpeed: 2.0,
       turretSize: 15,
-      turretSpawnProbability: 0.3,
+      turretDensity: 0.3,
     },
     trench: {
       transitionDistance: 100,
