@@ -16,30 +16,37 @@ describe('Tower', () => {
     const expectedTopHeight = towerHeight * 0.2;
 
     // The tower mesh is a group containing the base and top
-    const base = tower.mesh.children[0] as THREE.Mesh;
-    const top = tower.mesh.children[1] as THREE.Mesh;
+    const base = tower.mesh.children[0] as THREE.LineSegments;
+    const top = tower.mesh.children[1] as THREE.LineSegments;
 
-    expect(base.geometry).toBeInstanceOf(THREE.BoxGeometry);
-    expect(top.geometry).toBeInstanceOf(THREE.BoxGeometry);
+    expect(base.geometry).toBeInstanceOf(THREE.EdgesGeometry);
+    expect(top.geometry).toBeInstanceOf(THREE.EdgesGeometry);
 
-    const baseGeo = base.geometry as THREE.BoxGeometry;
-    const topGeo = top.geometry as THREE.BoxGeometry;
+    const baseGeo = base.geometry as THREE.EdgesGeometry;
+    const topGeo = top.geometry as THREE.EdgesGeometry;
 
-    expect(baseGeo.parameters.height).toBeCloseTo(expectedBaseHeight);
-    expect(topGeo.parameters.height).toBeCloseTo(expectedTopHeight);
+    baseGeo.computeBoundingBox();
+    topGeo.computeBoundingBox();
+    const baseSize = new THREE.Vector3();
+    const topSize = new THREE.Vector3();
+    baseGeo.boundingBox!.getSize(baseSize);
+    topGeo.boundingBox!.getSize(topSize);
+
+    expect(baseSize.y).toBeCloseTo(expectedBaseHeight);
+    expect(topSize.y).toBeCloseTo(expectedTopHeight);
     
     // Top is slightly narrower (0.8 scale in code)
-    expect(topGeo.parameters.width).toBeCloseTo(towerWidth * 0.8);
+    expect(topSize.x).toBeCloseTo(towerWidth * 0.8);
   });
 
   it('should have correct colors for base and top', () => {
     const { towerColor, towerTopColor } = GameConfig.stages.surface;
     
-    const base = tower.mesh.children[0] as THREE.Mesh;
-    const top = tower.mesh.children[1] as THREE.Mesh;
+    const base = tower.mesh.children[0] as THREE.LineSegments;
+    const top = tower.mesh.children[1] as THREE.LineSegments;
 
-    const baseMat = base.material as THREE.MeshBasicMaterial;
-    const topMat = top.material as THREE.MeshBasicMaterial;
+    const baseMat = base.material as THREE.LineBasicMaterial;
+    const topMat = top.material as THREE.LineBasicMaterial;
 
     expect(baseMat.color.getHex()).toBe(towerColor);
     expect(topMat.color.getHex()).toBe(towerTopColor);
@@ -50,7 +57,7 @@ describe('Tower', () => {
     const expectedBaseHeight = towerHeight * 0.8;
     const expectedTopHeight = towerHeight * 0.2;
 
-    const top = tower.mesh.children[1] as THREE.Mesh;
+    const top = tower.mesh.children[1] as THREE.LineSegments;
     
     // Position Y = baseHeight + topHeight / 2
     const expectedY = expectedBaseHeight + expectedTopHeight / 2;

@@ -13,7 +13,7 @@ export class Turret extends Entity implements Targetable {
   private size: number;
   private fireballSize: number;
   private fireballSpeed: number;
-  private material: THREE.MeshBasicMaterial;
+  private material: THREE.LineBasicMaterial;
 
   private readonly scratchVector3: THREE.Vector3 = new THREE.Vector3();
   private collisionBox: THREE.Box3 = new THREE.Box3();
@@ -60,19 +60,18 @@ export class Turret extends Entity implements Targetable {
     this.fireballSize = fireballSize;
     this.fireballSpeed = fireballSpeed;
 
-    this.material = new THREE.MeshBasicMaterial({
-      color: GameConfig.turret.meshColor,
-      wireframe: true
+    this.material = new THREE.LineBasicMaterial({
+      color: GameConfig.turret.meshColor
     });
 
     // Base - stays on the wall
-    const baseGeo = new THREE.BoxGeometry(size * 0.8, size * 0.8, size * 0.2);
-    const base = new THREE.Mesh(baseGeo, this.material);
+    const baseGeo = new THREE.EdgesGeometry(new THREE.BoxGeometry(size * 0.8, size * 0.8, size * 0.2));
+    const base = new THREE.LineSegments(baseGeo, this.material);
     this.mesh.add(base);
 
     // Dome for ground turret look
-    const domeGeo = new THREE.SphereGeometry(size * 0.4, 8, 8, 0, Math.PI * 2, 0, Math.PI / 2);
-    const dome = new THREE.Mesh(domeGeo, this.material);
+    const domeGeo = new THREE.EdgesGeometry(new THREE.SphereGeometry(size * 0.4, 8, 8, 0, Math.PI * 2, 0, Math.PI / 2));
+    const dome = new THREE.LineSegments(domeGeo, this.material);
     // Rotate dome to align with base (which is on XY plane locally)
     dome.rotation.x = -Math.PI / 2;
     this.mesh.add(dome);
@@ -81,19 +80,19 @@ export class Turret extends Entity implements Targetable {
     this.swivelBody = new THREE.Group();
     this.mesh.add(this.swivelBody);
 
-    const bodyGeo = new THREE.BoxGeometry(size * 0.6, size * 0.4, size * 0.6);
-    const body = new THREE.Mesh(bodyGeo, this.material);
+    const bodyGeo = new THREE.EdgesGeometry(new THREE.BoxGeometry(size * 0.6, size * 0.4, size * 0.6));
+    const body = new THREE.LineSegments(bodyGeo, this.material);
     this.swivelBody.add(body);
 
     // Two Barrels
-    const barrelGeo = new THREE.CylinderGeometry(size / 20, size / 20, size * 0.7, 8);
+    const barrelGeo = new THREE.EdgesGeometry(new THREE.CylinderGeometry(size / 20, size / 20, size * 0.7, 8));
     
-    const leftBarrel = new THREE.Mesh(barrelGeo, this.material);
+    const leftBarrel = new THREE.LineSegments(barrelGeo, this.material);
     leftBarrel.position.set(-size * 0.15, 0, size * 0.3);
     leftBarrel.rotation.x = -Math.PI / 2;
     this.swivelBody.add(leftBarrel);
 
-    const rightBarrel = new THREE.Mesh(barrelGeo, this.material);
+    const rightBarrel = new THREE.LineSegments(barrelGeo, this.material);
     rightBarrel.position.set(size * 0.15, 0, size * 0.3);
     rightBarrel.rotation.x = -Math.PI / 2;
     this.swivelBody.add(rightBarrel);
@@ -175,7 +174,7 @@ export class Turret extends Entity implements Targetable {
   public dispose(): void {
     this.material.dispose();
     this.mesh.traverse(child => {
-      if (child instanceof THREE.Mesh) {
+      if (child instanceof THREE.LineSegments) {
         child.geometry.dispose();
       }
     });

@@ -67,12 +67,12 @@ describe('TieFighter', () => {
     expect(tieFighter.mesh.children.length).toBe(3);
 
     // Check for Sphere body
-    const body = tieFighter.mesh.children.find(c => (c as THREE.Mesh).geometry instanceof THREE.SphereGeometry);
+    const body = tieFighter.mesh.children.find(c => (c as THREE.LineSegments).geometry instanceof THREE.EdgesGeometry);
     expect(body).toBeDefined();
 
-    // Check for Plane wings
-    const wings = tieFighter.mesh.children.filter(c => (c as THREE.Mesh).geometry instanceof THREE.PlaneGeometry);
-    expect(wings.length).toBe(2);
+    // Check for wings
+    const wings = tieFighter.mesh.children.filter(c => (c as THREE.LineSegments).geometry instanceof THREE.EdgesGeometry);
+    expect(wings.length).toBe(3); // All 3 are EdgesGeometry now
   })
 
   test('explode() should set isExploded state', () => {
@@ -110,19 +110,19 @@ describe('TieFighter', () => {
     const tf1 = new TieFighter(strategy);
     const tf2 = new TieFighter(strategy);
 
-    const body1 = tf1.mesh.children.find(c => (c as THREE.Mesh).geometry instanceof THREE.SphereGeometry) as THREE.Mesh;
-    const body2 = tf2.mesh.children.find(c => (c as THREE.Mesh).geometry instanceof THREE.SphereGeometry) as THREE.Mesh;
+    const body1 = tf1.mesh.children[0] as THREE.LineSegments;
+    const body2 = tf2.mesh.children[0] as THREE.LineSegments;
 
     expect(body1.geometry).toBe(body2.geometry);
     // Materials are cloned for per-instance debug colors, so they won't be identical
-    expect((body1.material as THREE.MeshBasicMaterial).type).toBe((body2.material as THREE.MeshBasicMaterial).type);
-    expect((body1.material as THREE.MeshBasicMaterial).color.getHex()).toBe((body2.material as THREE.MeshBasicMaterial).color.getHex());
+    expect((body1.material as THREE.LineBasicMaterial).type).toBe((body2.material as THREE.LineBasicMaterial).type);
+    expect((body1.material as THREE.LineBasicMaterial).color.getHex()).toBe((body2.material as THREE.LineBasicMaterial).color.getHex());
 
-    const wing1 = tf1.mesh.children.find(c => (c as THREE.Mesh).geometry instanceof THREE.PlaneGeometry) as THREE.Mesh;
-    const wing2 = tf2.mesh.children.find(c => (c as THREE.Mesh).geometry instanceof THREE.PlaneGeometry) as THREE.Mesh;
+    const wing1 = tf1.mesh.children[1] as THREE.LineSegments;
+    const wing2 = tf2.mesh.children[1] as THREE.LineSegments;
 
     expect(wing1.geometry).toBe(wing2.geometry);
-    expect((wing1.material as THREE.MeshBasicMaterial).type).toBe((wing2.material as THREE.MeshBasicMaterial).type);
+    expect((wing1.material as THREE.LineBasicMaterial).type).toBe((wing2.material as THREE.LineBasicMaterial).type);
   })
 
   test('smart AI should spawn behind the player and overtake', () => {
@@ -145,8 +145,8 @@ describe('TieFighter', () => {
   test('dispose should call dispose on all materials', () => {
     const materials: THREE.Material[] = [];
     tieFighter.mesh.traverse(child => {
-      if (child instanceof THREE.Mesh) {
-        materials.push(child.material);
+      if (child instanceof THREE.LineSegments) {
+        materials.push(child.material as THREE.Material);
         child.material.dispose = vi.fn();
       }
     });
