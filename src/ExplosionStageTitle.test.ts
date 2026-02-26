@@ -29,6 +29,7 @@ describe('ExplosionStageTitle', () => {
       player: null,
       entityManager: null,
       stageManager: mockStageManager,
+      audioManager: null,
       viewport: {
         width: 1024,
         height: 768,

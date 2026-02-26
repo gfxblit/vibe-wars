@@ -15,6 +15,17 @@ initGame(scene, hudScene)
 
 const uiManager = new UIManager()
 
+// Resume audio on first interaction
+const resumeAudio = () => {
+  state.audioManager?.resume();
+  window.removeEventListener('click', resumeAudio);
+  window.removeEventListener('keydown', resumeAudio);
+  window.removeEventListener('touchstart', resumeAudio);
+};
+window.addEventListener('click', resumeAudio);
+window.addEventListener('keydown', resumeAudio);
+window.addEventListener('touchstart', resumeAudio);
+
 const inputManager = new InputManager()
 inputManager.setup()
 

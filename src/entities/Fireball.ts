@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { Entity } from './Entity';
 import { GameConfig } from '../config';
 import { SparkleVisual } from './SparkleVisual';
+import { state } from '../state';
 
 export class Fireball extends Entity {
   mesh: THREE.Group;
@@ -70,6 +71,7 @@ export class Fireball extends Entity {
   explode(): void {
     if (this.isExploded) return;
     this.isExploded = true;
+    state.audioManager?.playExplosion(this.position);
     this.visual.explode();
   }
 

@@ -60,6 +60,7 @@ export class Tower extends Entity implements Targetable {
     public explode(): void {
       if (this._isExploded) return;
       this._isExploded = true;
+      state.audioManager?.playExplosion(this.position);
       const { towerExplosionColor, towerExplosionVelocity } = GameConfig.stages.surface;
       this.baseMaterial.color.setHex(towerExplosionColor);
       this.topMaterial.color.setHex(towerExplosionColor);

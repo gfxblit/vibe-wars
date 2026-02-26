@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { Entity } from './Entity';
 import { GameConfig } from '../config';
+import { state } from '../state';
 
 export class DeathStar extends Entity {
   public mesh: THREE.Group;
@@ -208,6 +209,7 @@ export class DeathStar extends Entity {
   explode(): void {
     if (this.isExploded) return;
     this.isExploded = true;
+    state.audioManager?.playExplosion(this.position);
 
     this.mesh.children.forEach(() => {
       // Random velocity

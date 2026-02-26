@@ -6,6 +6,7 @@ import { state } from '../state';
 
 export class TieFighter extends Entity implements Targetable {
   public readonly mesh: THREE.Group;
+  public readonly previousPosition: THREE.Vector3 = new THREE.Vector3();
   private strategy: AIStrategy;
 
   public isExploded: boolean = false;
@@ -74,6 +75,7 @@ export class TieFighter extends Entity implements Targetable {
   public explode(): void {
     if (this.isExploded) return;
     this.isExploded = true;
+    state.audioManager?.playExplosion(this.position);
 
     // Generate random velocities for each piece
     this.mesh.children.forEach(() => {
@@ -96,6 +98,7 @@ export class TieFighter extends Entity implements Targetable {
     overrideSize?: number,
     overrideColor?: number
   ): THREE.Vector3 | null {
+    this.previousPosition.copy(this.mesh.position);
     if (this.isExploded) {
       // Move pieces
       this.mesh.children.forEach((child, index) => {

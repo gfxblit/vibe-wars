@@ -101,6 +101,7 @@ export class Turret extends Entity implements Targetable {
   public explode(): void {
     if (this.isExploded) return;
     this.isExploded = true;
+    state.audioManager?.playExplosion(this.position);
 
     // Change color to orange
     this.material.color.setHex(0xffa500);

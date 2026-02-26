@@ -52,6 +52,21 @@ export class EntityManager {
         this.spawnFireballFromTarget(tf, fireDirection, playerQuaternion, playerSpeed);
       }
 
+      // Flyby SFX logic
+      if (!tf.isExploded) {
+        const prevRelZ = tf.previousPosition.z - playerPosition.z;
+        const currRelZ = tf.position.z - playerPosition.z;
+        // Check if it crossed the player's Z-plane (from either direction)
+        if ((prevRelZ > 0 && currRelZ <= 0) || (prevRelZ < 0 && currRelZ >= 0)) {
+          const lateralDistSq = 
+            Math.pow(tf.position.x - playerPosition.x, 2) + 
+            Math.pow(tf.position.y - playerPosition.y, 2);
+          if (lateralDistSq < 2500) { // 50 units distance threshold (squared)
+            state.audioManager?.playTieFlyby(tf.position);
+          }
+        }
+      }
+
       // Cleanup distant TIE fighters
       const distance = tf.position.distanceTo(playerPosition);
       if (distance > GameConfig.tieFighter.cleanupDistance) {
@@ -211,6 +226,7 @@ export class EntityManager {
     }
     
     this.spawnFireball(this.scratchFireballPos, this.scratchTotalVelocity, size);
+    state.audioManager?.playEnemyLaser(this.scratchFireballPos);
   }
 
   public setSpawningEnabled(enabled: boolean): void {
@@ -237,6 +253,7 @@ export class EntityManager {
     const laser = new Laser(origin2D, target2D, color);
     this.lasers.push(laser);
     this.hudScene.add(laser.mesh);
+    state.audioManager?.playPlayerLaser();
     return laser;
   }
 

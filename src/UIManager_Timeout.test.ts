@@ -23,6 +23,7 @@ describe('UIManager Timeout Management', () => {
       player: null,
       entityManager: null,
       stageManager: null,
+      audioManager: null,
       viewport: {
         width: 1024,
         height: 768,

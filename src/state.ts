@@ -10,6 +10,7 @@ import { Fireball } from './entities/Fireball';
 import { GameConfig } from './config';
 import { EntityManager } from './entities/EntityManager';
 import { StageManager } from './StageManager';
+import { AudioManager } from './AudioManager';
 
 export type GameStage = 'DOGFIGHT' | 'SURFACE' | 'TRENCH' | 'EXPLOSION';
 
@@ -30,6 +31,7 @@ export interface GameState {
   player: Player | null;
   entityManager: EntityManager | null;
   stageManager: StageManager | null;
+  audioManager: AudioManager | null;
   viewport: Viewport;
   gunColorToggles: boolean[];
   debug: boolean;
@@ -65,6 +67,7 @@ export const state: GameState = {
   player: null,
   entityManager: null,
   stageManager: null,
+  audioManager: null,
   viewport: {
     width: initialWidth,
     height: initialHeight,
@@ -118,6 +121,11 @@ export function initGame(worldScene: THREE.Scene, hudScene: THREE.Scene) {
   state.debugSurfaceVerticalLineHeight = undefined;
   state.debugSurfaceVerticalLineNoise = undefined;
   state.debugSurfaceVerticalLineDensity = undefined;
+
+  if (!state.audioManager) {
+    state.audioManager = new AudioManager();
+    state.audioManager.init().catch(console.error);
+  }
 
   state.player = new Player();
 
