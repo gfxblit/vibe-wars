@@ -50,6 +50,12 @@ describe('GameConfig', () => {
     expect(GameConfig.audio.assets.tieFighter).toBeDefined();
   });
 
+  test('should have bloom settings', () => {
+    expect(GameConfig.bloom.threshold).toBe(0);
+    expect(GameConfig.bloom.strength).toBe(1.5);
+    expect(GameConfig.bloom.radius).toBe(0.4);
+  });
+
   test('should have laser settings', () => {
     expect(GameConfig.laser.speed).toBe(2000);
     expect(GameConfig.laser.cooldown).toBe(0.15);

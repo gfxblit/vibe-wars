@@ -3,7 +3,7 @@
  */
 import { expect, test, describe, vi } from 'vitest'
 import * as THREE from 'three'
-import { attachCameraToPlayer, initRenderer } from './renderer'
+import { attachCameraToPlayer, initRenderer, render } from './renderer'
 import { state } from './state'
 import { Player } from './entities/Player'
 
@@ -19,6 +19,26 @@ vi.mock('three', async () => {
     })),
   };
 });
+
+vi.mock('three/examples/jsm/postprocessing/EffectComposer.js', () => ({
+  EffectComposer: vi.fn().mockImplementation(() => ({
+    addPass: vi.fn(),
+    render: vi.fn(),
+    setSize: vi.fn(),
+  })),
+}));
+
+vi.mock('three/examples/jsm/postprocessing/RenderPass.js', () => ({
+  RenderPass: vi.fn().mockImplementation(() => ({})),
+}));
+
+vi.mock('three/examples/jsm/postprocessing/UnrealBloomPass.js', () => ({
+  UnrealBloomPass: vi.fn().mockImplementation(() => ({})),
+}));
+
+vi.mock('three/examples/jsm/postprocessing/OutputPass.js', () => ({
+  OutputPass: vi.fn().mockImplementation(() => ({})),
+}));
 
 describe('Renderer Utils', () => {
   test('attachCameraToPlayer should add camera as child of player mesh with correct offset', () => {
@@ -38,13 +58,14 @@ describe('Renderer Utils', () => {
     expect(cameraDir.dot(forward)).toBeGreaterThan(0.9);
   })
 
-  test('initRenderer should return scene, camera, renderer and a cleanup function', () => {
+  test('initRenderer should return scene, camera, renderer, composer and a cleanup function', () => {
     const removeEventListenerSpy = vi.spyOn(window, 'removeEventListener');
-    const { scene, camera, renderer, cleanup } = initRenderer();
+    const { scene, camera, renderer, composer, cleanup } = initRenderer();
     
     expect(scene).toBeInstanceOf(THREE.Scene);
     expect(camera).toBeInstanceOf(THREE.PerspectiveCamera);
     expect(renderer).toBeDefined();
+    expect(composer).toBeDefined();
     expect(renderer.domElement).toBeInstanceOf(HTMLCanvasElement);
     expect(cleanup).toBeTypeOf('function');
 
@@ -56,9 +77,10 @@ describe('Renderer Utils', () => {
     expect(document.body.contains(renderer.domElement)).toBe(false);
   })
 
-  test('initRenderer resize handler should update camera and renderer', () => {
-    const { camera, renderer, cleanup } = initRenderer();
+  test('initRenderer resize handler should update camera, renderer and composer', () => {
+    const { camera, renderer, composer, cleanup } = initRenderer();
     const setSizeSpy = vi.spyOn(renderer, 'setSize');
+    const composerSetSizeSpy = vi.spyOn(composer, 'setSize');
     const updateProjectionMatrixSpy = vi.spyOn(camera, 'updateProjectionMatrix');
 
     // Simulate resize
@@ -73,7 +95,17 @@ describe('Renderer Utils', () => {
     expect(camera.aspect).toBe(1024 / 768);
     expect(updateProjectionMatrixSpy).toHaveBeenCalled();
     expect(setSizeSpy).toHaveBeenCalledWith(1024, 768);
+    expect(composerSetSizeSpy).toHaveBeenCalledWith(1024, 768);
 
     cleanup();
+  })
+
+  test('render should call composer.render', () => {
+    const { composer } = initRenderer();
+    const composerRenderSpy = vi.spyOn(composer, 'render');
+    
+    render(composer as any);
+    
+    expect(composerRenderSpy).toHaveBeenCalled();
   })
 })

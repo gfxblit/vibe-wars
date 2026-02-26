@@ -10,7 +10,7 @@ import { GameSystem } from './GameSystem'
 
 console.log('Vibe Wars starting...')
 
-const { scene, camera, hudScene, hudCamera, renderer: webglRenderer } = initRenderer()
+const { scene, camera, hudScene, hudCamera, composer } = initRenderer()
 initGame(scene, hudScene)
 
 const uiManager = new UIManager()
@@ -79,7 +79,7 @@ function animate(time: number) {
     if (starField.points.visible) {
       starField.update(state.player.position)
     }
-    render(webglRenderer, scene, camera, hudScene, hudCamera)
+    render(composer, scene, camera, hudScene, hudCamera)
   }
 
   requestAnimationFrame(animate)

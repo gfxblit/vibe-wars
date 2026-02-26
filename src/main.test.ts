@@ -18,10 +18,32 @@ vi.mock('three', async () => {
       setSize: vi.fn(),
       render: vi.fn(),
       clear: vi.fn(),
+      getPixelRatio: vi.fn().mockReturnValue(1),
+      getSize: vi.fn().mockImplementation((target: THREE.Vector2) => target.set(1024, 768)),
       domElement: document.createElement('canvas'),
     })),
   };
 });
+
+vi.mock('three/examples/jsm/postprocessing/EffectComposer.js', () => ({
+  EffectComposer: vi.fn().mockImplementation(() => ({
+    addPass: vi.fn(),
+    render: vi.fn(),
+    setSize: vi.fn(),
+  })),
+}));
+
+vi.mock('three/examples/jsm/postprocessing/RenderPass.js', () => ({
+  RenderPass: vi.fn().mockImplementation(() => ({})),
+}));
+
+vi.mock('three/examples/jsm/postprocessing/UnrealBloomPass.js', () => ({
+  UnrealBloomPass: vi.fn().mockImplementation(() => ({})),
+}));
+
+vi.mock('three/examples/jsm/postprocessing/OutputPass.js', () => ({
+  OutputPass: vi.fn().mockImplementation(() => ({})),
+}));
 
 describe('main.ts initialization', () => {
   let initRendererSpy: MockInstance<[], ReturnType<typeof renderer.initRenderer>>;

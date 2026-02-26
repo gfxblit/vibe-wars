@@ -3,6 +3,10 @@
  * major refactoring as the architecture is finalized.
  */
 import * as THREE from 'three';
+import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
+import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
 import { state } from './state';
 import { Player } from './entities/Player';
 import { GameConfig } from './config';
@@ -34,6 +38,27 @@ export function initRenderer() {
   renderer.autoClear = false; // Allow manual clearing for compositing
   document.body.appendChild(renderer.domElement);
 
+  // Post-processing setup
+  const composer = new EffectComposer(renderer);
+
+  const renderPass = new RenderPass(scene, camera);
+  composer.addPass(renderPass);
+
+  const hudRenderPass = new RenderPass(hudScene, hudCamera);
+  hudRenderPass.clear = false; // Don't clear main scene
+  composer.addPass(hudRenderPass);
+
+  const bloomPass = new UnrealBloomPass(
+    new THREE.Vector2(state.viewport.width, state.viewport.height),
+    GameConfig.bloom.strength,
+    GameConfig.bloom.radius,
+    GameConfig.bloom.threshold
+  );
+  composer.addPass(bloomPass);
+
+  const outputPass = new OutputPass();
+  composer.addPass(outputPass);
+
   // Handle window resize
   const handleResize = () => {
     state.viewport.width = window.innerWidth;
@@ -44,6 +69,7 @@ export function initRenderer() {
     camera.aspect = state.viewport.width / state.viewport.height;
     camera.updateProjectionMatrix();
     renderer.setSize(state.viewport.width, state.viewport.height);
+    composer.setSize(state.viewport.width, state.viewport.height);
   };
   window.addEventListener('resize', handleResize);
 
@@ -56,19 +82,15 @@ export function initRenderer() {
   };
 
   console.log('Renderer initialized');
-  return { scene, camera, hudScene, hudCamera, renderer, cleanup };
+  return { scene, camera, hudScene, hudCamera, renderer, composer, cleanup };
 }
 
 export function render(
-  renderer: THREE.WebGLRenderer,
-  scene: THREE.Scene,
-  camera: THREE.Camera,
-  hudScene?: THREE.Scene,
-  hudCamera?: THREE.Camera
+  composer: EffectComposer,
+  _scene?: THREE.Scene,
+  _camera?: THREE.Camera,
+  _hudScene?: THREE.Scene,
+  _hudCamera?: THREE.Camera
 ) {
-  renderer.clear(); // Manual clear
-  renderer.render(scene, camera);
-  if (hudScene && hudCamera) {
-    renderer.render(hudScene, hudCamera);
-  }
+  composer.render();
 }

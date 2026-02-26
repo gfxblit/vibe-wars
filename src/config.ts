@@ -62,6 +62,11 @@ export const GameConfig = deepFreeze({
       tieFighter: 'assets/sfx/tie-fighter.wav',
     },
   },
+  bloom: {
+    threshold: 0,
+    strength: 1.5,
+    radius: 0.4,
+  },
   stages: {
     dogfight: {
       killsThreshold: 10,
