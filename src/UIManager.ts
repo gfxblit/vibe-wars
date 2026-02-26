@@ -163,6 +163,15 @@ export class UIManager {
       this.shieldValue.textContent = state.shields.toString();
       const shieldPercent = (state.shields / GameConfig.player.maxShields) * 100;
       this.shieldBar.style.width = `${Math.max(0, shieldPercent)}%`;
+
+      this.shieldBar.classList.remove('bg-vector-green', 'bg-vector-yellow', 'bg-vector-red');
+      if (shieldPercent > 50) {
+        this.shieldBar.classList.add('bg-vector-green');
+      } else if (shieldPercent > 25) {
+        this.shieldBar.classList.add('bg-vector-yellow');
+      } else {
+        this.shieldBar.classList.add('bg-vector-red');
+      }
     }
 
     if (this.waveValue.textContent !== state.wave.toString()) {
