@@ -14,6 +14,7 @@ export class TieFighter extends Entity implements Targetable {
   private pieceVelocities: THREE.Vector3[] = [];
   private baseSize: number;
 
+  private meshMaterial: THREE.MeshBasicMaterial;
   private static material: THREE.MeshBasicMaterial;
   private static bodyGeo: THREE.SphereGeometry;
   private static wingGeo: THREE.PlaneGeometry;
@@ -54,18 +55,18 @@ export class TieFighter extends Entity implements Targetable {
     }
 
     // Body (Sphere)
-    const bodyMaterial = TieFighter.material.clone();
-    const body = new THREE.Mesh(TieFighter.bodyGeo, bodyMaterial);
+    this.meshMaterial = TieFighter.material.clone();
+    const body = new THREE.Mesh(TieFighter.bodyGeo, this.meshMaterial);
     this.mesh.add(body);
 
     // Left Wing (Plane)
-    const leftWing = new THREE.Mesh(TieFighter.wingGeo, bodyMaterial);
+    const leftWing = new THREE.Mesh(TieFighter.wingGeo, this.meshMaterial);
     leftWing.position.set(-size * 0.8, 0, 0);
     leftWing.rotation.y = Math.PI / 2;
     this.mesh.add(leftWing);
 
     // Right Wing (Plane)
-    const rightWing = new THREE.Mesh(TieFighter.wingGeo, bodyMaterial);
+    const rightWing = new THREE.Mesh(TieFighter.wingGeo, this.meshMaterial);
     rightWing.position.set(size * 0.8, 0, 0);
     rightWing.rotation.y = Math.PI / 2;
     this.mesh.add(rightWing);
@@ -145,13 +146,9 @@ export class TieFighter extends Entity implements Targetable {
       targetColor = GameConfig.tieFighter.meshColor;
     }
 
-    this.mesh.children.forEach(child => {
-      if (child instanceof THREE.Mesh && child.material instanceof THREE.MeshBasicMaterial) {
-        if (child.material.color.getHex() !== targetColor) {
-          child.material.color.setHex(targetColor!);
-        }
-      }
-    });
+    if (this.meshMaterial.color.getHex() !== targetColor) {
+      this.meshMaterial.color.setHex(targetColor!);
+    }
 
     if (this.fireCooldown <= 0) {
       const multiplier = GameConfig.getDifficultyMultiplier(state.wave);
