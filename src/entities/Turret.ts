@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { Entity, Targetable, FireballDebugContext } from './Entity';
 import { GameConfig } from '../config';
 import { state } from '../state';
+import { GameEventType, globalEvents } from '../EventBus';
 
 export class Turret extends Entity implements Targetable {
   public readonly mesh: THREE.Group;
@@ -101,7 +102,7 @@ export class Turret extends Entity implements Targetable {
   public explode(): void {
     if (this.isExploded) return;
     this.isExploded = true;
-    state.audioManager?.playExplosion(this.position);
+    globalEvents.emit(GameEventType.ENTITY_EXPLODED, { position: this.position, entity: this });
 
     // Change color to orange
     this.material.color.setHex(0xffa500);

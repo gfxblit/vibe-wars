@@ -1,8 +1,8 @@
 import * as THREE from 'three';
-import { Entity } from './Entity';
+import { Entity, Targetable } from './Entity';
 import { GameConfig } from '../config';
 import { SparkleVisual } from './SparkleVisual';
-import { state } from '../state';
+import { GameEventType, globalEvents } from '../EventBus';
 
 export class Fireball extends Entity {
   mesh: THREE.Group;
@@ -71,7 +71,7 @@ export class Fireball extends Entity {
   explode(): void {
     if (this.isExploded) return;
     this.isExploded = true;
-    state.audioManager?.playExplosion(this.position);
+    globalEvents.emit(GameEventType.ENTITY_EXPLODED, { position: this.position, entity: this as any as Targetable });
     this.visual.explode();
   }
 

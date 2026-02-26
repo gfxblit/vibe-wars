@@ -3,6 +3,7 @@ import { Entity, Targetable } from './Entity';
 import { GameConfig } from '../config';
 import { AIStrategy } from './AIStrategy';
 import { state } from '../state';
+import { GameEventType, globalEvents } from '../EventBus';
 
 export class TieFighter extends Entity implements Targetable {
   public readonly mesh: THREE.Group;
@@ -75,7 +76,7 @@ export class TieFighter extends Entity implements Targetable {
   public explode(): void {
     if (this.isExploded) return;
     this.isExploded = true;
-    state.audioManager?.playExplosion(this.position);
+    globalEvents.emit(GameEventType.ENTITY_EXPLODED, { position: this.position, entity: this });
 
     // Generate random velocities for each piece
     this.mesh.children.forEach(() => {

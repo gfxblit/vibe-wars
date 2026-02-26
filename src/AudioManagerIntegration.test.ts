@@ -4,6 +4,8 @@ import { EntityManager } from './entities/EntityManager';
 import { TieFighter } from './entities/TieFighter';
 import { state } from './state';
 import { AIStrategyFactory } from './entities/AIStrategyFactory';
+import { globalEvents } from './EventBus';
+import { AudioSystem } from './AudioSystem';
 
 // Mock AudioManager
 const mockAudioManager = {
@@ -22,9 +24,12 @@ describe('Audio Integration', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    globalEvents.clear();
     scene = new THREE.Scene();
     hudScene = new THREE.Scene();
     state.audioManager = mockAudioManager as any;
+    state.player = { position: new THREE.Vector3(0, 0, 0) } as any;
+    new AudioSystem(mockAudioManager as any, globalEvents).init();
     entityManager = new EntityManager(scene, hudScene, new AIStrategyFactory());
   });
 
@@ -40,9 +45,15 @@ describe('Audio Integration', () => {
   });
 
   test('TIE flyby triggers playTieFlyby', () => {
+    let callCount = 0;
     const mockStrategy = {
       update: vi.fn((_dt, pos) => {
-        pos.z = -10; // Move across plane
+        if (callCount === 0) {
+           pos.z = 10;
+        } else {
+           pos.z = -10; // Move across plane
+        }
+        callCount++;
       })
     };
     const tf = new TieFighter(mockStrategy as any);
@@ -53,8 +64,8 @@ describe('Audio Integration', () => {
     const playerQuat = new THREE.Quaternion();
 
     tf.position.set(0, 0, 10);
-    // previousPosition will be set to 10 in tf.update()
     
+    entityManager.update(0.1, playerPos, playerQuat, false, camera, 100);
     entityManager.update(0.1, playerPos, playerQuat, false, camera, 100);
     
     expect(mockAudioManager.playTieFlyby).toHaveBeenCalled();

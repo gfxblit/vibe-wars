@@ -7,6 +7,7 @@ import { Laser } from './Laser';
 import { Torpedo } from './Torpedo';
 import { Targetable, FireballDebugContext } from './Entity';
 import { state } from '../state';
+import { GameEventType, globalEvents } from '../EventBus';
 
 export class EntityManager {
   private tieFighters: TieFighter[] = [];
@@ -52,21 +53,9 @@ export class EntityManager {
         this.spawnFireballFromTarget(tf, fireDirection, playerQuaternion, playerSpeed);
       }
 
-      // Flyby SFX logic
-      if (!tf.isExploded) {
-        const prevRelZ = tf.previousPosition.z - playerPosition.z;
-        const currRelZ = tf.position.z - playerPosition.z;
-        // Check if it crossed the player's Z-plane (from either direction)
-        if ((prevRelZ > 0 && currRelZ <= 0) || (prevRelZ < 0 && currRelZ >= 0)) {
-          const lateralDistSq = 
-            Math.pow(tf.position.x - playerPosition.x, 2) + 
-            Math.pow(tf.position.y - playerPosition.y, 2);
-          if (lateralDistSq < 2500) { // 50 units distance threshold (squared)
-            state.audioManager?.playTieFlyby(tf.position);
-          }
-        }
-      }
-
+            if (!tf.isExploded) {
+              globalEvents.emit(GameEventType.ENTITY_MOVED, { position: tf.position, entity: tf });
+            }
       // Cleanup distant TIE fighters
       const distance = tf.position.distanceTo(playerPosition);
       if (distance > GameConfig.tieFighter.cleanupDistance) {
@@ -226,7 +215,7 @@ export class EntityManager {
     }
     
     this.spawnFireball(this.scratchFireballPos, this.scratchTotalVelocity, size);
-    state.audioManager?.playEnemyLaser(this.scratchFireballPos);
+    globalEvents.emit(GameEventType.ENEMY_FIRED_LASER, { position: this.scratchFireballPos });
   }
 
   public setSpawningEnabled(enabled: boolean): void {
@@ -253,7 +242,7 @@ export class EntityManager {
     const laser = new Laser(origin2D, target2D, color);
     this.lasers.push(laser);
     this.hudScene.add(laser.mesh);
-    state.audioManager?.playPlayerLaser();
+    globalEvents.emit(GameEventType.PLAYER_FIRED_LASER, { position: new THREE.Vector3(origin2D.x, origin2D.y, 0) });
     return laser;
   }
 
