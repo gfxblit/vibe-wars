@@ -53,6 +53,15 @@ export const GameConfig = deepFreeze({
     highScore: 10000,
     damageFlashDuration: 150,
   },
+  audio: {
+    masterVolume: 0.7,
+    sfxVolume: 1.0,
+    assets: {
+      laser: 'assets/sfx/laser.wav',
+      explosion: 'assets/sfx/explosion.wav',
+      tieFighter: 'assets/sfx/tie-fighter.wav',
+    },
+  },
   stages: {
     dogfight: {
       killsThreshold: 10,

@@ -15,6 +15,36 @@ initGame(scene, hudScene)
 
 const uiManager = new UIManager()
 
+// Resume audio on first interaction
+let audioUnlocked = false;
+const resumeAudio = async () => {
+  if (state.audioManager) {
+    await state.audioManager.resume();
+    
+    if (!audioUnlocked) {
+      audioUnlocked = true;
+      // Play a very subtle "laser" blip to confirm audio is working,
+      // similar to how prompt-man starts its music.
+      state.audioManager.playPlayerLaser();
+    }
+
+    // Only remove events if we are successfully running
+    if (state.audioManager.getState() === 'running') {
+      window.removeEventListener('click', resumeAudio);
+      window.removeEventListener('keydown', resumeAudio);
+      window.removeEventListener('touchstart', resumeAudio);
+      window.removeEventListener('touchend', resumeAudio);
+      window.removeEventListener('mousedown', resumeAudio);
+    }
+  }
+};
+
+window.addEventListener('click', resumeAudio);
+window.addEventListener('keydown', resumeAudio);
+window.addEventListener('touchstart', resumeAudio);
+window.addEventListener('touchend', resumeAudio);
+window.addEventListener('mousedown', resumeAudio);
+
 const inputManager = new InputManager()
 inputManager.setup()
 

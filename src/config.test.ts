@@ -42,6 +42,14 @@ describe('GameConfig', () => {
     expect(GameConfig.ui.highScore).toBe(10000);
   });
 
+  test('should have audio settings', () => {
+    expect(GameConfig.audio.masterVolume).toBe(0.7);
+    expect(GameConfig.audio.sfxVolume).toBe(1.0);
+    expect(GameConfig.audio.assets.laser).toBeDefined();
+    expect(GameConfig.audio.assets.explosion).toBeDefined();
+    expect(GameConfig.audio.assets.tieFighter).toBeDefined();
+  });
+
   test('should have laser settings', () => {
     expect(GameConfig.laser.speed).toBe(2000);
     expect(GameConfig.laser.cooldown).toBe(0.15);

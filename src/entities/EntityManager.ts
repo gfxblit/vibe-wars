@@ -7,6 +7,7 @@ import { Laser } from './Laser';
 import { Torpedo } from './Torpedo';
 import { Targetable, FireballDebugContext } from './Entity';
 import { state } from '../state';
+import { GameEventType, globalEvents } from '../EventBus';
 
 export class EntityManager {
   private tieFighters: TieFighter[] = [];
@@ -52,6 +53,9 @@ export class EntityManager {
         this.spawnFireballFromTarget(tf, fireDirection, playerQuaternion, playerSpeed);
       }
 
+            if (!tf.isExploded) {
+              globalEvents.emit(GameEventType.ENTITY_MOVED, { position: tf.position, entity: tf });
+            }
       // Cleanup distant TIE fighters
       const distance = tf.position.distanceTo(playerPosition);
       if (distance > GameConfig.tieFighter.cleanupDistance) {
@@ -211,6 +215,7 @@ export class EntityManager {
     }
     
     this.spawnFireball(this.scratchFireballPos, this.scratchTotalVelocity, size);
+    globalEvents.emit(GameEventType.ENEMY_FIRED_LASER, { position: this.scratchFireballPos });
   }
 
   public setSpawningEnabled(enabled: boolean): void {
@@ -237,6 +242,7 @@ export class EntityManager {
     const laser = new Laser(origin2D, target2D, color);
     this.lasers.push(laser);
     this.hudScene.add(laser.mesh);
+    globalEvents.emit(GameEventType.PLAYER_FIRED_LASER, { position: new THREE.Vector3(origin2D.x, origin2D.y, 0) });
     return laser;
   }
 

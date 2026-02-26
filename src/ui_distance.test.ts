@@ -25,6 +25,8 @@ describe('UIManager - Distance Countdown', () => {
       } as any,
       entityManager: null,
       stageManager: null,
+      audioManager: null,
+      audioSystem: null,
       viewport: { width: 100, height: 100, centerX: 50, centerY: 50 },
       gunColorToggles: [],
       debug: false,

@@ -20,6 +20,8 @@ describe('UIManager Instructions', () => {
       player: null,
       entityManager: null,
       stageManager: null,
+      audioManager: null,
+      audioSystem: null,
       viewport: {
         width: 1024,
         height: 768,

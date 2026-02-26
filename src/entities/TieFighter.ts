@@ -3,9 +3,11 @@ import { Entity, Targetable } from './Entity';
 import { GameConfig } from '../config';
 import { AIStrategy } from './AIStrategy';
 import { state } from '../state';
+import { GameEventType, globalEvents } from '../EventBus';
 
 export class TieFighter extends Entity implements Targetable {
   public readonly mesh: THREE.Group;
+  public readonly previousPosition: THREE.Vector3 = new THREE.Vector3();
   private strategy: AIStrategy;
 
   public isExploded: boolean = false;
@@ -74,6 +76,7 @@ export class TieFighter extends Entity implements Targetable {
   public explode(): void {
     if (this.isExploded) return;
     this.isExploded = true;
+    globalEvents.emit(GameEventType.ENTITY_EXPLODED, { position: this.position, entity: this });
 
     // Generate random velocities for each piece
     this.mesh.children.forEach(() => {
@@ -96,6 +99,7 @@ export class TieFighter extends Entity implements Targetable {
     overrideSize?: number,
     overrideColor?: number
   ): THREE.Vector3 | null {
+    this.previousPosition.copy(this.mesh.position);
     if (this.isExploded) {
       // Move pieces
       this.mesh.children.forEach((child, index) => {
@@ -115,7 +119,19 @@ export class TieFighter extends Entity implements Targetable {
     }
 
     this.fireCooldown -= deltaTime;
+
+    // Flyby detection: calculate relative Z position before and after strategy update
+    const invQuat = playerQuaternion.clone().conjugate();
+    const prevRelZ = this.mesh.position.clone().sub(playerPosition).applyQuaternion(invQuat).z;
+    
     this.strategy.update(deltaTime, this.mesh.position, this.mesh.quaternion, playerPosition, playerQuaternion, playerSpeed);
+
+    const currRelZ = this.mesh.position.clone().sub(playerPosition).applyQuaternion(invQuat).z;
+
+    // A flyby happens when the entity crosses from behind (positive Z) to in front (negative Z)
+    if (prevRelZ > 0 && currRelZ <= 0) {
+      globalEvents.emit(GameEventType.ENTITY_FLYBY, { position: this.position, entity: this });
+    }
 
     // Apply color: Override > Strategy > Default
     let targetColor: number | undefined = overrideColor;
