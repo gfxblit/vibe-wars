@@ -291,4 +291,61 @@ describe('DebugUIManager', () => {
     expect((document.getElementById('debug-tiefighter-size-input') as HTMLInputElement).value).toBe('');
     expect((document.getElementById('debug-tiefighter-color-input') as HTMLInputElement).value).toBe('');
   });
+
+  describe('Bloom Controls', () => {
+    it('should create Bloom Parameters section', () => {
+      const bloomHeader = Array.from(document.querySelectorAll('div')).find(el => el.textContent === 'BLOOM PARAMETERS');
+      expect(bloomHeader).toBeTruthy();
+    });
+
+    it('should create bloom threshold, strength, and radius inputs', () => {
+      expect(document.getElementById('debug-bloom-threshold-input')).toBeTruthy();
+      expect(document.getElementById('debug-bloom-strength-input')).toBeTruthy();
+      expect(document.getElementById('debug-bloom-radius-input')).toBeTruthy();
+    });
+
+    it('should update state when bloom global inputs change', () => {
+      const thresholdInput = document.getElementById('debug-bloom-threshold-input') as HTMLInputElement;
+      thresholdInput.value = '0.5';
+      thresholdInput.dispatchEvent(new Event('change'));
+      expect(state.debugBloomThreshold).toBe(0.5);
+
+      const strengthInput = document.getElementById('debug-bloom-strength-input') as HTMLInputElement;
+      strengthInput.value = '2.5';
+      strengthInput.dispatchEvent(new Event('change'));
+      expect(state.debugBloomStrength).toBe(2.5);
+
+      const radiusInput = document.getElementById('debug-bloom-radius-input') as HTMLInputElement;
+      radiusInput.value = '0.8';
+      radiusInput.dispatchEvent(new Event('change'));
+      expect(state.debugBloomRadius).toBe(0.8);
+    });
+
+    it('should create per-entity bloom toggle buttons', () => {
+      expect(document.getElementById('debug-bloom-player-toggle')).toBeTruthy();
+      expect(document.getElementById('debug-bloom-tieFighter-toggle')).toBeTruthy();
+      expect(document.getElementById('debug-bloom-laser-toggle')).toBeTruthy();
+      expect(document.getElementById('debug-bloom-fireball-toggle')).toBeTruthy();
+      expect(document.getElementById('debug-bloom-turret-toggle')).toBeTruthy();
+    });
+
+    it('should update state when entity bloom toggle is clicked', () => {
+      const playerToggle = document.getElementById('debug-bloom-player-toggle') as HTMLButtonElement;
+      
+      // Initial state is undefined (will use default from config)
+      expect(state.debugPlayerBloom).toBeUndefined();
+      
+      // Click once: should toggle to false (assuming default is true)
+      playerToggle.click();
+      expect(state.debugPlayerBloom).toBe(false);
+      
+      // Click again: should toggle to true
+      playerToggle.click();
+      expect(state.debugPlayerBloom).toBe(true);
+
+      // Click again: should toggle back to false
+      playerToggle.click();
+      expect(state.debugPlayerBloom).toBe(false);
+    });
+  });
 });

@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { Entity } from './Entity';
 import { GameConfig } from '../config';
 import { UserInput } from '../input';
+import { state } from '../state';
 
 export interface PlayerUpdateOptions {
   lockUpright?: boolean;
@@ -44,6 +45,8 @@ export class Player extends Entity {
     options?: PlayerUpdateOptions
   ): void {
     this.visualMesh.visible = showChassis;
+    const intensity = (state.debugPlayerBloom ?? GameConfig.player.bloom) ? 2.0 : 1.0;
+    (this.visualMesh.material as THREE.LineBasicMaterial).color.setHex(GameConfig.player.meshColor).multiplyScalar(intensity);
 
     // Relative turning amounts
     const yawAmount = -input.x * GameConfig.player.turnSpeedYaw * deltaTime;

@@ -1,11 +1,12 @@
 /**
  * @vitest-environment happy-dom
  */
-import { expect, test, describe, vi } from 'vitest'
+import { expect, test, describe, vi, beforeEach } from 'vitest'
 import * as THREE from 'three'
 import { attachCameraToPlayer, initRenderer, render } from './renderer'
 import { state } from './state'
 import { Player } from './entities/Player'
+import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 
 vi.mock('three', async () => {
   const actual = await vi.importActual('three') as any;
@@ -41,6 +42,13 @@ vi.mock('three/examples/jsm/postprocessing/OutputPass.js', () => ({
 }));
 
 describe('Renderer Utils', () => {
+  beforeEach(() => {
+    state.debugBloomThreshold = undefined;
+    state.debugBloomStrength = undefined;
+    state.debugBloomRadius = undefined;
+    vi.clearAllMocks();
+  });
+
   test('attachCameraToPlayer should add camera as child of player mesh with correct offset', () => {
     const camera = new THREE.PerspectiveCamera();
     const player = new Player();
@@ -99,6 +107,22 @@ describe('Renderer Utils', () => {
 
     cleanup();
   })
+
+  test('initRenderer should use bloom settings from state if available', () => {
+    state.debugBloomThreshold = 0.5;
+    state.debugBloomStrength = 2.5;
+    state.debugBloomRadius = 0.8;
+    
+    const { cleanup } = initRenderer();
+    
+    expect(UnrealBloomPass).toHaveBeenCalledWith(
+      expect.any(THREE.Vector2),
+      2.5,
+      0.8,
+      0.5
+    );
+    cleanup();
+  });
 
   test('render should call composer.render', () => {
     const { composer } = initRenderer();

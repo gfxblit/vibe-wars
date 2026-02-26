@@ -33,6 +33,17 @@ describe('Game State', () => {
     expect(state.isModeColoring).toBe(false);
     expect(state.debugKillsThreshold).toBeUndefined();
     expect(state.debugSurfaceTurretDensity).toBeUndefined();
+    expect(state.debugBloomThreshold).toBeUndefined();
+    expect(state.debugBloomStrength).toBeUndefined();
+    expect(state.debugBloomRadius).toBeUndefined();
+    expect(state.debugPlayerBloom).toBeUndefined();
+    expect(state.debugTieFighterBloom).toBeUndefined();
+    expect(state.debugLaserBloom).toBeUndefined();
+    expect(state.debugFireballBloom).toBeUndefined();
+    expect(state.debugTurretBloom).toBeUndefined();
+    expect(state.debugStarFieldBloom).toBeUndefined();
+    expect(state.debugSurfaceBloom).toBeUndefined();
+    expect(state.debugTrenchBloom).toBeUndefined();
   })
 
   test('spawnLasers creates at least 2 lasers and alternates colors', () => {

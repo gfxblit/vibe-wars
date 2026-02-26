@@ -3,6 +3,7 @@ import { Entity, Targetable } from './Entity';
 import { GameConfig } from '../config';
 import { SparkleVisual } from './SparkleVisual';
 import { GameEventType, globalEvents } from '../EventBus';
+import { state } from '../state';
 
 export class Torpedo extends Entity {
   mesh: THREE.Group;
@@ -87,7 +88,8 @@ export class Torpedo extends Entity {
       this.explosionTimer += deltaTime;
     }
 
-    this.visual.update(deltaTime);
+    const intensity = (state.debugTorpedoBloom ?? GameConfig.torpedo.bloom) ? 2.0 : 1.0;
+    this.visual.update(deltaTime, intensity);
   }
 
   isExpired(): boolean {

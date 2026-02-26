@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { Entity } from './Entity';
 import { GameConfig } from '../config';
+import { state } from '../state';
 
 export class Laser extends Entity {
   public readonly mesh: THREE.Mesh;
@@ -16,10 +17,12 @@ export class Laser extends Entity {
     this.target2D = target2D.clone();
     this.color = color;
 
+    const intensity = (state.debugLaserBloom ?? GameConfig.laser.bloom) ? 2.0 : 1.0;
+
     // A simple quad centered at origin, pointing up (+Y)
     const geometry = new THREE.PlaneGeometry(1, 1);
     const material = new THREE.MeshBasicMaterial({ 
-      color: this.color,
+      color: new THREE.Color(this.color).multiplyScalar(intensity),
       transparent: true,
       opacity: 1.0,
       depthTest: false

@@ -127,6 +127,10 @@ export class Turret extends Entity implements Targetable {
   }
 
   public update(deltaTime: number, playerPosition: THREE.Vector3, _playerQuaternion: THREE.Quaternion, _playerSpeed: number): THREE.Vector3 | null {
+    const intensity = (state.debugTurretBloom ?? GameConfig.turret.bloom) ? 2.0 : 1.0;
+    const baseColor = this.isExploded ? 0xffa500 : GameConfig.turret.meshColor;
+    this.material.color.setHex(baseColor).multiplyScalar(intensity);
+
     if (this.isExploded) {
       // Move pieces
       this.mesh.children.forEach((child, index) => {

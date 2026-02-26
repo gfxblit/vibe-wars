@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { Entity } from './Entity';
 import { GameConfig } from '../config';
+import { state } from '../state';
 
 export class StarField extends Entity {
   public readonly points: THREE.Points;
@@ -29,6 +30,9 @@ export class StarField extends Entity {
   }
 
   public update(playerPosition: THREE.Vector3) {
+    const intensity = (state.debugStarFieldBloom ?? GameConfig.starField.bloom) ? 2.0 : 1.0;
+    this.material.color.setHex(GameConfig.starField.starColor).multiplyScalar(intensity);
+
     const positions = this.geometry.attributes.position.array as Float32Array;
     const halfSize = GameConfig.starField.fieldSize / 2;
 

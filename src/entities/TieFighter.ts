@@ -148,11 +148,10 @@ export class TieFighter extends Entity implements Targetable {
       targetColor = GameConfig.tieFighter.meshColor;
     }
 
+    const intensity = (state.debugTieFighterBloom ?? GameConfig.tieFighter.bloom) ? 2.0 : 1.0;
     this.mesh.children.forEach(child => {
       if (child instanceof THREE.LineSegments && child.material instanceof THREE.LineBasicMaterial) {
-        if (child.material.color.getHex() !== targetColor) {
-          child.material.color.setHex(targetColor!);
-        }
+        child.material.color.setHex(targetColor!).multiplyScalar(intensity);
       }
     });
 

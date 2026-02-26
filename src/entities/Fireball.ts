@@ -3,6 +3,7 @@ import { Entity, Targetable } from './Entity';
 import { GameConfig } from '../config';
 import { SparkleVisual } from './SparkleVisual';
 import { GameEventType, globalEvents } from '../EventBus';
+import { state } from '../state';
 
 export class Fireball extends Entity {
   mesh: THREE.Group;
@@ -84,7 +85,8 @@ export class Fireball extends Entity {
       this.explosionTimer += deltaTime;
     }
 
-    this.visual.update(deltaTime);
+    const intensity = (state.debugFireballBloom ?? GameConfig.fireball.bloom) ? 2.0 : 1.0;
+    this.visual.update(deltaTime, intensity);
   }
 
 

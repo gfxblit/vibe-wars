@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { Entity, Targetable } from './Entity';
 import { GameConfig } from '../config';
 import { GameEventType, globalEvents } from '../EventBus';
+import { state } from '../state';
 
 export class DeathStar extends Entity {
   public mesh: THREE.Group;
@@ -189,6 +190,14 @@ export class DeathStar extends Entity {
   }
 
   update(deltaTime: number) {
+    const intensity = (state.debugDeathStarBloom ?? GameConfig.stages.deathStar.bloom) ? 2.0 : 1.0;
+    this.materials.forEach((material, i) => {
+      if (material instanceof THREE.LineBasicMaterial) {
+        const baseColor = i === 0 ? GameConfig.stages.deathStar.color : GameConfig.stages.deathStar.dishColor;
+        material.color.setHex(baseColor).multiplyScalar(intensity);
+      }
+    });
+
     if (this.isExploded) {
       this.mesh.children.forEach((child, i) => {
         const velocity = this.fragmentVelocities[i];

@@ -39,7 +39,11 @@ export function initRenderer() {
   document.body.appendChild(renderer.domElement);
 
   // Post-processing setup
-  const composer = new EffectComposer(renderer);
+  const renderTarget = new THREE.WebGLRenderTarget(state.viewport.width, state.viewport.height, {
+    type: THREE.HalfFloatType,
+    format: THREE.RGBAFormat,
+  });
+  const composer = new EffectComposer(renderer, renderTarget);
 
   const renderPass = new RenderPass(scene, camera);
   composer.addPass(renderPass);
@@ -50,9 +54,9 @@ export function initRenderer() {
 
   const bloomPass = new UnrealBloomPass(
     new THREE.Vector2(state.viewport.width, state.viewport.height),
-    GameConfig.bloom.strength,
-    GameConfig.bloom.radius,
-    GameConfig.bloom.threshold
+    state.debugBloomStrength ?? GameConfig.bloom.strength,
+    state.debugBloomRadius ?? GameConfig.bloom.radius,
+    state.debugBloomThreshold ?? GameConfig.bloom.threshold
   );
   composer.addPass(bloomPass);
 

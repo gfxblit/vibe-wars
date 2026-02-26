@@ -121,7 +121,13 @@ export class Tower extends Entity implements Targetable {
     }
 
   update(deltaTime: number, playerPosition: THREE.Vector3, _playerQuaternion?: THREE.Quaternion, _playerSpeed?: number): THREE.Vector3 | null {
+    const intensity = (state.debugSurfaceBloom ?? GameConfig.stages.surface.bloom) ? 2.0 : 1.0;
+    const { towerColor, towerTopColor, towerExplosionColor } = GameConfig.stages.surface;
+    
     if (this.isExploded) {
+      this.baseMaterial.color.setHex(towerExplosionColor).multiplyScalar(intensity);
+      this.topMaterial.color.setHex(towerExplosionColor).multiplyScalar(intensity);
+
       const { towerDebrisRotationSpeed } = GameConfig.stages.surface;
       this.debris.forEach((item) => {
         item.mesh.position.addScaledVector(item.velocity, deltaTime);
@@ -130,6 +136,9 @@ export class Tower extends Entity implements Targetable {
       });
       return null;
     }
+
+    this.baseMaterial.color.setHex(towerColor).multiplyScalar(intensity);
+    this.topMaterial.color.setHex(towerTopColor).multiplyScalar(intensity);
 
     this.fireCooldown -= deltaTime;
     if (this.fireCooldown <= 0) {

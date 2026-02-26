@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { Entity } from './Entity';
 import { GameConfig } from '../config';
 import { Turret } from './Turret';
+import { state } from '../state';
 
 export class Trench extends Entity {
   public mesh: THREE.Group;
@@ -226,7 +227,27 @@ export class Trench extends Entity {
   }
 
   update(_deltaTime: number) {
-    // Turrets are updated by the EntityManager as registered targets.
+    const intensity = (state.debugTrenchBloom ?? GameConfig.stages.trench.bloom) ? 2.0 : 1.0;
+    const { 
+      verticalDetailColor, 
+      horizontalDetailColor, 
+      catwalkColor, 
+      exhaustPortColor 
+    } = GameConfig.stages.trench;
+
+    this.mesh.traverse(child => {
+      if ((child instanceof THREE.LineSegments || child instanceof THREE.Line) && child.material instanceof THREE.LineBasicMaterial) {
+        if (child.name === 'trench-grid-vertical') {
+          child.material.color.setHex(verticalDetailColor).multiplyScalar(intensity);
+        } else if (child.name === 'trench-grid-horizontal') {
+          child.material.color.setHex(horizontalDetailColor).multiplyScalar(intensity);
+        } else if (child.name === 'catwalk') {
+          child.material.color.setHex(catwalkColor).multiplyScalar(intensity);
+        } else if (child.name === 'exhaust-port') {
+          child.material.color.setHex(exhaustPortColor).multiplyScalar(intensity);
+        }
+      }
+    });
   }
 
   dispose() {

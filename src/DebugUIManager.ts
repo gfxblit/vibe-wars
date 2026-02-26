@@ -24,6 +24,7 @@ export class DebugUIManager {
     this.createGameplayParamsSection(content);
     this.createEntityParamsSection(content);
     this.createSurfaceParamsSection(content);
+    this.createBloomSection(content);
   }
 
   private createStatsSection(parent: HTMLElement) {
@@ -93,6 +94,50 @@ export class DebugUIManager {
     this.createDebugNumericInput('TURRET DENSITY', 'debug-surface-turret-density-input', state.debugSurfaceTurretDensity, 0, 0.1, `Default (${GameConfig.stages.surface.turretDensity})`, (val) => {
       state.debugSurfaceTurretDensity = val !== undefined ? Math.min(1.0, val) : undefined;
     }, parent, 'Surface Turret Density');
+  }
+
+  private createBloomSection(parent: HTMLElement) {
+    this.createDebugSection('BLOOM PARAMETERS', parent);
+    
+    this.createDebugNumericInput('THRESHOLD', 'debug-bloom-threshold-input', state.debugBloomThreshold, 0, 0.1, `Default (${GameConfig.bloom.threshold})`, (val) => { state.debugBloomThreshold = val; }, parent, 'Bloom Threshold');
+    this.createDebugNumericInput('STRENGTH', 'debug-bloom-strength-input', state.debugBloomStrength, 0, 0.1, `Default (${GameConfig.bloom.strength})`, (val) => { state.debugBloomStrength = val; }, parent, 'Bloom Strength');
+    this.createDebugNumericInput('RADIUS', 'debug-bloom-radius-input', state.debugBloomRadius, 0, 0.1, `Default (${GameConfig.bloom.radius})`, (val) => { state.debugBloomRadius = val; }, parent, 'Bloom Radius');
+
+    const entityBloomContainer = this.createEl('div', 'grid grid-cols-2 gap-1 mt-2', parent);
+    
+    const entities = [
+      { id: 'player', label: 'PLAYER', key: 'debugPlayerBloom', config: GameConfig.player },
+      { id: 'tieFighter', label: 'TIE', key: 'debugTieFighterBloom', config: GameConfig.tieFighter },
+      { id: 'laser', label: 'LASER', key: 'debugLaserBloom', config: GameConfig.laser },
+      { id: 'fireball', label: 'F-BALL', key: 'debugFireballBloom', config: GameConfig.fireball },
+      { id: 'turret', label: 'TURRET', key: 'debugTurretBloom', config: GameConfig.turret },
+      { id: 'starField', label: 'STARS', key: 'debugStarFieldBloom', config: GameConfig.starField },
+      { id: 'surface', label: 'SURF', key: 'debugSurfaceBloom', config: GameConfig.stages.surface },
+      { id: 'trench', label: 'TRNCH', key: 'debugTrenchBloom', config: GameConfig.stages.trench },
+    ];
+
+    entities.forEach(entity => {
+      this.createToggleButton(
+        `debug-bloom-${entity.id}-toggle`,
+        () => `${entity.label}: ${(state as any)[entity.key] ?? (entity.config as any).bloom ? 'ON' : 'OFF'}`,
+        () => { (state as any)[entity.key] = !((state as any)[entity.key] ?? (entity.config as any).bloom); },
+        entityBloomContainer,
+        () => (state as any)[entity.key] ?? (entity.config as any).bloom
+      );
+    });
+
+    this.createActionButton('debug-reset-bloom', 'RESET BLOOM', () => {
+      state.debugBloomThreshold = state.debugBloomStrength = state.debugBloomRadius = undefined;
+      state.debugPlayerBloom = state.debugTieFighterBloom = state.debugLaserBloom = state.debugFireballBloom = state.debugTurretBloom = state.debugStarFieldBloom = state.debugSurfaceBloom = state.debugTrenchBloom = state.debugDeathStarBloom = state.debugTorpedoBloom = undefined;
+      
+      ['debug-bloom-threshold-input', 'debug-bloom-strength-input', 'debug-bloom-radius-input'].forEach(id => {
+        const el = document.getElementById(id) as HTMLInputElement;
+        if (el) el.value = '';
+      });
+      // Refresh toggles
+      this.destroy();
+      this.createDebugPanel();
+    }, parent);
   }
 
   private notifySurfaceStage() {

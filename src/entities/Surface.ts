@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { Entity } from './Entity';
 import { GameConfig } from '../config';
+import { state } from '../state';
 
 export class Surface extends Entity {
   public mesh: THREE.Group;
@@ -108,6 +109,11 @@ export class Surface extends Entity {
 
   public update(_deltaTime: number, playerPosition: THREE.Vector3): void {
     const spacing = GameConfig.stages.surface.gridSpacing;
+
+    if (this.gridMesh && this.gridMesh.material instanceof THREE.LineBasicMaterial) {
+      const intensity = (state.debugSurfaceBloom ?? GameConfig.stages.surface.bloom) ? 2.0 : 1.0;
+      this.gridMesh.material.color.setHex(GameConfig.stages.surface.color).multiplyScalar(intensity);
+    }
 
     // Update floor position to follow player with snapping
     const newFloorX = Math.round(playerPosition.x / spacing) * spacing;

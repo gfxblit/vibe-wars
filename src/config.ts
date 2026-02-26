@@ -37,12 +37,14 @@ export const GameConfig = deepFreeze({
     meshColor: 0x00ff00,
     meshSize: 1,
     maxShields: 6,
+    bloom: true,
   },
   starField: {
     numStars: 1500,
     fieldSize: 500,
     starColor: 0xffffff,
     starSize: 0.5,
+    bloom: true,
   },
   input: {
     sensitivity: 5.0,
@@ -63,7 +65,7 @@ export const GameConfig = deepFreeze({
     },
   },
   bloom: {
-    threshold: 0,
+    threshold: 1.0,
     strength: 1.5,
     radius: 0.4,
   },
@@ -103,6 +105,7 @@ export const GameConfig = deepFreeze({
       towerDebrisRotationSpeed: 2.0,
       turretSize: 15,
       turretDensity: 0.3,
+      bloom: true,
     },
     trench: {
       transitionDistance: 100,
@@ -129,6 +132,7 @@ export const GameConfig = deepFreeze({
       exhaustPortColor: 0xffff00,
       turretSize: 20.0,
       fireballSize: 20.0,
+      bloom: true,
     },
     deathStar: {
       distance: 1000,
@@ -142,6 +146,7 @@ export const GameConfig = deepFreeze({
       color: 0x00ff00,
       dishColor: 0xccffcc,
       spawnAngle: Math.PI / 4,
+      bloom: true,
     },
   },
   progression: {
@@ -159,6 +164,7 @@ export const GameConfig = deepFreeze({
     explosionVelocity: 50,
     spawnInterval: 3.0,
     cleanupDistance: 600,
+    bloom: true,
     smartAI: {
       speed: 180,
       oscillationFreq: 2.0,
@@ -196,6 +202,7 @@ export const GameConfig = deepFreeze({
     thickness: 10,
     color: 0x00ffff,
     alternateColor: 0x0000ff,
+    bloom: true,
     offsets: [
       { x: -1.2, y: 0.8 },
       { x: 1.2, y: 0.8 },
@@ -220,6 +227,7 @@ export const GameConfig = deepFreeze({
     hitZThreshold: -0.8,
     hitDistanceThreshold: 2.0,
     hitNDCThreshold: 1.2,
+    bloom: true,
   },
   torpedo: {
     speedMultiplier: 2.0,
@@ -230,6 +238,7 @@ export const GameConfig = deepFreeze({
     sparkleSize: 4.0,
     explosionVelocity: 30,
     explosionDuration: 0.5,
+    bloom: true,
   },
   turret: {
     meshSize: 5.0,
@@ -238,6 +247,7 @@ export const GameConfig = deepFreeze({
     range: 1500,
     spacing: 400,
     points: 200,
+    bloom: true,
   },
   explosionStage: {
     duration: 5.0,
