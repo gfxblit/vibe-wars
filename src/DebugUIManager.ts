@@ -62,8 +62,8 @@ export class DebugUIManager {
     this.createDebugHexInput('TIE FIGHTER COLOR', 'debug-tiefighter-color-input', state.debugTieFighterColor, `Hex (e.g. 0xFF0000)`, (val) => { state.debugTieFighterColor = val; }, parent, 'TIE Fighter Color');
     
     this.createActionButton('debug-reset-entity-params', 'RESET ALL', () => {
-      state.debugTurretSize = state.debugFireballSize = state.debugTieFighterSize = state.debugTieFighterColor = undefined;
-      ['debug-turret-size-input', 'debug-fireball-size-input', 'debug-tiefighter-size-input', 'debug-tiefighter-color-input'].forEach(id => {
+      state.debugTurretSize = state.debugFireballSize = state.debugTieFighterSize = state.debugTieFighterColor = state.debugSurfaceTurretDensity = undefined;
+      ['debug-turret-size-input', 'debug-fireball-size-input', 'debug-tiefighter-size-input', 'debug-tiefighter-color-input', 'debug-surface-turret-density-input'].forEach(id => {
         const el = document.getElementById(id) as HTMLInputElement;
         if (el) el.value = '';
       });
@@ -90,8 +90,8 @@ export class DebugUIManager {
       this.notifySurfaceStage();
     }, parent, 'Surface Vertical Line Density');
 
-    this.createDebugNumericInput('TURRET DENSITY', 'debug-surface-turret-density-input', state.debugSurfaceTurretDensity, 0, 0.01, `Default (${GameConfig.stages.surface.turretDensity})`, (val) => {
-      state.debugSurfaceTurretDensity = val;
+    this.createDebugNumericInput('TURRET DENSITY', 'debug-surface-turret-density-input', state.debugSurfaceTurretDensity, 0, 0.1, `Default (${GameConfig.stages.surface.turretDensity})`, (val) => {
+      state.debugSurfaceTurretDensity = val !== undefined ? Math.min(1.0, val) : undefined;
     }, parent, 'Surface Turret Density');
   }
 
