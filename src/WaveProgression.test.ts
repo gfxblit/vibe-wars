@@ -44,6 +44,7 @@ vi.mock('three', async () => {
     constructor(x = 0, y = 0, z = 0) { this.x = x; this.y = y; this.z = z; }
     set(x, y, z) { this.x = x; this.y = y; this.z = z; return this; }
     copy(v) { this.x = v.x; this.y = v.y; this.z = v.z; return this; }
+    sub(v) { this.x -= v.x; this.y -= v.y; this.z -= v.z; return this; }
     subVectors(a, b) { this.x = a.x - b.x; this.y = a.y - b.y; this.z = a.z - b.z; return this; }
     add(v) { this.x += v.x; this.y += v.y; this.z += v.z; return this; }
     normalize() { return this; }
@@ -60,6 +61,8 @@ vi.mock('three', async () => {
       copy(q) { this.x=q.x; this.y=q.y; this.z=q.z; this.w=q.w; return this; }
       clone() { return new MockQuaternion(this.x, this.y, this.z, this.w); }
       set() { return this; }
+      conjugate() { return this; }
+      invert() { return this; }
   }
 
   return {

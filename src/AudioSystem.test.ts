@@ -4,7 +4,6 @@ import { AudioSystem } from './AudioSystem';
 import { AudioManager } from './AudioManager';
 import { GameEventType, globalEvents } from './EventBus';
 import { Targetable } from './entities/Entity';
-import { state } from './state';
 
 describe('AudioSystem', () => {
   let audioManager: AudioManager;
@@ -44,25 +43,12 @@ describe('AudioSystem', () => {
     expect(audioManager.playEnemyLaser).toHaveBeenCalledWith(position);
   });
 
-  it('triggers flyby sound when a TieFighter crosses the z=0 plane within lateral distance', () => {
-    state.player = { position: new THREE.Vector3(0, 0, 0) } as any; // Mock player position
+  it('triggers flyby sound when ENTITY_FLYBY is emitted', () => {
     const tieFighter = { constructor: { name: 'TieFighter' } } as any as Targetable;
+    const position = new THREE.Vector3(10, 0, 5);
     
-    // Move from z = -10 to z = 5 (crossing z=0)
-    audioSystem.updateEntityPosition(tieFighter, new THREE.Vector3(10, 0, -10));
-    globalEvents.emit(GameEventType.ENTITY_MOVED, { position: new THREE.Vector3(10, 0, 5), entity: tieFighter });
+    globalEvents.emit(GameEventType.ENTITY_FLYBY, { position, entity: tieFighter });
     
-    expect(audioManager.playTieFlyby).toHaveBeenCalledWith(new THREE.Vector3(10, 0, 5));
-  });
-
-  it('does NOT trigger flyby sound if lateral distance is too far', () => {
-    state.player = { position: new THREE.Vector3(0, 0, 0) } as any; // Mock player position
-    const tieFighter = { constructor: { name: 'TieFighter' } } as any as Targetable;
-    
-    // Far lateral distance (x = 100)
-    audioSystem.updateEntityPosition(tieFighter, new THREE.Vector3(100, 0, -10));
-    globalEvents.emit(GameEventType.ENTITY_MOVED, { position: new THREE.Vector3(100, 0, 5), entity: tieFighter });
-    
-    expect(audioManager.playTieFlyby).not.toHaveBeenCalled();
+    expect(audioManager.playTieFlyby).toHaveBeenCalledWith(position);
   });
 });

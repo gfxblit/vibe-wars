@@ -5,7 +5,8 @@ export enum GameEventType {
   ENTITY_EXPLODED = 'ENTITY_EXPLODED',
   PLAYER_FIRED_LASER = 'PLAYER_FIRED_LASER',
   ENEMY_FIRED_LASER = 'ENEMY_FIRED_LASER',
-  ENTITY_MOVED = 'ENTITY_MOVED'
+  ENTITY_MOVED = 'ENTITY_MOVED',
+  ENTITY_FLYBY = 'ENTITY_FLYBY'
 }
 
 export interface GameEventPayloads {
@@ -13,6 +14,7 @@ export interface GameEventPayloads {
   [GameEventType.PLAYER_FIRED_LASER]: { position: THREE.Vector3 };
   [GameEventType.ENEMY_FIRED_LASER]: { position: THREE.Vector3 };
   [GameEventType.ENTITY_MOVED]: { position: THREE.Vector3; entity: Targetable };
+  [GameEventType.ENTITY_FLYBY]: { position: THREE.Vector3; entity: Targetable };
 }
 
 export type GameEventListener<T extends GameEventType> = (payload: GameEventPayloads[T]) => void;

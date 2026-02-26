@@ -6,6 +6,7 @@ import { DumbAIStrategy } from './DumbAIStrategy'
 import { SmartAIStrategy } from './SmartAIStrategy'
 
 import { state } from '../state'
+import { globalEvents, GameEventType } from '../EventBus'
 
 describe('TieFighter', () => {
   let tieFighter: TieFighter;
@@ -182,5 +183,37 @@ describe('TieFighter', () => {
     expect(fire).not.toBeNull();
     // Cooldown should reset to 2.0 / 2.8 ~= 0.714
     expect((tf as any).fireCooldown).toBeCloseTo(0.714, 2);
+  });
+
+  test('should emit ENTITY_FLYBY when crossing the player plane', () => {
+    const emitSpy = vi.spyOn(globalEvents, 'emit');
+    const playerPos = new THREE.Vector3(0, 0, 0);
+    const playerQuat = new THREE.Quaternion(); // looking towards -Z
+
+    // Mock strategy that moves from +10 (behind) to -10 (in front)
+    let callCount = 0;
+    const mockStrategy = {
+      update: vi.fn((_dt, pos) => {
+        if (callCount === 0) {
+           pos.z = 10;
+        } else {
+           pos.z = -10;
+        }
+        callCount++;
+      })
+    };
+    const tf = new TieFighter(mockStrategy as any);
+
+    // Initial update sets position behind
+    tf.update(0.1, playerPos, playerQuat, 100);
+    expect(emitSpy).not.toHaveBeenCalledWith(GameEventType.ENTITY_FLYBY, expect.anything());
+
+    // Second update moves it in front
+    tf.update(0.1, playerPos, playerQuat, 100);
+    expect(emitSpy).toHaveBeenCalledWith(GameEventType.ENTITY_FLYBY, {
+      position: tf.position,
+      entity: tf
+    });
+    emitSpy.mockRestore();
   });
 })

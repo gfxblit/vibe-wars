@@ -119,7 +119,19 @@ export class TieFighter extends Entity implements Targetable {
     }
 
     this.fireCooldown -= deltaTime;
+
+    // Flyby detection: calculate relative Z position before and after strategy update
+    const invQuat = playerQuaternion.clone().conjugate();
+    const prevRelZ = this.mesh.position.clone().sub(playerPosition).applyQuaternion(invQuat).z;
+    
     this.strategy.update(deltaTime, this.mesh.position, this.mesh.quaternion, playerPosition, playerQuaternion, playerSpeed);
+
+    const currRelZ = this.mesh.position.clone().sub(playerPosition).applyQuaternion(invQuat).z;
+
+    // A flyby happens when the entity crosses from behind (positive Z) to in front (negative Z)
+    if (prevRelZ > 0 && currRelZ <= 0) {
+      globalEvents.emit(GameEventType.ENTITY_FLYBY, { position: this.position, entity: this });
+    }
 
     // Apply color: Override > Strategy > Default
     let targetColor: number | undefined = overrideColor;
