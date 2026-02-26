@@ -13,10 +13,16 @@ export class TieFighter extends Entity implements Targetable {
   public isExploded: boolean = false;
   private pieceVelocities: THREE.Vector3[] = [];
   private baseSize: number;
+  private materialInstance: THREE.MeshBasicMaterial;
+  private readonly fireDirection: THREE.Vector3 = new THREE.Vector3();
 
   private static material: THREE.MeshBasicMaterial;
   private static bodyGeo: THREE.SphereGeometry;
   private static wingGeo: THREE.PlaneGeometry;
+
+  // Scratch objects for reuse to reduce GC pressure
+  private static readonly SCRATCH_VEC = new THREE.Vector3();
+  private static readonly SCRATCH_QUAT = new THREE.Quaternion();
 
   private fireCooldown: number = Math.random() * GameConfig.fireball.fireRate;
 
@@ -54,18 +60,18 @@ export class TieFighter extends Entity implements Targetable {
     }
 
     // Body (Sphere)
-    const bodyMaterial = TieFighter.material.clone();
-    const body = new THREE.Mesh(TieFighter.bodyGeo, bodyMaterial);
+    this.materialInstance = TieFighter.material.clone();
+    const body = new THREE.Mesh(TieFighter.bodyGeo, this.materialInstance);
     this.mesh.add(body);
 
     // Left Wing (Plane)
-    const leftWing = new THREE.Mesh(TieFighter.wingGeo, bodyMaterial);
+    const leftWing = new THREE.Mesh(TieFighter.wingGeo, this.materialInstance);
     leftWing.position.set(-size * 0.8, 0, 0);
     leftWing.rotation.y = Math.PI / 2;
     this.mesh.add(leftWing);
 
     // Right Wing (Plane)
-    const rightWing = new THREE.Mesh(TieFighter.wingGeo, bodyMaterial);
+    const rightWing = new THREE.Mesh(TieFighter.wingGeo, this.materialInstance);
     rightWing.position.set(size * 0.8, 0, 0);
     rightWing.rotation.y = Math.PI / 2;
     this.mesh.add(rightWing);
@@ -121,12 +127,12 @@ export class TieFighter extends Entity implements Targetable {
     this.fireCooldown -= deltaTime;
 
     // Flyby detection: calculate relative Z position before and after strategy update
-    const invQuat = playerQuaternion.clone().conjugate();
-    const prevRelZ = this.mesh.position.clone().sub(playerPosition).applyQuaternion(invQuat).z;
+    const invQuat = TieFighter.SCRATCH_QUAT.copy(playerQuaternion).conjugate();
+    const prevRelZ = TieFighter.SCRATCH_VEC.copy(this.mesh.position).sub(playerPosition).applyQuaternion(invQuat).z;
     
     this.strategy.update(deltaTime, this.mesh.position, this.mesh.quaternion, playerPosition, playerQuaternion, playerSpeed);
 
-    const currRelZ = this.mesh.position.clone().sub(playerPosition).applyQuaternion(invQuat).z;
+    const currRelZ = TieFighter.SCRATCH_VEC.copy(this.mesh.position).sub(playerPosition).applyQuaternion(invQuat).z;
 
     // A flyby happens when the entity crosses from behind (positive Z) to in front (negative Z)
     if (prevRelZ > 0 && currRelZ <= 0) {
@@ -145,19 +151,15 @@ export class TieFighter extends Entity implements Targetable {
       targetColor = GameConfig.tieFighter.meshColor;
     }
 
-    this.mesh.children.forEach(child => {
-      if (child instanceof THREE.Mesh && child.material instanceof THREE.MeshBasicMaterial) {
-        if (child.material.color.getHex() !== targetColor) {
-          child.material.color.setHex(targetColor!);
-        }
-      }
-    });
+    if (this.materialInstance.color.getHex() !== targetColor) {
+      this.materialInstance.color.setHex(targetColor!);
+    }
 
     if (this.fireCooldown <= 0) {
       const multiplier = GameConfig.getDifficultyMultiplier(state.wave);
       this.fireCooldown = GameConfig.getScaledInterval(GameConfig.fireball.fireRate, multiplier);
       // Return direction towards player
-      return new THREE.Vector3().subVectors(playerPosition, this.position).normalize();
+      return this.fireDirection.subVectors(playerPosition, this.position).normalize();
     }
 
     return null;
@@ -176,12 +178,7 @@ export class TieFighter extends Entity implements Targetable {
   }
 
   public dispose(): void {
-    this.mesh.traverse(child => {
-      if (child instanceof THREE.Mesh) {
-        if (child.material instanceof THREE.Material) {
-          child.material.dispose();
-        }
-      }
-    });
+    // Only dispose the unique material instance we created
+    this.materialInstance.dispose();
   }
 }
