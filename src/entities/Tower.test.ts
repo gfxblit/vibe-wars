@@ -16,11 +16,11 @@ describe('Tower', () => {
     const expectedTopHeight = towerHeight * 0.2;
 
     // The tower mesh is a group containing the base and top
-    const base = tower.mesh.children[0] as THREE.LineSegments;
-    const top = tower.mesh.children[1] as THREE.LineSegments;
+    const base = tower.mesh.children.find(c => (c as THREE.LineSegments).material === tower.baseMaterial) as THREE.LineSegments;
+    const top = tower.mesh.children.find(c => (c as THREE.LineSegments).material === tower.topMaterial) as THREE.LineSegments;
 
-    expect(base.geometry).toBeInstanceOf(THREE.EdgesGeometry);
-    expect(top.geometry).toBeInstanceOf(THREE.EdgesGeometry);
+    expect(base).toBeDefined();
+    expect(top).toBeDefined();
 
     const baseGeo = base.geometry as THREE.EdgesGeometry;
     const topGeo = top.geometry as THREE.EdgesGeometry;
@@ -42,8 +42,8 @@ describe('Tower', () => {
   it('should have correct colors for base and top', () => {
     const { towerColor, towerTopColor } = GameConfig.stages.surface;
     
-    const base = tower.mesh.children[0] as THREE.LineSegments;
-    const top = tower.mesh.children[1] as THREE.LineSegments;
+    const base = tower.mesh.children.find(c => (c as THREE.LineSegments).material === tower.baseMaterial) as THREE.LineSegments;
+    const top = tower.mesh.children.find(c => (c as THREE.LineSegments).material === tower.topMaterial) as THREE.LineSegments;
 
     const baseMat = base.material as THREE.LineBasicMaterial;
     const topMat = top.material as THREE.LineBasicMaterial;
@@ -57,7 +57,7 @@ describe('Tower', () => {
     const expectedBaseHeight = towerHeight * 0.8;
     const expectedTopHeight = towerHeight * 0.2;
 
-    const top = tower.mesh.children[1] as THREE.LineSegments;
+    const top = tower.mesh.children.find(c => (c as THREE.LineSegments).material === tower.topMaterial) as THREE.LineSegments;
     
     // Position Y = baseHeight + topHeight / 2
     const expectedY = expectedBaseHeight + expectedTopHeight / 2;

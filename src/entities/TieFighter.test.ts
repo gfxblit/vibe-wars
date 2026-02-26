@@ -83,7 +83,7 @@ describe('TieFighter', () => {
 
   test('update() should scatter pieces when exploded', () => {
     // Initial positions (relative to parent group)
-    const piece1 = tieFighter.mesh.children[0];
+    const piece1 = tieFighter.mesh.children.find(c => (c as THREE.LineSegments).geometry === TieFighter.bodyGeo) as THREE.LineSegments;
     const initialPos = piece1.position.clone();
 
     tieFighter.explode();
@@ -110,17 +110,21 @@ describe('TieFighter', () => {
     const tf1 = new TieFighter(strategy);
     const tf2 = new TieFighter(strategy);
 
-    const body1 = tf1.mesh.children[0] as THREE.LineSegments;
-    const body2 = tf2.mesh.children[0] as THREE.LineSegments;
+    const body1 = tf1.mesh.children.find(c => (c as THREE.LineSegments).geometry === TieFighter.bodyGeo) as THREE.LineSegments;
+    const body2 = tf2.mesh.children.find(c => (c as THREE.LineSegments).geometry === TieFighter.bodyGeo) as THREE.LineSegments;
 
+    expect(body1).toBeDefined();
+    expect(body2).toBeDefined();
     expect(body1.geometry).toBe(body2.geometry);
     // Materials are cloned for per-instance debug colors, so they won't be identical
     expect((body1.material as THREE.LineBasicMaterial).type).toBe((body2.material as THREE.LineBasicMaterial).type);
     expect((body1.material as THREE.LineBasicMaterial).color.getHex()).toBe((body2.material as THREE.LineBasicMaterial).color.getHex());
 
-    const wing1 = tf1.mesh.children[1] as THREE.LineSegments;
-    const wing2 = tf2.mesh.children[1] as THREE.LineSegments;
+    const wing1 = tf1.mesh.children.find(c => (c as THREE.LineSegments).geometry === TieFighter.wingGeo) as THREE.LineSegments;
+    const wing2 = tf2.mesh.children.find(c => (c as THREE.LineSegments).geometry === TieFighter.wingGeo) as THREE.LineSegments;
 
+    expect(wing1).toBeDefined();
+    expect(wing2).toBeDefined();
     expect(wing1.geometry).toBe(wing2.geometry);
     expect((wing1.material as THREE.LineBasicMaterial).type).toBe((wing2.material as THREE.LineBasicMaterial).type);
   })

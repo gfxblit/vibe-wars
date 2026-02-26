@@ -15,8 +15,8 @@ export class TieFighter extends Entity implements Targetable {
   private baseSize: number;
 
   private static material: THREE.LineBasicMaterial;
-  private static bodyGeo: THREE.EdgesGeometry;
-  private static wingGeo: THREE.EdgesGeometry;
+  public static bodyGeo: THREE.EdgesGeometry;
+  public static wingGeo: THREE.EdgesGeometry;
 
   private fireCooldown: number = Math.random() * GameConfig.fireball.fireRate;
 

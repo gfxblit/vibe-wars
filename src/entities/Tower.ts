@@ -11,8 +11,8 @@ export class Tower extends Entity implements Targetable {
     private topMesh!: THREE.LineSegments;
     private fireCooldown: number = 0;
     private debris: { mesh: THREE.LineSegments, velocity: THREE.Vector3 }[] = [];
-    private baseMaterial: THREE.LineBasicMaterial;
-    private topMaterial: THREE.LineBasicMaterial;
+    public baseMaterial: THREE.LineBasicMaterial;
+    public topMaterial: THREE.LineBasicMaterial;
   
     // Targetable interface implementation
     public get isExploded(): boolean {
