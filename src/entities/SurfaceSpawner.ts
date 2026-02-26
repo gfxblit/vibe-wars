@@ -47,7 +47,7 @@ export class SurfaceSpawner {
     const rangeX = surfaceWidth / 2 - towerMarginX; 
     const x = playerX + (Math.random() * 2 - 1) * rangeX;
     
-    const obstacle = this.factory.createRandom(new THREE.Vector3(x, surfaceFloorY, spawnZ));
+    const obstacle = this.factory.createRandom(new THREE.Vector3(x, surfaceFloorY, spawnZ), state.wave);
     
     this.obstacles.push(obstacle);
     this.targetScene.add(obstacle.mesh);

@@ -121,7 +121,7 @@ describe('GameConfig', () => {
     expect(GameConfig.stages.surface.floorBounce).toBe(2);
     expect(GameConfig.stages.surface.towerPoints).toBe(200);
     expect(GameConfig.stages.surface.turretSize).toBe(15);
-    expect(GameConfig.stages.surface.turretSpawnProbability).toBe(0.3);
+    expect(GameConfig.stages.surface.turretDensity).toBe(0.3);
     expect(GameConfig.stages.deathStar.spawnAngle).toBeCloseTo(Math.PI / 4);
   });
 

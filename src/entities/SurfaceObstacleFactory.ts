@@ -17,9 +17,12 @@ export class SurfaceObstacleFactory {
     return turret;
   }
 
-  public createRandom(position: THREE.Vector3): SurfaceObstacle {
-    const { turretSpawnProbability } = GameConfig.stages.surface;
-    if (Math.random() < turretSpawnProbability) {
+  public createRandom(position: THREE.Vector3, wave: number = 1): SurfaceObstacle {
+    const { turretDensity } = GameConfig.stages.surface;
+    const multiplier = GameConfig.getDifficultyMultiplier(wave);
+    const scaledDensity = turretDensity * multiplier;
+    
+    if (Math.random() < scaledDensity) {
       return this.createTurret(position);
     } else {
       return this.createTower(position);
