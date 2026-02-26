@@ -87,8 +87,8 @@ describe('GameConfig', () => {
     expect(GameConfig.tieFighter.oscillationFrequency).toBe(1.0);
     expect(GameConfig.tieFighter.oscillationAmplitude).toBe(15);
     expect(GameConfig.tieFighter.distance).toBe(60);
-    expect(GameConfig.tieFighter.meshColor).toBe(0xff0000);
-    expect(GameConfig.tieFighter.meshSize).toBe(1);
+    expect(GameConfig.tieFighter.meshColor).toBe(0x00ff00);
+    expect(GameConfig.tieFighter.meshSize).toBe(2);
     expect(GameConfig.tieFighter.spawnInterval).toBe(3.0);
     expect(GameConfig.tieFighter.cleanupDistance).toBe(600);
     
