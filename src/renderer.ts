@@ -96,5 +96,13 @@ export function render(
   _hudScene?: THREE.Scene,
   _hudCamera?: THREE.Camera
 ) {
+  // Update bloom settings from state
+  const bloomPass = composer.passes.find(pass => pass instanceof UnrealBloomPass) as UnrealBloomPass;
+  if (bloomPass) {
+    bloomPass.strength = state.debugBloomStrength ?? GameConfig.bloom.strength;
+    bloomPass.radius = state.debugBloomRadius ?? GameConfig.bloom.radius;
+    bloomPass.threshold = state.debugBloomThreshold ?? GameConfig.bloom.threshold;
+  }
+
   composer.render();
 }

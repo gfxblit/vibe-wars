@@ -26,6 +26,7 @@ vi.mock('three/examples/jsm/postprocessing/EffectComposer.js', () => ({
     addPass: vi.fn(),
     render: vi.fn(),
     setSize: vi.fn(),
+    passes: [],
   })),
 }));
 
@@ -132,4 +133,31 @@ describe('Renderer Utils', () => {
     
     expect(composerRenderSpy).toHaveBeenCalled();
   })
+
+  test('render should update bloom pass properties when state changes', () => {
+    const { composer } = initRenderer();
+    
+    // Simulate UnrealBloomPass being in composer.passes
+    const bloomPass = {
+      strength: 0,
+      radius: 0,
+      threshold: 0
+    };
+    // We need to make it an instance of UnrealBloomPass for the find to work
+    Object.setPrototypeOf(bloomPass, UnrealBloomPass.prototype);
+    (composer.passes as any[]).push(bloomPass);
+
+    // Update state
+    state.debugBloomStrength = 2.5;
+    state.debugBloomRadius = 0.8;
+    state.debugBloomThreshold = 0.5;
+
+    // Call render
+    render(composer as any);
+
+    // Verify properties are updated
+    expect(bloomPass.strength).toBe(2.5);
+    expect(bloomPass.radius).toBe(0.8);
+    expect(bloomPass.threshold).toBe(0.5);
+  });
 })

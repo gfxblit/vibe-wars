@@ -30,6 +30,7 @@ vi.mock('three/examples/jsm/postprocessing/EffectComposer.js', () => ({
     addPass: vi.fn(),
     render: vi.fn(),
     setSize: vi.fn(),
+    passes: [],
   })),
 }));
 
