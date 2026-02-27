@@ -50,6 +50,8 @@ export class UIManager {
     this.createShieldSection(topBar);
     this.createWaveSection(topBar);
 
+    this.createControlsHint(this.hud);
+
     // Central info area
     const centerArea = this.createEl('div', 'fixed top-1/4 left-1/2 -translate-x-1/2 flex flex-col items-center space-y-4 pointer-events-none', this.hud);
     this.stageValue = this.createEl('div', 'text-vector-yellow text-4xl animate-pulse hidden', centerArea);
@@ -120,6 +122,12 @@ export class UIManager {
     this.waveValue = this.createEl('span', 'text-vector-green', container);
     this.waveValue.id = 'wave-value';
     this.waveValue.textContent = '1';
+  }
+
+  private createControlsHint(parent: HTMLElement) {
+    const hint = this.createEl('div', 'hidden md:block w-full text-center text-sm text-vector-green opacity-50 font-retro fixed bottom-4 left-0 pointer-events-none z-0', parent);
+    hint.id = 'controls-hint';
+    hint.textContent = 'WASD / ARROWS to Move • SPACE / CLICK to Fire';
   }
 
   private createGameOverOverlay() {
