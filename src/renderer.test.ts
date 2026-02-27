@@ -3,7 +3,7 @@
  */
 import { expect, test, describe, vi, beforeEach } from 'vitest'
 import * as THREE from 'three'
-import { attachCameraToPlayer, initRenderer, render } from './renderer'
+import { attachCameraToPlayer, initRenderer, render, updatePostProcessing } from './renderer'
 import { state } from './state'
 import { Player } from './entities/Player'
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
@@ -125,16 +125,7 @@ describe('Renderer Utils', () => {
     cleanup();
   });
 
-  test('render should call composer.render', () => {
-    const { composer } = initRenderer();
-    const composerRenderSpy = vi.spyOn(composer, 'render');
-    
-    render(composer as any);
-    
-    expect(composerRenderSpy).toHaveBeenCalled();
-  })
-
-  test('render should update bloom pass properties when state changes', () => {
+  test('updatePostProcessing should update bloom pass properties when state changes', () => {
     const { composer } = initRenderer();
     
     // Simulate UnrealBloomPass being in composer.passes
@@ -152,12 +143,34 @@ describe('Renderer Utils', () => {
     state.debugBloomRadius = 0.8;
     state.debugBloomThreshold = 0.5;
 
-    // Call render
-    render(composer as any);
+    updatePostProcessing(composer as any);
 
     // Verify properties are updated
     expect(bloomPass.strength).toBe(2.5);
     expect(bloomPass.radius).toBe(0.8);
     expect(bloomPass.threshold).toBe(0.5);
   });
+
+  test('render should call composer.render and NOT update bloom settings', () => {
+    const { composer } = initRenderer();
+    const composerRenderSpy = vi.spyOn(composer, 'render');
+
+    // Simulate UnrealBloomPass being in composer.passes
+    const bloomPass = {
+      strength: 0,
+      radius: 0,
+      threshold: 0
+    };
+    Object.setPrototypeOf(bloomPass, UnrealBloomPass.prototype);
+    (composer.passes as any[]).push(bloomPass);
+
+    // Update state
+    state.debugBloomStrength = 2.5;
+
+    render(composer as any);
+    
+    expect(composerRenderSpy).toHaveBeenCalled();
+    // It should NOT be updated by render anymore
+    expect(bloomPass.strength).not.toBe(2.5);
+  })
 })

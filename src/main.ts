@@ -1,6 +1,6 @@
 import './style.css'
 import { initGame, state } from './state'
-import { initRenderer, render, attachCameraToPlayer } from './renderer'
+import { initRenderer, render, attachCameraToPlayer, updatePostProcessing } from './renderer'
 import { InputManager } from './input'
 import { StarField } from './entities/StarField'
 import { GameConfig } from './config'
@@ -79,6 +79,7 @@ function animate(time: number) {
     if (starField.points.visible) {
       starField.update(state.player.position)
     }
+    updatePostProcessing(composer)
     render(composer, scene, camera, hudScene, hudCamera)
   }
 

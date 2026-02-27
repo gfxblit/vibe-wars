@@ -89,13 +89,7 @@ export function initRenderer() {
   return { scene, camera, hudScene, hudCamera, renderer, composer, cleanup };
 }
 
-export function render(
-  composer: EffectComposer,
-  _scene?: THREE.Scene,
-  _camera?: THREE.Camera,
-  _hudScene?: THREE.Scene,
-  _hudCamera?: THREE.Camera
-) {
+export function updatePostProcessing(composer: EffectComposer) {
   // Update bloom settings from state
   const bloomPass = composer.passes.find(pass => pass instanceof UnrealBloomPass) as UnrealBloomPass;
   if (bloomPass) {
@@ -103,6 +97,14 @@ export function render(
     bloomPass.radius = state.debugBloomRadius ?? GameConfig.bloom.radius;
     bloomPass.threshold = state.debugBloomThreshold ?? GameConfig.bloom.threshold;
   }
+}
 
+export function render(
+  composer: EffectComposer,
+  _scene?: THREE.Scene,
+  _camera?: THREE.Camera,
+  _hudScene?: THREE.Scene,
+  _hudCamera?: THREE.Camera
+) {
   composer.render();
 }
