@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { Entity } from './Entity';
 import { GameConfig } from '../config';
+import { materialSystem } from '../MaterialSystem';
 
 export class Laser extends Entity {
   public readonly mesh: THREE.Mesh;
@@ -24,6 +25,8 @@ export class Laser extends Entity {
       opacity: 1.0,
       depthTest: false
     });
+
+    materialSystem.register(material, 'Laser', this.color);
     
     this.mesh = new THREE.Mesh(geometry, material);
     
@@ -77,12 +80,17 @@ export class Laser extends Entity {
     return this.progress >= 1.0;
   }
 
-  public dispose(): void {
-    this.mesh.geometry.dispose();
-    if (Array.isArray(this.mesh.material)) {
-      this.mesh.material.forEach(m => m.dispose());
-    } else {
-      this.mesh.material.dispose();
+    public dispose(): void {
+      this.mesh.geometry.dispose();
+      if (Array.isArray(this.mesh.material)) {
+        this.mesh.material.forEach(m => {
+          materialSystem.unregister(m);
+          m.dispose();
+        });
+      } else {
+        materialSystem.unregister(this.mesh.material);
+        this.mesh.material.dispose();
+      }
     }
   }
-}
+  

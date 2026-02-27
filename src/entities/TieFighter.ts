@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { Entity, Targetable } from './Entity';
 import { GameConfig } from '../config';
 import { AIStrategy } from './AIStrategy';
+import { materialSystem } from '../MaterialSystem';
 import { state } from '../state';
 import { GameEventType, globalEvents } from '../EventBus';
 
@@ -58,6 +59,8 @@ export class TieFighter extends Entity implements Targetable {
 
     // Body
     const bodyMaterial = TieFighter.material.clone();
+    materialSystem.register(bodyMaterial, 'TieFighter', GameConfig.tieFighter.meshColor);
+
     const body = new THREE.LineSegments(TieFighter.bodyGeo, bodyMaterial);
     this.mesh.add(body);
 
@@ -148,11 +151,10 @@ export class TieFighter extends Entity implements Targetable {
       targetColor = GameConfig.tieFighter.meshColor;
     }
 
+    // Update base color in MaterialSystem - it will handle intensity
     this.mesh.children.forEach(child => {
       if (child instanceof THREE.LineSegments && child.material instanceof THREE.LineBasicMaterial) {
-        if (child.material.color.getHex() !== targetColor) {
-          child.material.color.setHex(targetColor!);
-        }
+        materialSystem.setBaseColor(child.material, targetColor!);
       }
     });
 
@@ -179,12 +181,18 @@ export class TieFighter extends Entity implements Targetable {
   }
 
   public dispose(): void {
+    const materialsToDispose = new Set<THREE.Material>();
     this.mesh.traverse(child => {
       if (child instanceof THREE.LineSegments) {
+        child.geometry.dispose();
         if (child.material instanceof THREE.Material) {
-          child.material.dispose();
+          materialsToDispose.add(child.material);
         }
       }
+    });
+    materialsToDispose.forEach(material => {
+      materialSystem.unregister(material);
+      material.dispose();
     });
   }
 }

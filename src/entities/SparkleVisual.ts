@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { materialSystem, BloomCategory } from '../MaterialSystem';
 
 export interface SparkleConfig {
   count: number;
@@ -6,6 +7,7 @@ export interface SparkleConfig {
   color: THREE.Color;
   explosionVelocity: number;
   texture: THREE.Texture;
+  category: BloomCategory;
 }
 
 export class SparkleVisual {
@@ -32,6 +34,8 @@ export class SparkleVisual {
         depthWrite: false, // Fix for black background artifacts
         rotation: Math.random() * Math.PI * 2,
       });
+
+      materialSystem.register(material, config.category, color.getHex());
 
       const sparkle = new THREE.Sprite(material);
       sparkle.scale.set(config.size, config.size, 1);
@@ -86,6 +90,7 @@ export class SparkleVisual {
   dispose(): void {
     this.group.children.forEach(child => {
       if (child instanceof THREE.Sprite) {
+        materialSystem.unregister(child.material);
         child.material.dispose();
       }
     });

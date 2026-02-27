@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { Entity, Targetable } from './Entity';
 import { GameConfig } from '../config';
+import { materialSystem } from '../MaterialSystem';
 import { GameEventType, globalEvents } from '../EventBus';
 
 export class DeathStar extends Entity {
@@ -27,6 +28,7 @@ export class DeathStar extends Entity {
       transparent: true,
       opacity: 0.6,
     });
+    materialSystem.register(hullMaterial, 'DeathStar', GameConfig.stages.deathStar.color);
     this.materials.push(hullMaterial);
 
     const dishMaterial = new THREE.LineBasicMaterial({
@@ -34,6 +36,7 @@ export class DeathStar extends Entity {
       transparent: true,
       opacity: 0.9,
     });
+    materialSystem.register(dishMaterial, 'DeathStar', GameConfig.stages.deathStar.dishColor);
     this.materials.push(dishMaterial);
 
     // 1. Hull: Two hemispheres with a gap for the trench
@@ -232,7 +235,10 @@ export class DeathStar extends Entity {
 
   dispose() {
     this.geometries.forEach(g => g.dispose());
-    this.materials.forEach(m => m.dispose());
+    this.materials.forEach(m => {
+      materialSystem.unregister(m);
+      m.dispose();
+    });
     this.geometries = [];
     this.materials = [];
     

@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { Entity } from './Entity';
 import { GameConfig } from '../config';
+import { materialSystem } from '../MaterialSystem';
 
 export class StarField extends Entity {
   public readonly points: THREE.Points;
@@ -23,6 +24,8 @@ export class StarField extends Entity {
       color: GameConfig.starField.starColor,
       size: GameConfig.starField.starSize,
     });
+
+    materialSystem.register(this.material, 'StarField', GameConfig.starField.starColor);
 
     this.points = new THREE.Points(this.geometry, this.material);
     this.points.frustumCulled = false;
@@ -59,5 +62,11 @@ export class StarField extends Entity {
       }
     }
     this.geometry.attributes.position.needsUpdate = true;
+  }
+
+  public dispose() {
+    materialSystem.unregister(this.material);
+    this.geometry.dispose();
+    this.material.dispose();
   }
 }

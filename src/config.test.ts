@@ -50,6 +50,23 @@ describe('GameConfig', () => {
     expect(GameConfig.audio.assets.tieFighter).toBeDefined();
   });
 
+  test('should have bloom settings', () => {
+    expect(GameConfig.bloom.threshold).toBe(1.0);
+    expect(GameConfig.bloom.strength).toBe(1.5);
+    expect(GameConfig.bloom.radius).toBe(0.4);
+  });
+
+  test('should have bloom settings for entities', () => {
+    expect(GameConfig.player.bloom).toBeDefined();
+    expect(GameConfig.tieFighter.bloom).toBeDefined();
+    expect(GameConfig.laser.bloom).toBeDefined();
+    expect(GameConfig.fireball.bloom).toBeDefined();
+    expect(GameConfig.turret.bloom).toBeDefined();
+    expect(GameConfig.starField.bloom).toBeDefined();
+    expect(GameConfig.stages.surface.bloom).toBeDefined();
+    expect(GameConfig.stages.trench.bloom).toBeDefined();
+  });
+
   test('should have laser settings', () => {
     expect(GameConfig.laser.speed).toBe(2000);
     expect(GameConfig.laser.cooldown).toBe(0.15);

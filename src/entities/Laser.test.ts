@@ -35,4 +35,17 @@ describe('Laser (HUD-based)', () => {
     expect(geometryDisposeSpy).toHaveBeenCalled();
     expect(materialDisposeSpy).toHaveBeenCalled();
   });
+
+  it('sets material color intensity based on bloom setting', () => {
+    // We can't easily mock GameConfig because it's a const and frozen
+    // But we can check if it respects what's in GameConfig
+    const laser = new Laser(new THREE.Vector2(), new THREE.Vector2(), 0x00ff00);
+    const material = laser.mesh.material as THREE.MeshBasicMaterial;
+    
+    // Default in GameConfig for laser.bloom is true
+    // If we implement it by scaling by 2.0 when true, we expect g to be 2.0
+    expect(material.color.g).toBeGreaterThan(1.0);
+    
+    // Wait, I should probably make it configurable in the constructor or use state
+  });
 });

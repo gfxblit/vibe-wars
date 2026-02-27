@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { Entity } from './Entity';
 import { GameConfig } from '../config';
 import { UserInput } from '../input';
+import { materialSystem } from '../MaterialSystem';
 
 export interface PlayerUpdateOptions {
   lockUpright?: boolean;
@@ -32,8 +33,15 @@ export class Player extends Entity {
     this.visualMesh = new THREE.LineSegments(edges, material);
     this.visualMesh.visible = false;
 
+    materialSystem.register(material, 'Player', GameConfig.player.meshColor);
+
     this.mesh.add(this.visualMesh);
     this.position.set(0, 0, 0);
+  }
+
+  public dispose(): void {
+    materialSystem.unregister(this.visualMesh.material as THREE.Material);
+    (this.visualMesh.material as THREE.Material).dispose();
   }
 
   public update(

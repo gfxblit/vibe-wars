@@ -1,11 +1,12 @@
 /**
  * @vitest-environment happy-dom
  */
-import { expect, test, describe, vi } from 'vitest'
+import { expect, test, describe, vi, beforeEach } from 'vitest'
 import * as THREE from 'three'
-import { attachCameraToPlayer, initRenderer } from './renderer'
+import { attachCameraToPlayer, initRenderer, render, updatePostProcessing } from './renderer'
 import { state } from './state'
 import { Player } from './entities/Player'
+import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 
 vi.mock('three', async () => {
   const actual = await vi.importActual('three') as any;
@@ -20,7 +21,35 @@ vi.mock('three', async () => {
   };
 });
 
+vi.mock('three/examples/jsm/postprocessing/EffectComposer.js', () => ({
+  EffectComposer: vi.fn().mockImplementation(() => ({
+    addPass: vi.fn(),
+    render: vi.fn(),
+    setSize: vi.fn(),
+    passes: [],
+  })),
+}));
+
+vi.mock('three/examples/jsm/postprocessing/RenderPass.js', () => ({
+  RenderPass: vi.fn().mockImplementation(() => ({})),
+}));
+
+vi.mock('three/examples/jsm/postprocessing/UnrealBloomPass.js', () => ({
+  UnrealBloomPass: vi.fn().mockImplementation(() => ({})),
+}));
+
+vi.mock('three/examples/jsm/postprocessing/OutputPass.js', () => ({
+  OutputPass: vi.fn().mockImplementation(() => ({})),
+}));
+
 describe('Renderer Utils', () => {
+  beforeEach(() => {
+    state.debugBloomThreshold = undefined;
+    state.debugBloomStrength = undefined;
+    state.debugBloomRadius = undefined;
+    vi.clearAllMocks();
+  });
+
   test('attachCameraToPlayer should add camera as child of player mesh with correct offset', () => {
     const camera = new THREE.PerspectiveCamera();
     const player = new Player();
@@ -38,13 +67,14 @@ describe('Renderer Utils', () => {
     expect(cameraDir.dot(forward)).toBeGreaterThan(0.9);
   })
 
-  test('initRenderer should return scene, camera, renderer and a cleanup function', () => {
+  test('initRenderer should return scene, camera, renderer, composer and a cleanup function', () => {
     const removeEventListenerSpy = vi.spyOn(window, 'removeEventListener');
-    const { scene, camera, renderer, cleanup } = initRenderer();
+    const { scene, camera, renderer, composer, cleanup } = initRenderer();
     
     expect(scene).toBeInstanceOf(THREE.Scene);
     expect(camera).toBeInstanceOf(THREE.PerspectiveCamera);
     expect(renderer).toBeDefined();
+    expect(composer).toBeDefined();
     expect(renderer.domElement).toBeInstanceOf(HTMLCanvasElement);
     expect(cleanup).toBeTypeOf('function');
 
@@ -56,9 +86,10 @@ describe('Renderer Utils', () => {
     expect(document.body.contains(renderer.domElement)).toBe(false);
   })
 
-  test('initRenderer resize handler should update camera and renderer', () => {
-    const { camera, renderer, cleanup } = initRenderer();
+  test('initRenderer resize handler should update camera, renderer and composer', () => {
+    const { camera, renderer, composer, cleanup } = initRenderer();
     const setSizeSpy = vi.spyOn(renderer, 'setSize');
+    const composerSetSizeSpy = vi.spyOn(composer, 'setSize');
     const updateProjectionMatrixSpy = vi.spyOn(camera, 'updateProjectionMatrix');
 
     // Simulate resize
@@ -73,7 +104,73 @@ describe('Renderer Utils', () => {
     expect(camera.aspect).toBe(1024 / 768);
     expect(updateProjectionMatrixSpy).toHaveBeenCalled();
     expect(setSizeSpy).toHaveBeenCalledWith(1024, 768);
+    expect(composerSetSizeSpy).toHaveBeenCalledWith(1024, 768);
 
     cleanup();
+  })
+
+  test('initRenderer should use bloom settings from state if available', () => {
+    state.debugBloomThreshold = 0.5;
+    state.debugBloomStrength = 2.5;
+    state.debugBloomRadius = 0.8;
+    
+    const { cleanup } = initRenderer();
+    
+    expect(UnrealBloomPass).toHaveBeenCalledWith(
+      expect.any(THREE.Vector2),
+      2.5,
+      0.8,
+      0.5
+    );
+    cleanup();
+  });
+
+  test('updatePostProcessing should update bloom pass properties when state changes', () => {
+    const { composer } = initRenderer();
+    
+    // Simulate UnrealBloomPass being in composer.passes
+    const bloomPass = {
+      strength: 0,
+      radius: 0,
+      threshold: 0
+    };
+    // We need to make it an instance of UnrealBloomPass for the find to work
+    Object.setPrototypeOf(bloomPass, UnrealBloomPass.prototype);
+    (composer.passes as any[]).push(bloomPass);
+
+    // Update state
+    state.debugBloomStrength = 2.5;
+    state.debugBloomRadius = 0.8;
+    state.debugBloomThreshold = 0.5;
+
+    updatePostProcessing(composer as any);
+
+    // Verify properties are updated
+    expect(bloomPass.strength).toBe(2.5);
+    expect(bloomPass.radius).toBe(0.8);
+    expect(bloomPass.threshold).toBe(0.5);
+  });
+
+  test('render should call composer.render and NOT update bloom settings', () => {
+    const { composer } = initRenderer();
+    const composerRenderSpy = vi.spyOn(composer, 'render');
+
+    // Simulate UnrealBloomPass being in composer.passes
+    const bloomPass = {
+      strength: 0,
+      radius: 0,
+      threshold: 0
+    };
+    Object.setPrototypeOf(bloomPass, UnrealBloomPass.prototype);
+    (composer.passes as any[]).push(bloomPass);
+
+    // Update state
+    state.debugBloomStrength = 2.5;
+
+    render(composer as any);
+    
+    expect(composerRenderSpy).toHaveBeenCalled();
+    // It should NOT be updated by render anymore
+    expect(bloomPass.strength).not.toBe(2.5);
   })
 })

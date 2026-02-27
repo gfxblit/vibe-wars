@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { Entity } from './Entity';
 import { GameConfig } from '../config';
 import { Turret } from './Turret';
+import { materialSystem } from '../MaterialSystem';
 
 export class Trench extends Entity {
   public mesh: THREE.Group;
@@ -60,9 +61,11 @@ export class Trench extends Entity {
 
     const verticalGeometry = new THREE.BufferGeometry();
     verticalGeometry.setAttribute('position', new THREE.Float32BufferAttribute(verticalVertices, 3));
+    const verticalMaterial = new THREE.LineBasicMaterial({ color: trenchVerticalDetailColor });
+    materialSystem.register(verticalMaterial, 'Trench', trenchVerticalDetailColor);
     const verticalLines = new THREE.LineSegments(
       verticalGeometry, 
-      new THREE.LineBasicMaterial({ color: trenchVerticalDetailColor })
+      verticalMaterial
     );
     verticalLines.name = 'trench-grid-vertical';
     this.mesh.add(verticalLines);
@@ -77,9 +80,11 @@ export class Trench extends Entity {
 
     const horizontalGeometry = new THREE.BufferGeometry();
     horizontalGeometry.setAttribute('position', new THREE.Float32BufferAttribute(horizontalVertices, 3));
+    const horizontalMaterial = new THREE.LineBasicMaterial({ color: trenchHorizontalDetailColor });
+    materialSystem.register(horizontalMaterial, 'Trench', trenchHorizontalDetailColor);
     const horizontalLines = new THREE.LineSegments(
       horizontalGeometry, 
-      new THREE.LineBasicMaterial({ color: trenchHorizontalDetailColor })
+      horizontalMaterial
     );
     horizontalLines.name = 'trench-grid-horizontal';
     this.mesh.add(horizontalLines);
@@ -116,6 +121,7 @@ export class Trench extends Entity {
     const material = new THREE.LineBasicMaterial({
       color: catwalkColor,
     });
+    materialSystem.register(material, 'Trench', catwalkColor);
 
     for (let z = catwalkStartZ; z > catwalkEndZ; z -= this.currentCatwalkSpacing) {
       const catwalk = new THREE.LineSegments(edgesGeometry, material);
@@ -158,6 +164,7 @@ export class Trench extends Entity {
     const portMaterial = new THREE.LineBasicMaterial({
       color: exhaustPortColor,
     });
+    materialSystem.register(portMaterial, 'Trench', exhaustPortColor);
     const port = new THREE.LineSegments(portEdges, portMaterial);
     port.name = 'exhaust-port';
     // Place port just before the end of the trench visual
@@ -226,20 +233,33 @@ export class Trench extends Entity {
   }
 
   update(_deltaTime: number) {
-    // Turrets are updated by the EntityManager as registered targets.
+    // Logic moved to MaterialSystem
   }
 
   dispose() {
     this.turrets.forEach(t => t.dispose());
+    
+    const materialsToDispose = new Set<THREE.Material>();
+
     this.mesh.traverse(child => {
+      // Only dispose geometries here as they are unique to each mesh/line
       if (child instanceof THREE.Mesh || child instanceof THREE.LineSegments || child instanceof THREE.Line) {
         child.geometry.dispose();
-        if (child.material instanceof THREE.Material) {
-          child.material.dispose();
-        } else if (Array.isArray(child.material)) {
-          child.material.forEach(m => m.dispose());
+
+        if (child.name === 'trench-grid-vertical' || 
+            child.name === 'trench-grid-horizontal' || 
+            child.name === 'catwalk' || 
+            child.name === 'exhaust-port') {
+          if (child.material instanceof THREE.Material) {
+            materialsToDispose.add(child.material);
+          }
         }
       }
+    });
+
+    materialsToDispose.forEach(material => {
+      materialSystem.unregister(material);
+      material.dispose();
     });
   }
 }

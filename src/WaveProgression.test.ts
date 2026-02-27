@@ -92,7 +92,15 @@ vi.mock('three', async () => {
           this.position = new MockVector3(); 
           this.rotation = { x: 0, y: 0, z: 0 }; 
           this.quaternion = new MockQuaternion();
-          this.material = mat || { color: { setHex: () => {}, getHex: () => 0 }, dispose: () => {} }; 
+          this.material = mat || { 
+              color: { 
+                  setHex: function() { return this; }, 
+                  getHex: () => 0,
+                  multiplyScalar: function() { return this; },
+                  copy: function() { return this; }
+              }, 
+              dispose: () => {} 
+          }; 
           this.geometry = geo || { dispose: () => {}, getAttribute: () => ({ count: 0, array: [] }), getIndex: () => null }; 
           this.scale = { setScalar: () => {}, x: 1, y: 1, z: 1 }; 
           this.children = []; 
@@ -115,7 +123,12 @@ vi.mock('three', async () => {
     ConeGeometry: class { dispose() {} getAttribute() { return { count: 0, array: [] }; } getIndex() { return null; } },
     MeshBasicMaterial: class { 
         constructor(params) { 
-            this.color = { setHex: () => {}, getHex: () => 0 }; 
+            this.color = { 
+                setHex: function() { return this; }, 
+                getHex: () => 0,
+                multiplyScalar: function() { return this; },
+                copy: function() { return this; }
+            }; 
             if (params && params.color) this.color.getHex = () => params.color;
         } 
         dispose() {} 
@@ -123,7 +136,12 @@ vi.mock('three', async () => {
     },
     LineBasicMaterial: class { 
         constructor(params) { 
-            this.color = { setHex: () => {}, getHex: () => 0 }; 
+            this.color = { 
+                setHex: function() { return this; }, 
+                getHex: () => 0,
+                multiplyScalar: function() { return this; },
+                copy: function() { return this; }
+            }; 
             if (params && params.color) this.color.getHex = () => params.color;
         } 
         dispose() {} 

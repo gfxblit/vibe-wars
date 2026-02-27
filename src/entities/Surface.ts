@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { Entity } from './Entity';
 import { GameConfig } from '../config';
+import { materialSystem } from '../MaterialSystem';
 
 export class Surface extends Entity {
   public mesh: THREE.Group;
@@ -84,6 +85,7 @@ export class Surface extends Entity {
             opacity: 1.0,
             transparent: false 
         });
+        materialSystem.register(material, 'Surface', surfaceColor);
         this.gridMesh = new THREE.LineSegments(geometry, material);
         this.gridMesh.position.y = surfaceFloorY;
         this.floor.add(this.gridMesh);
@@ -129,6 +131,7 @@ export class Surface extends Entity {
     if (this.gridMesh) {
         this.gridMesh.geometry.dispose();
         if (this.gridMesh.material instanceof THREE.Material) {
+            materialSystem.unregister(this.gridMesh.material);
             this.gridMesh.material.dispose();
         }
     }

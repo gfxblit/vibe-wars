@@ -56,6 +56,19 @@ export interface GameState {
   debugSurfaceVerticalLineNoise?: number;
   debugSurfaceVerticalLineDensity?: number;
   debugSurfaceTurretDensity?: number;
+  debugBloomThreshold?: number;
+  debugBloomStrength?: number;
+  debugBloomRadius?: number;
+  debugPlayerBloom?: boolean;
+  debugTieFighterBloom?: boolean;
+  debugLaserBloom?: boolean;
+  debugFireballBloom?: boolean;
+  debugTurretBloom?: boolean;
+  debugStarFieldBloom?: boolean;
+  debugSurfaceBloom?: boolean;
+  debugTrenchBloom?: boolean;
+  debugDeathStarBloom?: boolean;
+  debugTorpedoBloom?: boolean;
 }
 
 const initialWidth = typeof window !== 'undefined' ? window.innerWidth : 1024;
@@ -99,6 +112,19 @@ export const state: GameState = {
   debugSurfaceVerticalLineNoise: undefined,
   debugSurfaceVerticalLineDensity: undefined,
   debugSurfaceTurretDensity: undefined,
+  debugBloomThreshold: undefined,
+  debugBloomStrength: undefined,
+  debugBloomRadius: undefined,
+  debugPlayerBloom: undefined,
+  debugTieFighterBloom: undefined,
+  debugLaserBloom: undefined,
+  debugFireballBloom: undefined,
+  debugTurretBloom: undefined,
+  debugStarFieldBloom: undefined,
+  debugSurfaceBloom: undefined,
+  debugTrenchBloom: undefined,
+  debugDeathStarBloom: undefined,
+  debugTorpedoBloom: undefined,
 };
 
 export function initGame(worldScene: THREE.Scene, hudScene: THREE.Scene) {
@@ -128,6 +154,19 @@ export function initGame(worldScene: THREE.Scene, hudScene: THREE.Scene) {
   state.debugSurfaceVerticalLineNoise = undefined;
   state.debugSurfaceVerticalLineDensity = undefined;
   state.debugSurfaceTurretDensity = undefined;
+  state.debugBloomThreshold = undefined;
+  state.debugBloomStrength = undefined;
+  state.debugBloomRadius = undefined;
+  state.debugPlayerBloom = undefined;
+  state.debugTieFighterBloom = undefined;
+  state.debugLaserBloom = undefined;
+  state.debugFireballBloom = undefined;
+  state.debugTurretBloom = undefined;
+  state.debugStarFieldBloom = undefined;
+  state.debugSurfaceBloom = undefined;
+  state.debugTrenchBloom = undefined;
+  state.debugDeathStarBloom = undefined;
+  state.debugTorpedoBloom = undefined;
 
   if (!state.audioManager) {
     state.audioManager = new AudioManager();

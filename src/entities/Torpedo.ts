@@ -33,7 +33,8 @@ export class Torpedo extends Entity {
       size: size,
       color: color,
       explosionVelocity: GameConfig.torpedo.explosionVelocity * 1.5,
-      texture: Torpedo.sparkleTexture
+      texture: Torpedo.sparkleTexture,
+      category: 'Torpedo'
     });
 
     this.mesh.add(this.visual.group);

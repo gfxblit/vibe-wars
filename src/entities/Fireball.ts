@@ -29,7 +29,8 @@ export class Fireball extends Entity {
       size: size,
       color: new THREE.Color(GameConfig.fireball.meshColor),
       explosionVelocity: GameConfig.fireball.explosionVelocity,
-      texture: Fireball.sharedTexture
+      texture: Fireball.sharedTexture,
+      category: 'Fireball'
     });
 
     this.mesh.add(this.visual.group);

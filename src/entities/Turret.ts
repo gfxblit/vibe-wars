@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { Entity, Targetable, FireballDebugContext } from './Entity';
 import { GameConfig } from '../config';
+import { materialSystem } from '../MaterialSystem';
 import { state } from '../state';
 import { GameEventType, globalEvents } from '../EventBus';
 
@@ -64,6 +65,8 @@ export class Turret extends Entity implements Targetable {
       color: GameConfig.turret.meshColor
     });
 
+    materialSystem.register(this.material, 'Turret', GameConfig.turret.meshColor);
+
     // Base - stays on the wall
     const tempBaseGeo = new THREE.BoxGeometry(size * 0.8, size * 0.8, size * 0.2);
     const baseGeo = new THREE.EdgesGeometry(tempBaseGeo);
@@ -112,7 +115,7 @@ export class Turret extends Entity implements Targetable {
     globalEvents.emit(GameEventType.ENTITY_EXPLODED, { position: this.position, entity: this });
 
     // Change color to orange
-    this.material.color.setHex(0xffa500);
+    materialSystem.setBaseColor(this.material, 0xffa500);
 
     // Generate random velocities for each piece
     this.mesh.children.forEach(() => {
@@ -180,6 +183,7 @@ export class Turret extends Entity implements Targetable {
   }
 
   public dispose(): void {
+    materialSystem.unregister(this.material);
     this.material.dispose();
     this.mesh.traverse(child => {
       if (child instanceof THREE.LineSegments) {

@@ -2,13 +2,15 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import * as THREE from 'three';
 import { Tower } from './Tower';
 import { GameConfig } from '../config';
+import { state } from '../state';
 
 describe('Tower Explosion', () => {
   let tower: Tower;
-  const position = new THREE.Vector3(0, 0, 0);
+  const initialPosition = new THREE.Vector3(0, 0, 0);
 
   beforeEach(() => {
-    tower = new Tower(position);
+    state.debugSurfaceBloom = false;
+    tower = new Tower(initialPosition);
   });
 
   it('should set isExploded to true when explode() is called', () => {
@@ -108,14 +110,14 @@ describe('Tower Explosion', () => {
   });
 
   it('should return correct position', () => {
-    expect(tower.position.equals(position)).toBe(true);
+    expect(tower.position.equals(initialPosition)).toBe(true);
   });
 
   it('should return correct world position', () => {
     const target = new THREE.Vector3();
     const worldPos = tower.getWorldPosition(target);
-    expect(worldPos.equals(position)).toBe(true);
-    expect(target.equals(position)).toBe(true);
+    expect(worldPos.equals(initialPosition)).toBe(true);
+    expect(target.equals(initialPosition)).toBe(true);
   });
 
   it('should return direction vector when fireCooldown expires', () => {
