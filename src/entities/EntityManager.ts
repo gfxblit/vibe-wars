@@ -44,6 +44,11 @@ export class EntityManager {
     const debugSize = state.debug ? state.debugTieFighterSize : undefined;
     const debugColor = state.debug ? state.debugTieFighterColor : undefined;
 
+    // Optimization: Pre-calculate squared distances to avoid Math.sqrt in loops
+    const cleanupDistanceSq = GameConfig.tieFighter.cleanupDistance * GameConfig.tieFighter.cleanupDistance;
+    const expirationDistanceSq = GameConfig.fireball.expirationDistance * GameConfig.fireball.expirationDistance;
+    const collisionRadiusWorldSq = (GameConfig.fireball.collisionRadiusWorld + GameConfig.player.meshSize) ** 2;
+
     // 1. Update existing TIE fighters
     for (let i = this.tieFighters.length - 1; i >= 0; i--) {
       const tf = this.tieFighters[i];
@@ -53,15 +58,21 @@ export class EntityManager {
         this.spawnFireballFromTarget(tf, fireDirection, playerQuaternion, playerSpeed);
       }
 
-            if (!tf.isExploded) {
-              globalEvents.emit(GameEventType.ENTITY_MOVED, { position: tf.position, entity: tf });
-            }
+      if (!tf.isExploded) {
+        globalEvents.emit(GameEventType.ENTITY_MOVED, { position: tf.position, entity: tf });
+      }
       // Cleanup distant TIE fighters
-      const distance = tf.position.distanceTo(playerPosition);
-      if (distance > GameConfig.tieFighter.cleanupDistance) {
+      // Optimization: use distanceToSquared
+      const distanceSq = tf.position.distanceToSquared(playerPosition);
+      if (distanceSq > cleanupDistanceSq) {
         this.removeTieFighter(i);
       }
     }
+
+    // Optimization: Hoist camera matrix updates out of the fireball loop
+    // We only need to do this once per frame, not per fireball
+    camera.getWorldPosition(this.scratchCameraPos);
+    camera.getWorldDirection(this.scratchCameraDir);
 
     // 2. Update fireballs and check for player collision
     for (let i = this.fireballs.length - 1; i >= 0; i--) {
@@ -75,17 +86,15 @@ export class EntityManager {
       }
 
       // Cleanup distant fireballs (missed or far away)
-      const distToPlayer = fb.position.distanceTo(playerPosition);
-      if (distToPlayer > GameConfig.fireball.expirationDistance) {
+      // Optimization: use distanceToSquared
+      const distToPlayerSq = fb.position.distanceToSquared(playerPosition);
+      if (distToPlayerSq > expirationDistanceSq) {
         this.removeFireball(i);
         continue;
       }
 
       // Collision checks
       if (!fb.isExploded) {
-        camera.getWorldPosition(this.scratchCameraPos);
-        camera.getWorldDirection(this.scratchCameraDir);
-
         this.scratchToFireball.subVectors(fb.position, this.scratchCameraPos);
         this.scratchToPrevFireball.subVectors(fb.previousPosition, this.scratchCameraPos);
 
@@ -116,7 +125,8 @@ export class EntityManager {
         // B. Body Collision Fallback (Radius-based)
         // Handles hits from the side or back that don't cross the front camera plane
         if (!fb.isExploded) {
-          if (distToPlayer < (GameConfig.fireball.collisionRadiusWorld + GameConfig.player.meshSize)) {
+          // Optimization: use distanceToSquared against pre-calculated squared radius
+          if (distToPlayerSq < collisionRadiusWorldSq) {
             if (onPlayerHit) {
               onPlayerHit(GameConfig.fireball.damage);
             }
