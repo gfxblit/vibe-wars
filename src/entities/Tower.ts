@@ -8,11 +8,11 @@ export class Tower extends Entity implements Targetable {
     public mesh: THREE.Group;
     private collisionBox: THREE.Box3;
     private _isExploded: boolean = false;
-    private topMesh!: THREE.Mesh;
+    private topMesh!: THREE.LineSegments;
     private fireCooldown: number = 0;
-    private debris: { mesh: THREE.Mesh, velocity: THREE.Vector3 }[] = [];
-    private baseMaterial: THREE.MeshBasicMaterial;
-    private topMaterial: THREE.MeshBasicMaterial;
+    private debris: { mesh: THREE.LineSegments, velocity: THREE.Vector3 }[] = [];
+    public baseMaterial: THREE.LineBasicMaterial;
+    public topMaterial: THREE.LineBasicMaterial;
   
     // Targetable interface implementation
     public get isExploded(): boolean {
@@ -90,24 +90,26 @@ export class Tower extends Entity implements Targetable {
       const topHeight = towerHeight * 0.2;
   
       // Base
-      const baseGeo = new THREE.BoxGeometry(towerWidth, baseHeight, towerWidth);
-      this.baseMaterial = new THREE.MeshBasicMaterial({ 
-        color: towerColor,
-        wireframe: true 
+      const tempBaseGeo = new THREE.BoxGeometry(towerWidth, baseHeight, towerWidth);
+      const baseGeo = new THREE.EdgesGeometry(tempBaseGeo);
+      tempBaseGeo.dispose();
+      this.baseMaterial = new THREE.LineBasicMaterial({ 
+        color: towerColor
       });
-      const base = new THREE.Mesh(baseGeo, this.baseMaterial);
+      const base = new THREE.LineSegments(baseGeo, this.baseMaterial);
       base.name = 'debris';
       base.position.y = baseHeight / 2;
       this.mesh.add(base);
       this.debris.push({ mesh: base, velocity: new THREE.Vector3() });
   
       // Top
-      const topGeo = new THREE.BoxGeometry(towerWidth * 0.8, topHeight, towerWidth * 0.8);
-      this.topMaterial = new THREE.MeshBasicMaterial({ 
-        color: towerTopColor,
-        wireframe: true 
+      const tempTopGeo = new THREE.BoxGeometry(towerWidth * 0.8, topHeight, towerWidth * 0.8);
+      const topGeo = new THREE.EdgesGeometry(tempTopGeo);
+      tempTopGeo.dispose();
+      this.topMaterial = new THREE.LineBasicMaterial({ 
+        color: towerTopColor
       });
-      this.topMesh = new THREE.Mesh(topGeo, this.topMaterial);
+      this.topMesh = new THREE.LineSegments(topGeo, this.topMaterial);
       this.topMesh.name = 'debris';
       this.topMesh.position.y = baseHeight + topHeight / 2;
       this.mesh.add(this.topMesh);
@@ -153,7 +155,7 @@ export class Tower extends Entity implements Targetable {
 
   dispose(): void {
     this.mesh.traverse(child => {
-      if (child instanceof THREE.Mesh) {
+      if (child instanceof THREE.LineSegments) {
         child.geometry.dispose();
       }
     });

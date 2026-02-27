@@ -121,7 +121,14 @@ vi.mock('three', async () => {
         dispose() {} 
         clone() { return this; } 
     },
-    LineBasicMaterial: class { dispose() {} },
+    LineBasicMaterial: class { 
+        constructor(params) { 
+            this.color = { setHex: () => {}, getHex: () => 0 }; 
+            if (params && params.color) this.color.getHex = () => params.color;
+        } 
+        dispose() {} 
+        clone() { return this; } 
+    },
     BufferGeometry: class { 
         constructor() { this.attributes = {}; }
         setFromPoints() { return this; } 
@@ -133,8 +140,11 @@ vi.mock('three', async () => {
     LineSegments: class { 
         constructor(geo, mat) { 
             this.position = new MockVector3(); 
+            this.rotation = { x: 0, y: 0, z: 0 }; 
+            this.quaternion = new MockQuaternion();
             this.geometry = geo || { dispose: () => {}, setAttribute: () => {}, computeBoundingSphere: () => {} }; 
             this.material = mat || { dispose: () => {} };
+            this.scale = { setScalar: () => {}, x: 1, y: 1, z: 1 };
         }
     },
     Float32BufferAttribute: class {},

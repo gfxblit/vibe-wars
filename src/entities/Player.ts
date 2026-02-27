@@ -11,7 +11,7 @@ export interface PlayerUpdateOptions {
 
 export class Player extends Entity {
   public readonly mesh: THREE.Group;
-  private readonly visualMesh: THREE.LineSegments;
+  public readonly visualMesh: THREE.LineSegments;
 
   public get position(): THREE.Vector3 {
     return this.mesh.position;
@@ -27,6 +27,7 @@ export class Player extends Entity {
       GameConfig.player.meshSize
     );
     const edges = new THREE.EdgesGeometry(geometry);
+    geometry.dispose();
     const material = new THREE.LineBasicMaterial({ color: GameConfig.player.meshColor });
     this.visualMesh = new THREE.LineSegments(edges, material);
     this.visualMesh.visible = false;

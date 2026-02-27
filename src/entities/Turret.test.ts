@@ -72,11 +72,14 @@ describe('Turret Entity', () => {
   it('should change color to orange when exploded', () => {
     turret.explode();
     
+    let found = false;
     turret.mesh.traverse(child => {
-      if (child instanceof THREE.Mesh && child.material instanceof THREE.MeshBasicMaterial) {
+      if (child instanceof THREE.LineSegments && child.material instanceof THREE.LineBasicMaterial) {
         expect(child.material.color.getHex()).toBe(0xffa500); // Orange
+        found = true;
       }
     });
+    expect(found).toBe(true);
 
     // Calling explode again should not change anything
     turret.explode();
@@ -144,10 +147,11 @@ describe('Turret Entity', () => {
     // Create a spy for geometry dispose
     const geometries: THREE.BufferGeometry[] = [];
     turret.mesh.traverse(child => {
-      if (child instanceof THREE.Mesh) {
+      if (child instanceof THREE.LineSegments) {
         geometries.push(child.geometry);
       }
     });
+    expect(geometries.length).toBeGreaterThan(0);
     const geoSpies = geometries.map(geo => vi.spyOn(geo, 'dispose'));
 
     turret.dispose();

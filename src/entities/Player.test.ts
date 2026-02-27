@@ -69,8 +69,7 @@ describe('Player', () => {
 
   it('update should bank the visual mesh based on input x', () => {
     player.update({ x: 1, y: 0, isFiring: false }, 0.1, GameConfig.player.baseForwardSpeed);
-    // @ts-ignore - access private visualMesh via property if needed or check rotation.z
-    expect(player.mesh.children[0].rotation.z).toBeLessThan(0);
+    expect(player.visualMesh.rotation.z).toBeLessThan(0);
   })
 
   it('update should rotate the player mesh based on input y', () => {
@@ -108,8 +107,7 @@ describe('Player', () => {
   })
 
   it('should toggle chassis visibility', () => {
-    // @ts-ignore - access private visualMesh
-    const visualMesh = player.mesh.children[0];
+    const visualMesh = player.visualMesh;
 
     // Default should be NOT visible
     expect(visualMesh.visible).toBe(false);

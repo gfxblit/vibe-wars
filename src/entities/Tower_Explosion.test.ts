@@ -25,8 +25,8 @@ describe('Tower Explosion', () => {
     tower.explode();
     
     tower.mesh.traverse((child) => {
-      if (child instanceof THREE.Mesh) {
-        const material = child.material as THREE.MeshBasicMaterial;
+      if (child instanceof THREE.LineSegments) {
+        const material = child.material as THREE.LineBasicMaterial;
         expect(material.color.getHex()).toBe(GameConfig.stages.surface.towerExplosionColor);
       }
     });
@@ -34,7 +34,7 @@ describe('Tower Explosion', () => {
 
   it('should only explode intended debris, not all children', () => {
     // Add a "non-debris" child, like a debug helper or nested mesh
-    const nonDebris = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1));
+    const nonDebris = new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(1, 1, 1)));
     nonDebris.name = 'non-debris';
     const initialPos = nonDebris.position.clone();
     tower.mesh.add(nonDebris);
@@ -54,7 +54,7 @@ describe('Tower Explosion', () => {
     const randomMock = vi.spyOn(Math, 'random').mockReturnValue(0.7);
 
     // Access private debris for testing
-    const debris = (tower as any).debris as { mesh: THREE.Mesh, velocity: THREE.Vector3 }[];
+    const debris = (tower as any).debris as { mesh: THREE.LineSegments, velocity: THREE.Vector3 }[];
 
     const initialStates = debris.map(item => ({
       position: item.mesh.position.clone(),
@@ -101,7 +101,7 @@ describe('Tower Explosion', () => {
     tower.explode();
     
     tower.mesh.traverse((child) => {
-      if (child instanceof THREE.Mesh) {
+      if (child instanceof THREE.LineSegments) {
         expect(child.visible).toBe(true);
       }
     });
@@ -178,8 +178,8 @@ describe('Tower Explosion', () => {
   });
 
   it('should dispose resources correctly', () => {
-    const disposeSpy = vi.spyOn(THREE.MeshBasicMaterial.prototype, 'dispose');
-    const geoDisposeSpy = vi.spyOn(THREE.BoxGeometry.prototype, 'dispose');
+    const disposeSpy = vi.spyOn(THREE.LineBasicMaterial.prototype, 'dispose');
+    const geoDisposeSpy = vi.spyOn(THREE.EdgesGeometry.prototype, 'dispose');
     
     tower.dispose();
     

@@ -14,9 +14,9 @@ export class TieFighter extends Entity implements Targetable {
   private pieceVelocities: THREE.Vector3[] = [];
   private baseSize: number;
 
-  private static material: THREE.MeshBasicMaterial;
-  private static bodyGeo: THREE.SphereGeometry;
-  private static wingGeo: THREE.PlaneGeometry;
+  private static material: THREE.LineBasicMaterial;
+  public static bodyGeo: THREE.EdgesGeometry;
+  public static wingGeo: THREE.EdgesGeometry;
 
   private fireCooldown: number = Math.random() * GameConfig.fireball.fireRate;
 
@@ -39,33 +39,36 @@ export class TieFighter extends Entity implements Targetable {
     const size = 1.0;
 
     if (!TieFighter.material) {
-      TieFighter.material = new THREE.MeshBasicMaterial({
-        color: GameConfig.tieFighter.meshColor,
-        wireframe: true
+      TieFighter.material = new THREE.LineBasicMaterial({
+        color: GameConfig.tieFighter.meshColor
       });
     }
 
     if (!TieFighter.bodyGeo) {
-      TieFighter.bodyGeo = new THREE.SphereGeometry(size / 3, 8, 8);
+      const tempBodyGeo = new THREE.SphereGeometry(size / 3, 8, 8);
+      TieFighter.bodyGeo = new THREE.EdgesGeometry(tempBodyGeo);
+      tempBodyGeo.dispose();
     }
 
     if (!TieFighter.wingGeo) {
-      TieFighter.wingGeo = new THREE.PlaneGeometry(size, size);
+      const tempWingGeo = new THREE.PlaneGeometry(size, size);
+      TieFighter.wingGeo = new THREE.EdgesGeometry(tempWingGeo);
+      tempWingGeo.dispose();
     }
 
-    // Body (Sphere)
+    // Body
     const bodyMaterial = TieFighter.material.clone();
-    const body = new THREE.Mesh(TieFighter.bodyGeo, bodyMaterial);
+    const body = new THREE.LineSegments(TieFighter.bodyGeo, bodyMaterial);
     this.mesh.add(body);
 
-    // Left Wing (Plane)
-    const leftWing = new THREE.Mesh(TieFighter.wingGeo, bodyMaterial);
+    // Left Wing
+    const leftWing = new THREE.LineSegments(TieFighter.wingGeo, bodyMaterial);
     leftWing.position.set(-size * 0.8, 0, 0);
     leftWing.rotation.y = Math.PI / 2;
     this.mesh.add(leftWing);
 
-    // Right Wing (Plane)
-    const rightWing = new THREE.Mesh(TieFighter.wingGeo, bodyMaterial);
+    // Right Wing
+    const rightWing = new THREE.LineSegments(TieFighter.wingGeo, bodyMaterial);
     rightWing.position.set(size * 0.8, 0, 0);
     rightWing.rotation.y = Math.PI / 2;
     this.mesh.add(rightWing);
@@ -146,7 +149,7 @@ export class TieFighter extends Entity implements Targetable {
     }
 
     this.mesh.children.forEach(child => {
-      if (child instanceof THREE.Mesh && child.material instanceof THREE.MeshBasicMaterial) {
+      if (child instanceof THREE.LineSegments && child.material instanceof THREE.LineBasicMaterial) {
         if (child.material.color.getHex() !== targetColor) {
           child.material.color.setHex(targetColor!);
         }
@@ -177,7 +180,7 @@ export class TieFighter extends Entity implements Targetable {
 
   public dispose(): void {
     this.mesh.traverse(child => {
-      if (child instanceof THREE.Mesh) {
+      if (child instanceof THREE.LineSegments) {
         if (child.material instanceof THREE.Material) {
           child.material.dispose();
         }
