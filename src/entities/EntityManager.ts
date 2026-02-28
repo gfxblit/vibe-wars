@@ -314,6 +314,19 @@ export class EntityManager {
     return [...this.tieFighters, ...this.additionalTargets];
   }
 
+  /**
+   * Iterates over all current targets without allocating intermediate arrays,
+   * avoiding garbage collection pressure in hot paths.
+   */
+  public forEachTarget(callback: (target: Targetable) => void): void {
+    for (const tf of this.tieFighters) {
+      callback(tf);
+    }
+    for (const target of this.additionalTargets) {
+      callback(target);
+    }
+  }
+
   public removeTarget(target: Targetable): void {
     const index = this.additionalTargets.indexOf(target);
     if (index !== -1) {
