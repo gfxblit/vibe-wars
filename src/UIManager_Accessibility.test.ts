@@ -54,6 +54,26 @@ describe('UIManager Accessibility', () => {
     expect(fireballSizeInput?.getAttribute('aria-label')).toBe('Fireball Size');
   });
 
+  it('should include focus styles on interactive elements for keyboard navigability', () => {
+    // Buttons
+    const aiToggle = document.getElementById('ai-mode-toggle');
+    expect(aiToggle?.className).toContain('focus:outline-none');
+    expect(aiToggle?.className).toContain('focus:ring-2');
+    expect(aiToggle?.className).toContain('focus:ring-vector-green');
+
+    // Minimize toggle
+    const minimizeToggle = document.getElementById('debug-minimize-toggle');
+    expect(minimizeToggle?.className).toContain('focus:outline-none');
+    expect(minimizeToggle?.className).toContain('focus:ring-2');
+    expect(minimizeToggle?.className).toContain('focus:ring-vector-green');
+
+    // Inputs
+    const killsInput = document.getElementById('debug-kills-input');
+    expect(killsInput?.className).toContain('focus:outline-none');
+    expect(killsInput?.className).toContain('focus:ring-2');
+    expect(killsInput?.className).toContain('focus:ring-vector-green');
+  });
+
   it('should have aria-pressed on toggle buttons reflecting state', () => {
     // AI Toggle
     const aiToggle = document.getElementById('ai-mode-toggle');
