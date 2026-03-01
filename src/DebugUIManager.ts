@@ -2,7 +2,7 @@ import { GameState, state, setStage } from './state';
 import { GameConfig } from './config';
 
 export class DebugUIManager {
-  private static readonly BUTTON_CLASSES = 'px-2 py-1 border border-vector-green hover:bg-vector-green hover:text-black transition-colors font-retro text-[9px]';
+  private static readonly BUTTON_CLASSES = 'px-2 py-1 border border-vector-green hover:bg-vector-green hover:text-black transition-colors font-retro text-[9px] focus:outline-none focus:ring-2 focus:ring-vector-green focus:ring-offset-1 focus:ring-offset-black';
 
   private debugPanel?: HTMLElement;
   private tieFighterCountValue?: HTMLElement;
@@ -122,7 +122,7 @@ export class DebugUIManager {
     const title = this.createEl('div', '', header);
     title.textContent = 'DEBUG CONSOLE';
 
-    const toggleBtn = this.createEl('button', 'ml-4 hover:text-white transition-colors font-retro', header);
+    const toggleBtn = this.createEl('button', 'ml-4 hover:text-white transition-colors font-retro focus:outline-none focus:ring-2 focus:ring-vector-green focus:ring-offset-1 focus:ring-offset-black', header);
     toggleBtn.id = 'debug-minimize-toggle';
     toggleBtn.textContent = '[-]';
     toggleBtn.setAttribute('aria-label', 'Minimize Debug Console');
@@ -194,7 +194,7 @@ export class DebugUIManager {
 
   private createLabeledInput(label: string, id: string, type: string, value: string, placeholder: string, onChange: (e: Event) => void, parent: HTMLElement, ariaLabel?: string) {
     const row = this.createDebugRow(label, parent);
-    const input = this.createEl('input', 'w-24 bg-black text-vector-green border border-vector-green px-2 py-1 text-right', row) as HTMLInputElement;
+    const input = this.createEl('input', 'w-24 bg-black text-vector-green border border-vector-green px-2 py-1 text-right focus:outline-none focus:ring-2 focus:ring-vector-green', row) as HTMLInputElement;
     input.id = id;
     
     let effectiveAriaLabel = label;
