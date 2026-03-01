@@ -44,8 +44,8 @@ abstract class BaseCombatStrategy implements CombatStrategy {
     
     camera.getWorldPosition(this.scratchCameraPos);
 
-    for (const target of state.entityManager.getTargets()) {
-      if (target.isExploded) continue;
+    state.entityManager.forEachTarget((target) => {
+      if (target.isExploded) return;
 
       // Check all possible target points if the entity provides them, otherwise use base world position
       const targetPoints = target.getTargetPositions ? 
@@ -69,12 +69,12 @@ abstract class BaseCombatStrategy implements CombatStrategy {
         closestDist = hitDist;
         closestTarget = target;
       }
-    }
+    });
 
     // Only explode the single closest target that was aimed at
     if (closestTarget) {
-      closestTarget.explode();
-      addScore(closestTarget.getScore());
+      (closestTarget as Targetable).explode();
+      addScore((closestTarget as Targetable).getScore());
       addKill();
     }
   }
