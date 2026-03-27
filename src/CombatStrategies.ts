@@ -39,13 +39,16 @@ abstract class BaseCombatStrategy implements CombatStrategy {
   protected checkTargets(input: UserInput, camera: THREE.Camera) {
     if (!state.entityManager) return;
 
-    let closestTarget: Targetable | null = null;
-    let closestDist = Infinity;
+    // Use a mutable object to capture results in the callback, satisfying TS control flow analysis
+    const result = {
+      closestTarget: null as Targetable | null,
+      closestDist: Infinity
+    };
     
     camera.getWorldPosition(this.scratchCameraPos);
 
-    for (const target of state.entityManager.getTargets()) {
-      if (target.isExploded) continue;
+    state.entityManager.forEachTarget((target) => {
+      if (target.isExploded) return;
 
       // Check all possible target points if the entity provides them, otherwise use base world position
       const targetPoints = target.getTargetPositions ? 
@@ -65,16 +68,16 @@ abstract class BaseCombatStrategy implements CombatStrategy {
         }
       }
 
-      if (isHit && hitDist < closestDist && hitDist < this.config.maxRange) {
-        closestDist = hitDist;
-        closestTarget = target;
+      if (isHit && hitDist < result.closestDist && hitDist < this.config.maxRange) {
+        result.closestDist = hitDist;
+        result.closestTarget = target;
       }
-    }
+    });
 
     // Only explode the single closest target that was aimed at
-    if (closestTarget) {
-      closestTarget.explode();
-      addScore(closestTarget.getScore());
+    if (result.closestTarget) {
+      result.closestTarget.explode();
+      addScore(result.closestTarget.getScore());
       addKill();
     }
   }
