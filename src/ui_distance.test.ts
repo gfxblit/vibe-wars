@@ -19,6 +19,7 @@ describe('UIManager - Distance Countdown', () => {
       kills: 0,
       wave: 1,
       stage: 'TRENCH',
+      isGameStarted: true,
       isGameOver: false,
       player: {
         position: new THREE.Vector3(0, 0, 0)

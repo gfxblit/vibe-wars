@@ -16,6 +16,7 @@ describe('UIManager Instructions', () => {
       kills: 0,
       wave: 1,
       stage: 'DOGFIGHT',
+      isGameStarted: true,
       isGameOver: false,
       player: null,
       entityManager: null,

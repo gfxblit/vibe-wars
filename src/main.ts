@@ -68,7 +68,9 @@ function animate(time: number) {
   inputManager.update(deltaTime)
   const input = inputManager.getInput()
 
-  gameSystem.update(deltaTime, input)
+  if (state.isGameStarted) {
+    gameSystem.update(deltaTime, input)
+  }
 
   cursor.update(input)
   uiManager.update(state)
