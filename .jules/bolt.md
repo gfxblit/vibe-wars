@@ -1,0 +1,3 @@
+## 2024-05-22 - [Vector and Material Allocation in High-Frequency Entities]
+**Learning:** High-frequency entities like `Laser` were allocating new `THREE.PlaneGeometry` and `THREE.MeshBasicMaterial` for every instance, along with multiple `THREE.Vector2` allocations per frame for position updates. In THREE.js, geometries and materials should be shared across identical instances to reduce draw calls (if instanced) or at least reduce memory pressure and GC overhead.
+**Action:** For projectile entities, always implement static caching for Geometry and Material. Avoid `new THREE.Vector2()` in `update()` loops; use static scratch vectors or manual scalar math for simple linear interpolations.

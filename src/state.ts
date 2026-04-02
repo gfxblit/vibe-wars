@@ -212,10 +212,7 @@ export function spawnLasers(input: Pick<UserInput, 'x' | 'y'>): Laser[] {
     state.gunColorToggles[index] = !useAltColor; // Flip for next shot from this gun
 
     const offset = GameConfig.laser.offsets[index];
-    const origin2D = new THREE.Vector2(offset.x, offset.y);
-    const target2D = new THREE.Vector2(input.x, input.y);
-
-    const laser = state.entityManager!.spawnLaser(origin2D, target2D, color);
+    const laser = state.entityManager!.spawnLaser(offset.x, offset.y, input.x, input.y, color);
     newLasers.push(laser);
   });
 
